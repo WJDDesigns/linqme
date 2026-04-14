@@ -18,7 +18,7 @@ export default async function SubmissionsListPage() {
     .from("submissions")
     .select(
       `id, status, client_name, client_email, submitted_at, created_at,
-       partners ( id, name, slug, primary_color )`,
+       partners ( id, name, slug, primary_color, logo_url )`,
     )
     .order("created_at", { ascending: false })
     .limit(100);
@@ -63,12 +63,19 @@ export default async function SubmissionsListPage() {
                       <p className="text-xs text-on-surface-variant/60">{s.client_email || "no email yet"}</p>
                     </div>
                     <div className="col-span-3 flex items-center gap-2">
-                      <div
-                        className="w-6 h-6 rounded flex items-center justify-center text-on-primary text-[10px] font-bold"
-                        style={{ backgroundColor: partner?.primary_color || "#696cf8" }}
-                      >
-                        {partner?.name?.slice(0, 1).toUpperCase() ?? "?"}
-                      </div>
+                      {partner?.logo_url ? (
+                        <div className="w-6 h-6 rounded overflow-hidden flex items-center justify-center">
+                          {/* eslint-disable-next-line @next/next/no-img-element */}
+                          <img src={partner.logo_url} alt="" className="w-full h-full object-contain" />
+                        </div>
+                      ) : (
+                        <div
+                          className="w-6 h-6 rounded flex items-center justify-center text-on-primary text-[10px] font-bold"
+                          style={{ backgroundColor: partner?.primary_color || "#696cf8" }}
+                        >
+                          {partner?.name?.slice(0, 1).toUpperCase() ?? "?"}
+                        </div>
+                      )}
                       <span className="text-sm text-on-surface">{partner?.name ?? "\u2014"}</span>
                     </div>
                     <div className="col-span-2">

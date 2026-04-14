@@ -43,12 +43,19 @@ export default async function PartnersListPage() {
               {partners.map((p) => (
                 <div key={p.id} className="grid grid-cols-12 px-8 py-5 items-center hover:bg-white/[0.02] transition-colors group">
                   <div className="col-span-4 flex items-center gap-3">
-                    <div
-                      className="w-8 h-8 rounded-lg flex items-center justify-center text-on-primary text-xs font-bold"
-                      style={{ backgroundColor: p.primary_color || "#696cf8" }}
-                    >
-                      {p.name.slice(0, 1).toUpperCase()}
-                    </div>
+                    {p.logo_url ? (
+                      <div className="w-8 h-8 rounded-lg overflow-hidden flex items-center justify-center">
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img src={p.logo_url} alt="" className="w-full h-full object-contain" />
+                      </div>
+                    ) : (
+                      <div
+                        className="w-8 h-8 rounded-lg flex items-center justify-center text-on-primary text-xs font-bold"
+                        style={{ backgroundColor: p.primary_color || "#696cf8" }}
+                      >
+                        {p.name.slice(0, 1).toUpperCase()}
+                      </div>
+                    )}
                     <span className="font-semibold text-on-surface group-hover:text-primary transition-colors">{p.name}</span>
                   </div>
                   <div className="col-span-3 font-mono text-xs text-on-surface-variant">{p.slug}</div>

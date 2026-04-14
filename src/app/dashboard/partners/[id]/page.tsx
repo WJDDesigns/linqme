@@ -7,7 +7,7 @@ import LogoUploadForm from "./LogoUploadForm";
 import DeletePartnerButton from "./DeletePartnerButton";
 import DomainSetup from "./DomainSetup";
 import WhiteLabelSection from "./WhiteLabelSection";
-import { updatePartnerAction, uploadLogoAction, deletePartnerAction } from "./actions";
+import { updatePartnerAction, updateWhiteLabelAction, uploadLogoAction, deletePartnerAction } from "./actions";
 
 const INPUT_CLS =
   "block w-full px-4 py-3 text-sm bg-surface-container-lowest border-0 rounded-xl text-on-surface placeholder:text-on-surface-variant/40 focus:ring-1 focus:ring-primary/40 outline-none transition-all duration-200";
@@ -42,6 +42,7 @@ export default async function PartnerDetailPage({ params }: PageProps) {
 
   const rootHost = (process.env.NEXT_PUBLIC_ROOT_DOMAIN ?? "mysitelaunch.com").replace(/:\d+$/, "");
   const boundUpdate = updatePartnerAction.bind(null, id);
+  const boundWhiteLabel = updateWhiteLabelAction.bind(null, id);
   const boundUpload = uploadLogoAction.bind(null, id);
   const storefrontHost = partner.custom_domain || `${partner.slug}.${rootHost}`;
 
@@ -53,17 +54,19 @@ export default async function PartnerDetailPage({ params }: PageProps) {
         </Link>
         <div className="mt-2 flex items-center justify-between gap-4">
           <div className="flex items-center gap-3">
-            <div
-              className="w-10 h-10 rounded-lg flex items-center justify-center text-on-primary text-sm font-bold overflow-hidden"
-              style={{ backgroundColor: partner.primary_color || "#696cf8" }}
-            >
-              {partner.logo_url ? (
-                // eslint-disable-next-line @next/next/no-img-element
+            {partner.logo_url ? (
+              <div className="w-10 h-10 rounded-lg overflow-hidden flex items-center justify-center">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img src={partner.logo_url} alt="" className="w-full h-full object-contain" />
-              ) : (
-                partner.name.slice(0, 1).toUpperCase()
-              )}
-            </div>
+              </div>
+            ) : (
+              <div
+                className="w-10 h-10 rounded-lg flex items-center justify-center text-on-primary text-sm font-bold"
+                style={{ backgroundColor: partner.primary_color || "#696cf8" }}
+              >
+                {partner.name.slice(0, 1).toUpperCase()}
+              </div>
+            )}
             <div>
               <h1 className="text-3xl font-extrabold font-headline tracking-tight text-on-surface">{partner.name}</h1>
               <p className="text-xs text-on-surface-variant font-mono mt-0.5">{storefrontHost}</p>
@@ -200,7 +203,7 @@ export default async function PartnerDetailPage({ params }: PageProps) {
       )}
 
       {/* White-label branding */}
-      <WhiteLabelSection partner={partner} canEdit={canEdit} updateAction={boundUpdate} />
+      <WhiteLabelSection partner={partner} canEdit={canEdit} updateAction={boundWhiteLabel} />
 
       {/* Danger zone */}
       {canEdit && (

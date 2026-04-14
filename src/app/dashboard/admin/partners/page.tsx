@@ -141,17 +141,19 @@ export default async function AdminPartnersPage({ searchParams }: PageProps) {
                 href={`/dashboard/partners/${p.id}`}
                 className="flex items-center gap-4 px-6 py-4 hover:bg-on-surface/[0.02] transition-colors"
               >
-                <div
-                  className="w-10 h-10 rounded-lg flex items-center justify-center text-on-primary text-sm font-bold overflow-hidden shrink-0"
-                  style={{ backgroundColor: p.primary_color || "#696cf8" }}
-                >
-                  {p.logo_url ? (
-                    // eslint-disable-next-line @next/next/no-img-element
+                {p.logo_url ? (
+                  <div className="w-10 h-10 rounded-lg overflow-hidden flex items-center justify-center shrink-0">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img src={p.logo_url} alt="" className="w-full h-full object-contain" />
-                  ) : (
-                    p.name.slice(0, 1).toUpperCase()
-                  )}
-                </div>
+                  </div>
+                ) : (
+                  <div
+                    className="w-10 h-10 rounded-lg flex items-center justify-center text-on-primary text-sm font-bold shrink-0"
+                    style={{ backgroundColor: p.primary_color || "#696cf8" }}
+                  >
+                    {p.name.slice(0, 1).toUpperCase()}
+                  </div>
+                )}
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2">
                     <p className="text-sm font-bold text-on-surface truncate">{p.name}</p>
