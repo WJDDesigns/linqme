@@ -10,6 +10,8 @@ interface Props {
   initialData: Record<string, unknown>;
   initialFiles: Record<string, UploadedFile[]>;
   primaryColor: string;
+  partnerName: string;
+  partnerLogoUrl: string | null;
   saveStep: (
     stepId: string,
     formData: FormData,
@@ -53,12 +55,13 @@ const INPUT_CLS =
   "block w-full px-4 py-3 text-base bg-surface-container-lowest border-0 rounded-xl text-on-surface placeholder:text-on-surface-variant/40 focus:ring-1 outline-none transition-all duration-200";
 
 
-
 export default function SubmissionForm({
   schema, initialData, initialFiles, primaryColor,
+  partnerName, partnerLogoUrl,
   saveStep, submit, uploadFile, deleteFile,
 }: Props) {
   const [stepIdx, setStepIdx] = useState(0);
+  const [completedSteps, setCompletedSteps] = useState<Set<number>>(new Set());
   const [data, setData] = useState<Record<string, unknown>>(initialData);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [pending, startTransition] = useTransition();
@@ -71,7 +74,8 @@ export default function SubmissionForm({
 
   const step = schema.steps[stepIdx];
   const isLast = stepIdx === schema.steps.length - 1;
-  const progress = ((stepIdx + 1) / schema.steps.length) * 100;
+  const progress = ((stepIdx) / schema.steps.length) * 100;
+  const lightBg = isLightColor(primaryColor);
 
   useEffect(() => {
     if (transitioning) return;
@@ -100,6 +104,8 @@ export default function SubmissionForm({
       const res = await saveStep(step.id, fd);
       if (res.errors) { setErrors(res.errors); return; }
       setErrors({});
+      // Mark step completed
+      setCompletedSteps((prev) => new Set(prev).add(stepIdx));
       if (res.done) {
         startSubmit(async () => { await submit(); setShowDone(true); });
       } else if (res.nextStepId) {
@@ -107,6 +113,13 @@ export default function SubmissionForm({
         if (nextIdx >= 0) animateTransition(() => setStepIdx(nextIdx));
       }
     });
+  }
+
+  function goToStep(idx: number) {
+    if (idx === stepIdx) return;
+    // Only allow navigating to completed steps
+    if (!completedSteps.has(idx)) return;
+    animateTransition(() => setStepIdx(idx));
   }
 
   /* Done screen */
@@ -125,48 +138,201 @@ export default function SubmissionForm({
   }
 
   return (
-    <div className="flex flex-col" ref={containerRef}>
-      {/* Progress bar */}
-      <div className="sticky top-[76px] z-10 bg-background/80 backdrop-blur-sm">
-        <div className="h-1 w-full bg-surface-container-highest">
-          <div
-            className="h-full transition-all duration-700 ease-out rounded-r-full"
-            style={{ width: `${progress}%`, backgroundColor: primaryColor, boxShadow: `0 0 15px ${primaryColor}66` }}
-          />
-        </div>
-        <div className="max-w-4xl mx-auto px-6 py-3 flex items-center justify-between">
-          <div>
-            <span className="text-sm font-semibold uppercase tracking-widest" style={{ color: primaryColor }}>
-              Step {stepIdx + 1} of {schema.steps.length}
-            </span>
-            <p className="text-xs text-on-surface-variant/60 mt-0.5">{step.title}</p>
+    <div className="flex flex-col md:flex-row min-h-screen" ref={containerRef}>
+      {/* ── Desktop Sidebar ── */}
+      <aside className="hidden md:flex flex-col w-[300px] lg:w-[340px] shrink-0 border-r border-outline-variant/15 bg-surface-container/50 sticky top-0 h-screen overflow-y-auto">
+        {/* Partner branding */}
+        <div className="px-6 pt-8 pb-6 border-b border-outline-variant/10">
+          <div className="flex items-center gap-3">
+            {partnerLogoUrl ? (
+              <div className="h-10 rounded-xl flex items-center justify-center">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src={partnerLogoUrl} alt={partnerName} className="h-8 w-auto object-contain" />
+              </div>
+            ) : (
+              <div
+                className="w-10 h-10 rounded-xl flex items-center justify-center"
+                style={{ backgroundColor: primaryColor }}
+              >
+                <span className="font-bold text-lg" style={{ color: lightBg ? "#1a1c25" : "#ffffff" }}>
+                  {partnerName.slice(0, 1).toUpperCase()}
+                </span>
+              </div>
+            )}
+            <span className="text-base font-bold text-on-surface font-headline tracking-tight">{partnerName}</span>
           </div>
-          <span className="text-2xl font-headline font-bold text-on-surface">{Math.round(progress)}%</span>
+        </div>
+
+        {/* Progress bar */}
+        <div className="px-6 pt-5">
+          <div className="flex items-center justify-between mb-2">
+            <span className="text-[10px] font-bold uppercase tracking-widest text-on-surface-variant/60">Progress</span>
+            <span className="text-xs font-bold font-headline" style={{ color: primaryColor }}>{Math.round(((completedSteps.size) / schema.steps.length) * 100)}%</span>
+          </div>
+          <div className="h-1.5 w-full bg-surface-container-highest rounded-full overflow-hidden">
+            <div
+              className="h-full transition-all duration-700 ease-out rounded-full"
+              style={{
+                width: `${(completedSteps.size / schema.steps.length) * 100}%`,
+                backgroundColor: primaryColor,
+              }}
+            />
+          </div>
+        </div>
+
+        {/* Step list */}
+        <nav className="flex-1 px-4 py-4 space-y-1">
+          {schema.steps.map((s, i) => {
+            const isCurrent = i === stepIdx;
+            const isCompleted = completedSteps.has(i);
+            return (
+              <button
+                key={s.id}
+                type="button"
+                onClick={() => goToStep(i)}
+                disabled={!isCompleted && !isCurrent}
+                className={`w-full flex items-center gap-3 px-3 py-3 rounded-xl text-left transition-all duration-200 group ${
+                  isCurrent
+                    ? "bg-surface-container-high"
+                    : isCompleted
+                    ? "hover:bg-surface-container-high/60 cursor-pointer"
+                    : "opacity-50 cursor-default"
+                }`}
+              >
+                {/* Step indicator */}
+                <div
+                  className={`w-8 h-8 rounded-full flex items-center justify-center shrink-0 transition-all duration-300 ${
+                    isCompleted
+                      ? ""
+                      : isCurrent
+                      ? "ring-2 ring-offset-2 ring-offset-surface-container/50"
+                      : "bg-surface-container-highest"
+                  }`}
+                  style={
+                    isCompleted
+                      ? { backgroundColor: primaryColor }
+                      : isCurrent
+                      ? { backgroundColor: primaryColor + "18", "--tw-ring-color": primaryColor } as React.CSSProperties
+                      : undefined
+                  }
+                >
+                  {isCompleted ? (
+                    <i className="fa-solid fa-check text-xs" style={{ color: lightBg ? "#1a1c25" : "#ffffff" }} />
+                  ) : (
+                    <span
+                      className={`text-xs font-bold ${isCurrent ? "" : "text-on-surface-variant/60"}`}
+                      style={isCurrent ? { color: primaryColor } : undefined}
+                    >
+                      {i + 1}
+                    </span>
+                  )}
+                </div>
+
+                {/* Step title */}
+                <div className="min-w-0 flex-1">
+                  <span
+                    className={`text-sm font-medium block truncate ${
+                      isCurrent
+                        ? "text-on-surface font-semibold"
+                        : isCompleted
+                        ? "text-on-surface-variant"
+                        : "text-on-surface-variant/60"
+                    }`}
+                  >
+                    {s.title}
+                  </span>
+                </div>
+
+                {/* Active indicator */}
+                {isCurrent && (
+                  <div className="w-1.5 h-1.5 rounded-full shrink-0" style={{ backgroundColor: primaryColor }} />
+                )}
+              </button>
+            );
+          })}
+        </nav>
+
+        {/* Sidebar footer */}
+        <div className="px-6 py-4 border-t border-outline-variant/10">
+          <p className="text-[10px] text-on-surface-variant/40 uppercase tracking-widest">
+            Step {stepIdx + 1} of {schema.steps.length}
+          </p>
+        </div>
+      </aside>
+
+      {/* ── Mobile Top Bar ── */}
+      <div className="md:hidden sticky top-0 z-30 bg-background/90 backdrop-blur-xl border-b border-outline-variant/15">
+        {/* Partner row */}
+        <div className="flex items-center justify-between px-4 pt-4 pb-2">
+          <div className="flex items-center gap-2.5 min-w-0">
+            {partnerLogoUrl ? (
+              <div className="h-8 flex items-center justify-center shrink-0">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src={partnerLogoUrl} alt={partnerName} className="h-6 w-auto object-contain" />
+              </div>
+            ) : (
+              <div
+                className="w-8 h-8 rounded-lg flex items-center justify-center shrink-0"
+                style={{ backgroundColor: primaryColor }}
+              >
+                <span className="font-bold text-sm" style={{ color: lightBg ? "#1a1c25" : "#ffffff" }}>
+                  {partnerName.slice(0, 1).toUpperCase()}
+                </span>
+              </div>
+            )}
+            <span className="text-sm font-bold text-on-surface font-headline truncate">{partnerName}</span>
+          </div>
+          <span className="text-xs font-bold font-headline shrink-0 ml-2" style={{ color: primaryColor }}>
+            {stepIdx + 1}/{schema.steps.length}
+          </span>
+        </div>
+
+        {/* Step dots */}
+        <div className="flex items-center gap-1.5 px-4 pb-3">
+          {schema.steps.map((_, i) => {
+            const isCompleted = completedSteps.has(i);
+            const isCurrent = i === stepIdx;
+            return (
+              <div
+                key={i}
+                className="h-1.5 rounded-full transition-all duration-500"
+                style={{
+                  flex: isCurrent ? 3 : 1,
+                  backgroundColor: isCompleted
+                    ? primaryColor
+                    : isCurrent
+                    ? primaryColor
+                    : "var(--color-surface-container-highest, rgba(255,255,255,0.1))",
+                  opacity: isCompleted || isCurrent ? 1 : 0.4,
+                }}
+              />
+            );
+          })}
         </div>
       </div>
 
-      {/* Content */}
-      <div className="flex-1 flex items-start justify-center px-6 py-8 md:py-14">
-        <div className={`w-full max-w-4xl ${transitioning ? "sl-fade-out" : "sl-fade-in"}`}>
-          {/* Header */}
-          <div className="mb-10">
+      {/* ── Main Content ── */}
+      <main className="flex-1 min-w-0">
+        <div className="max-w-3xl mx-auto px-5 md:px-10 py-8 md:py-14">
+          {/* Step header */}
+          <div className={`mb-8 md:mb-10 ${transitioning ? "sl-fade-out" : "sl-fade-in"}`}>
             {stepIdx > 0 && (
               <p className="text-sm font-medium mb-2 sl-fade-up" style={{ color: primaryColor }}>
                 {GREETINGS[stepIdx % GREETINGS.length]}
               </p>
             )}
-            <h1 className="text-3xl md:text-5xl font-headline font-extrabold tracking-tight text-on-surface sl-fade-up sl-d1 max-w-2xl leading-tight">
+            <h1 className="text-2xl md:text-4xl font-headline font-extrabold tracking-tight text-on-surface sl-fade-up sl-d1 max-w-2xl leading-tight">
               {step.title}
             </h1>
             {step.description && (
-              <p className="text-on-surface-variant mt-3 text-lg leading-relaxed sl-fade-up sl-d2 max-w-xl">
+              <p className="text-on-surface-variant mt-2 md:mt-3 text-base md:text-lg leading-relaxed sl-fade-up sl-d2 max-w-xl">
                 {step.description}
               </p>
             )}
           </div>
 
           {/* Fields */}
-          <form onSubmit={handleNext} className="space-y-6">
+          <form onSubmit={handleNext} className={`space-y-6 ${transitioning ? "sl-fade-out" : "sl-fade-in"}`}>
             {step.fields.map((f, i) =>
               f.type === "file" || f.type === "files" ? (
                 <div key={f.id} className={`sl-fade-up sl-d${Math.min(i + 2, 5)}`}>
@@ -180,7 +346,7 @@ export default function SubmissionForm({
             )}
 
             {/* Nav */}
-            <div className="flex items-center justify-between pt-8 sl-fade-up sl-d5">
+            <div className="flex items-center justify-between pt-6 md:pt-8 sl-fade-up sl-d5">
               <button
                 type="button"
                 onClick={() => animateTransition(() => setStepIdx((i) => Math.max(0, i - 1)))}
@@ -193,7 +359,7 @@ export default function SubmissionForm({
               <button
                 type="submit"
                 disabled={pending || submitting || transitioning}
-                className="group px-10 py-4 font-headline font-bold rounded-xl shadow-[0_10px_30px_rgba(192,193,255,0.2)] hover:shadow-[0_15px_40px_rgba(192,193,255,0.35)] hover:-translate-y-1 transition-all flex items-center gap-3 disabled:opacity-60"
+                className="group px-8 md:px-10 py-3.5 md:py-4 font-headline font-bold rounded-xl shadow-[0_10px_30px_rgba(192,193,255,0.2)] hover:shadow-[0_15px_40px_rgba(192,193,255,0.35)] hover:-translate-y-1 transition-all flex items-center gap-3 disabled:opacity-60"
                 style={{ backgroundColor: primaryColor, color: isLightColor(primaryColor) ? "#1a1c25" : "#ffffff" }}
               >
                 {submitting ? (
@@ -209,7 +375,7 @@ export default function SubmissionForm({
             </div>
           </form>
         </div>
-      </div>
+      </main>
     </div>
   );
 }
