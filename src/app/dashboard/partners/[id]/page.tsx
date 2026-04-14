@@ -193,8 +193,8 @@ export default async function PartnerDetailPage({ params }: PageProps) {
         )}
       </form>
 
-      {/* Danger zone (superadmin) */}
-      {session.role === "superadmin" && (
+      {/* Danger zone — visible to superadmin and partner_owners on this partner */}
+      {canEdit && (
         <section className="bg-white rounded-2xl border border-red-200 p-6">
           <h2 className="text-sm font-semibold text-red-700 mb-1">Danger zone</h2>
           <p className="text-xs text-slate-600 mb-3">

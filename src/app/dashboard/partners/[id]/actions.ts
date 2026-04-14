@@ -1,8 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { redirect } from "next/navigation";
-import { requireSession, requireSuperadmin } from "@/lib/auth";
+import { requireSession } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 
 function isHexColor(v: string) {
@@ -123,11 +122,27 @@ export async function uploadLogoAction(partnerId: string, formData: FormData) {
 }
 
 export async function deletePartnerAction(partnerId: string) {
-  await requireSuperadmin();
+  const session = await requireSession();
   const supabase = await createClient();
+
+  // Superadmin can delete any partner. Otherwise caller must be a
+  // partner_owner on this specific partner.
+  if (session.role !== "superadmin") {
+    const { data: membership } = await supabase
+      .from("partner_members")
+      .select("role")
+      .eq("partner_id", partnerId)
+      .eq("user_id", session.userId)
+      .maybeSingle();
+    if (!membership || membership.role !== "partner_owner") {
+      throw new Error("Not authorized");
+    }
+  }
+
   const { error } = await supabase.from("partners").delete().eq("id", partnerId);
   if (error) throw new Error(error.message);
   revalidatePath("/dashboard/partners");
   revalidatePath("/dashboard");
-  redirect("/dashboard/partners");
+  // Client navigates after this resolves — avoids Next 15's broken
+  // host resolution in server-action redirects.
 }

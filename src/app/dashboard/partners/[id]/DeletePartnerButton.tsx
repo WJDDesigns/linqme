@@ -35,6 +35,9 @@ export default function DeletePartnerButton({ partnerId, partnerName, deleteActi
           startTransition(async () => {
             try {
               await deleteAction(partnerId);
+              // Navigate using the browser's origin — server-side redirect
+              // resolves against Next's internal localhost in dev.
+              window.location.href = "/dashboard";
             } catch (err) {
               setError(err instanceof Error ? err.message : "Delete failed");
             }

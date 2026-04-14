@@ -5,6 +5,7 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { absoluteUrl } from "@/lib/host-url";
 import type { FormSchema } from "@/lib/forms";
 import { validateStepData } from "@/lib/forms";
+import { notifyPartnerOfSubmission } from "@/lib/notifications";
 
 async function loadSubmissionByToken(token: string) {
   const admin = createAdminClient();
@@ -95,5 +96,14 @@ export async function submitSubmissionAction(token: string) {
     })
     .eq("id", sub.id);
   if (error) throw new Error(error.message);
+
+  // Fire-and-log notifications. We never throw from here — a failed email
+  // shouldn't block the client's happy-path.
+  try {
+    await notifyPartnerOfSubmission(sub.id);
+  } catch (err) {
+    console.error("[notify] failed:", err);
+  }
+
   redirect(await absoluteUrl(`/thanks/${token}`));
 }

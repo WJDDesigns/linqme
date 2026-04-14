@@ -2,12 +2,23 @@ import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 
 export type AppRole = "superadmin" | "partner_owner" | "partner_member" | "client";
+export type PlanType = "agency" | "agency_plus_partners";
+export type PlanTier = "free" | "paid" | "unlimited" | "enterprise";
 
 export interface SessionContext {
   userId: string;
   email: string;
   fullName: string | null;
   role: AppRole;
+}
+
+export interface AccountContext {
+  id: string;               // top-level partner id
+  slug: string;
+  name: string;
+  planType: PlanType;
+  planTier: PlanTier;
+  submissionsMonthlyLimit: number | null;
 }
 
 /**
@@ -54,13 +65,107 @@ export async function requireSuperadmin(): Promise<SessionContext> {
 }
 
 /**
- * Partners visible to the current user (all for superadmin; membership-based otherwise).
+ * Partners visible to the current user.
+ *
+ * - Superadmin: every partner, globally.
+ * - Everyone else: partners belonging to their account tree (the root partner
+ *   plus any direct sub-partners). Scoped explicitly in app code rather than
+ *   relying solely on RLS so cross-account leaks are impossible even if a
+ *   policy is mis-written.
  */
 export async function getVisiblePartners() {
+  const session = await getSession();
   const supabase = await createClient();
+
+  const selectCols =
+    "id, slug, name, custom_domain, logo_url, primary_color, accent_color, parent_partner_id, plan_type, plan_tier, created_at";
+
+  if (session?.role === "superadmin") {
+    const { data } = await supabase
+      .from("partners")
+      .select(selectCols)
+      .order("created_at", { ascending: false });
+    return data ?? [];
+  }
+
+  if (!session) return [];
+
+  const account = await getCurrentAccount(session.userId);
+  if (!account) return [];
+
+  // Root + direct sub-partners. Covers the 2-level hierarchy we support today.
   const { data } = await supabase
     .from("partners")
-    .select("id, slug, name, custom_domain, logo_url, primary_color, accent_color, created_at")
+    .select(selectCols)
+    .or(`id.eq.${account.id},parent_partner_id.eq.${account.id}`)
     .order("created_at", { ascending: false });
+
   return data ?? [];
+}
+
+/**
+ * Resolve the current user's primary account — i.e. the top-level partner
+ * tree they belong to. Superadmin users who don't own a partner return null.
+ */
+export async function getCurrentAccount(userId: string): Promise<AccountContext | null> {
+  const supabase = await createClient();
+  const { data: memberships } = await supabase
+    .from("partner_members")
+    .select("partner_id, created_at")
+    .eq("user_id", userId)
+    .order("created_at", { ascending: true });
+
+  if (!memberships || memberships.length === 0) return null;
+
+  // Walk to the top-level partner for each membership; pick the first one we
+  // find. Most users will have exactly one.
+  for (const m of memberships) {
+    const { data: partner } = await supabase
+      .from("partners")
+      .select("id, slug, name, parent_partner_id, plan_type, plan_tier, submissions_monthly_limit")
+      .eq("id", m.partner_id)
+      .maybeSingle();
+    if (!partner) continue;
+
+    // If this is a sub-partner, walk up.
+    let current = partner;
+    while (current.parent_partner_id) {
+      const { data: parent } = await supabase
+        .from("partners")
+        .select("id, slug, name, parent_partner_id, plan_type, plan_tier, submissions_monthly_limit")
+        .eq("id", current.parent_partner_id)
+        .maybeSingle();
+      if (!parent) break;
+      current = parent;
+    }
+
+    return {
+      id: current.id,
+      slug: current.slug,
+      name: current.name,
+      planType: (current.plan_type ?? "agency") as PlanType,
+      planTier: (current.plan_tier ?? "free") as PlanTier,
+      submissionsMonthlyLimit: current.submissions_monthly_limit,
+    };
+  }
+
+  return null;
+}
+
+/**
+ * Monthly submission count for an account (rolled up across its sub-partners).
+ */
+export async function getAccountUsage(accountId: string): Promise<number> {
+  const supabase = await createClient();
+  const monthStart = new Date();
+  monthStart.setUTCDate(1);
+  monthStart.setUTCHours(0, 0, 0, 0);
+
+  const { data } = await supabase
+    .from("submissions_usage")
+    .select("count")
+    .eq("account_id", accountId)
+    .eq("month", monthStart.toISOString());
+
+  return (data ?? []).reduce((acc, r) => acc + (r.count ?? 0), 0);
 }

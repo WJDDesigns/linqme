@@ -32,7 +32,10 @@ export async function middleware(request: NextRequest) {
 
   // --- App-domain auth guard ----------------------------------------------
   if (tenant.kind === "app") {
-    const isAuthRoute = pathname.startsWith("/login") || pathname.startsWith("/auth");
+    const isAuthRoute =
+      pathname.startsWith("/login") ||
+      pathname.startsWith("/signup") ||
+      pathname.startsWith("/auth");
     if (!user && !isAuthRoute) {
       url.pathname = "/login";
       return NextResponse.redirect(url);

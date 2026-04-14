@@ -120,6 +120,12 @@ export default function LoginPage() {
             </button>
           </form>
         )}
+        <p className="mt-6 text-center text-xs text-slate-500">
+          Don&apos;t have an account?{" "}
+          <a href="/signup" className="font-medium text-slate-900 underline">
+            Create one
+          </a>
+        </p>
       </div>
     </main>
   );
