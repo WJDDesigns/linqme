@@ -11,7 +11,7 @@ export default async function NewPartnerPage() {
   const rootHost = (process.env.NEXT_PUBLIC_ROOT_DOMAIN ?? "mysitelaunch.com").replace(/:\d+$/, "");
 
   return (
-    <div className="max-w-2xl space-y-6">
+    <div className="max-w-5xl mx-auto px-6 md:px-10 py-8"><div className="max-w-2xl space-y-6">
       <header>
         <Link href="/dashboard/partners" className="text-xs text-on-surface-variant/60 hover:text-primary transition-colors">
           &larr; Partners
@@ -102,7 +102,7 @@ export default async function NewPartnerPage() {
           </button>
         </div>
       </form>
-    </div>
+    </div></div>
   );
 }
 

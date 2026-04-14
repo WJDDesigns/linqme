@@ -44,7 +44,7 @@ export default async function PartnerDetailPage({ params }: PageProps) {
   const storefrontHost = partner.custom_domain || `${partner.slug}.${rootHost}`;
 
   return (
-    <div className="max-w-3xl space-y-6">
+    <div className="max-w-5xl mx-auto px-6 md:px-10 py-8"><div className="max-w-3xl space-y-6">
       <header>
         <Link href="/dashboard/partners" className="text-xs text-on-surface-variant/60 hover:text-primary transition-colors">
           &larr; Partners
@@ -203,7 +203,7 @@ export default async function PartnerDetailPage({ params }: PageProps) {
           />
         </section>
       )}
-    </div>
+    </div></div>
   );
 }
 

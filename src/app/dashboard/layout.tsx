@@ -120,7 +120,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
 
       {/* Main */}
       <main className="flex-1 md:ml-64 min-h-screen">
-        <div className="max-w-5xl mx-auto px-6 md:px-10 py-8">{children}</div>
+        {children}
       </main>
     </div>
   );

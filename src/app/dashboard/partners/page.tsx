@@ -6,7 +6,7 @@ export default async function PartnersListPage() {
   const partners = await getVisiblePartners();
 
   return (
-    <div className="space-y-8">
+    <div className="max-w-5xl mx-auto px-6 md:px-10 py-8 space-y-8">
       <header className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-extrabold font-headline tracking-tight text-on-surface">Partners</h1>

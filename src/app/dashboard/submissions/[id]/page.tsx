@@ -53,7 +53,7 @@ export default async function SubmissionDetailPage({ params }: Props) {
   }
 
   return (
-    <div className="max-w-3xl space-y-6">
+    <div className="max-w-5xl mx-auto px-6 md:px-10 py-8"><div className="max-w-3xl space-y-6">
       <header>
         <Link
           href="/dashboard/submissions"
@@ -158,7 +158,7 @@ export default async function SubmissionDetailPage({ params }: Props) {
           <div className="p-8 text-sm text-on-surface-variant">No schema available.</div>
         )}
       </div>
-    </div>
+    </div></div>
   );
 }
 

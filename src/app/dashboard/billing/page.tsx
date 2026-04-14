@@ -73,7 +73,7 @@ export default async function BillingPage() {
 
   if (!account) {
     return (
-      <div className="max-w-xl">
+      <div className="max-w-5xl mx-auto px-6 md:px-10 py-8">
         <h1 className="text-3xl font-extrabold font-headline tracking-tight text-on-surface">Settings</h1>
         <p className="text-on-surface-variant mt-2">
           No workspace is associated with your account yet.
@@ -86,7 +86,7 @@ export default async function BillingPage() {
   const tiers = account.planType === "agency" ? AGENCY_TIERS : PARTNERS_TIERS;
 
   return (
-    <div className="space-y-8">
+    <div className="max-w-5xl mx-auto px-6 md:px-10 py-8 space-y-8">
       <header>
         <h1 className="text-3xl font-extrabold font-headline tracking-tight text-on-surface">Settings &amp; Plan</h1>
         <p className="text-on-surface-variant mt-1">

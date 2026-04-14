@@ -12,7 +12,7 @@ export default async function DashboardOverview() {
     .select("id", { count: "exact", head: true });
 
   return (
-    <div className="space-y-10">
+    <div className="max-w-5xl mx-auto px-6 md:px-10 py-8 space-y-10">
       {/* Header */}
       <header>
         <h1 className="text-3xl font-extrabold font-headline tracking-tight text-on-surface">
