@@ -32,37 +32,60 @@ export default async function PartnerHomePage({ params }: Props) {
   const hideBranding = isPaid && partner.hide_branding;
   const footerText = isPaid && partner.custom_footer_text ? partner.custom_footer_text : null;
   const dims = LOGO_DIMS[partner.logo_size] ?? LOGO_DIMS.default;
+  const isFullWidth = partner.logo_size === "full-width";
 
   return (
     <main className="min-h-screen bg-background flex flex-col">
-      {/* Header */}
-      <header className="fixed top-0 w-full z-50 flex justify-between items-center px-8 py-6 bg-background/60 backdrop-blur-xl">
-        <div className="flex items-center gap-3">
-          {partner.logo_url ? (
-            <div className={`${dims.wrapper} flex items-center justify-center`}>
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src={partner.logo_url} alt={partner.name} className={`${dims.img} object-contain`} />
+      {/* Header — hidden in full-width layout (logo is in the hero instead) */}
+      {!isFullWidth && (
+        <header className="fixed top-0 w-full z-50 flex justify-between items-center px-8 py-6 bg-background/60 backdrop-blur-xl">
+          <div className="flex items-center gap-3">
+            {partner.logo_url ? (
+              <div className={`${dims.wrapper} flex items-center justify-center`}>
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src={partner.logo_url} alt={partner.name} className={`${dims.img} object-contain`} />
+              </div>
+            ) : (
+              <div className={`${dims.fallback} flex items-center justify-center`} style={{ backgroundColor: primary }}>
+                <span className="text-on-primary font-bold text-lg">{partner.name.slice(0, 1).toUpperCase()}</span>
+              </div>
+            )}
+            <div className="flex flex-col">
+              <span className="text-xl font-bold text-on-surface font-headline tracking-tight">{partner.name}</span>
+              <span className="text-[10px] uppercase tracking-[0.2em] font-medium" style={{ color: `${primary}99` }}>Client Onboarding Portal</span>
             </div>
-          ) : (
-            <div className={`${dims.fallback} flex items-center justify-center`} style={{ backgroundColor: primary }}>
-              <span className="text-on-primary font-bold text-lg">{partner.name.slice(0, 1).toUpperCase()}</span>
-            </div>
-          )}
-          <div className="flex flex-col">
-            <span className="text-xl font-bold text-on-surface font-headline tracking-tight">{partner.name}</span>
-            <span className="text-[10px] uppercase tracking-[0.2em] font-medium" style={{ color: `${primary}99` }}>Client Onboarding Portal</span>
           </div>
-        </div>
-      </header>
+        </header>
+      )}
 
       {/* Content */}
-      <section className="flex-1 flex flex-col items-center justify-center px-6 pt-32 pb-20 max-w-4xl mx-auto text-center relative">
+      <section className={`flex-1 flex flex-col items-center justify-center px-6 ${isFullWidth ? "pt-16 pb-20" : "pt-32 pb-20"} max-w-4xl mx-auto text-center relative`}>
         <div className="space-y-6">
+          {/* Full-width layout: large centered logo + name */}
+          {isFullWidth && (
+            <div className="flex flex-col items-center gap-4 mb-4">
+              {partner.logo_url ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img src={partner.logo_url} alt={partner.name} className="h-24 md:h-32 w-auto object-contain" />
+              ) : (
+                <div className="w-24 h-24 md:w-32 md:h-32 rounded-3xl flex items-center justify-center" style={{ backgroundColor: primary }}>
+                  <span className="text-on-primary font-bold text-5xl md:text-6xl">{partner.name.slice(0, 1).toUpperCase()}</span>
+                </div>
+              )}
+              <div className="text-center">
+                <h2 className="text-2xl md:text-3xl font-headline font-extrabold text-on-surface tracking-tight">{partner.name}</h2>
+                <span className="text-[10px] uppercase tracking-[0.2em] font-medium" style={{ color: `${primary}99` }}>Client Onboarding Portal</span>
+              </div>
+            </div>
+          )}
+
           <h1 className="text-4xl md:text-5xl font-headline font-extrabold tracking-tight text-on-surface max-w-2xl leading-tight">
-            Welcome to {partner.name} onboarding
+            {isFullWidth ? "Let\u2019s get started" : `Welcome to ${partner.name} onboarding`}
           </h1>
           <p className="text-lg text-on-surface-variant font-body leading-relaxed max-w-xl mx-auto">
-            Let&apos;s get your project started. This form takes about 10 minutes and you can come back to it anytime with your unique link.
+            {isFullWidth
+              ? "This onboarding form takes about 10 minutes. You can come back to it anytime with your unique link."
+              : "Let\u2019s get your project started. This form takes about 10 minutes and you can come back to it anytime with your unique link."}
           </p>
           <form action={startSubmissionAction} className="pt-4">
             <input type="hidden" name="partner_id" value={partner.id} />

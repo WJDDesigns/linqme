@@ -33,29 +33,45 @@ export default async function ThanksPage({ params }: Props) {
   const footerText = isPaid && (partner as Record<string, unknown>).custom_footer_text
     ? String((partner as Record<string, unknown>).custom_footer_text)
     : null;
-  const dims = LOGO_DIMS[String((partner as Record<string, unknown>).logo_size ?? "default")] ?? LOGO_DIMS.default;
+  const logoSize = String((partner as Record<string, unknown>).logo_size ?? "default");
+  const dims = LOGO_DIMS[logoSize] ?? LOGO_DIMS.default;
+  const isFullWidth = logoSize === "full-width";
 
   return (
     <main className="min-h-screen bg-background flex flex-col">
       {/* Header */}
-      <header className="fixed top-0 w-full z-50 flex items-center px-8 py-6 bg-background/60 backdrop-blur-xl">
-        <div className="flex items-center gap-3">
-          {partner.logo_url ? (
-            <div className={`${dims.wrapper} flex items-center justify-center`}>
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src={partner.logo_url} alt={partner.name} className={`${dims.img} object-contain`} />
-            </div>
-          ) : (
-            <div className={`${dims.fallback} flex items-center justify-center`} style={{ backgroundColor: primary }}>
-              <span className="text-on-primary font-bold text-lg">{partner.name.slice(0, 1).toUpperCase()}</span>
-            </div>
-          )}
-          <span className="text-lg font-bold text-on-surface font-headline tracking-tight">{partner.name}</span>
-        </div>
+      <header className={`fixed top-0 w-full z-50 bg-background/60 backdrop-blur-xl ${isFullWidth ? "flex flex-col items-center px-8 py-4" : "flex items-center px-8 py-6"}`}>
+        {isFullWidth ? (
+          <div className="flex flex-col items-center gap-1">
+            {partner.logo_url ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img src={partner.logo_url} alt={partner.name} className="h-12 w-auto object-contain" />
+            ) : (
+              <div className="w-12 h-12 rounded-xl flex items-center justify-center" style={{ backgroundColor: primary }}>
+                <span className="text-on-primary font-bold text-xl">{partner.name.slice(0, 1).toUpperCase()}</span>
+              </div>
+            )}
+            <span className="text-sm font-bold text-on-surface font-headline tracking-tight">{partner.name}</span>
+          </div>
+        ) : (
+          <div className="flex items-center gap-3">
+            {partner.logo_url ? (
+              <div className={`${dims.wrapper} flex items-center justify-center`}>
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src={partner.logo_url} alt={partner.name} className={`${dims.img} object-contain`} />
+              </div>
+            ) : (
+              <div className={`${dims.fallback} flex items-center justify-center`} style={{ backgroundColor: primary }}>
+                <span className="text-on-primary font-bold text-lg">{partner.name.slice(0, 1).toUpperCase()}</span>
+              </div>
+            )}
+            <span className="text-lg font-bold text-on-surface font-headline tracking-tight">{partner.name}</span>
+          </div>
+        )}
       </header>
 
       {/* Content */}
-      <section className="flex-1 flex items-center justify-center px-6 pt-32 pb-20">
+      <section className={`flex-1 flex items-center justify-center px-6 ${isFullWidth ? "pt-28 pb-20" : "pt-32 pb-20"}`}>
         <div className="text-center space-y-6 animate-fade-up">
           <div
             className="mx-auto w-20 h-20 rounded-full flex items-center justify-center"
