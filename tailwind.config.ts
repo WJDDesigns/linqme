@@ -1,68 +1,61 @@
 import type { Config } from "tailwindcss";
 
+/** Helper: reference a CSS custom-property that holds space-separated RGB values */
+function rgb(name: string) {
+  return `rgb(var(--color-${name}) / <alpha-value>)`;
+}
+
 const config: Config = {
   darkMode: "class",
   content: ["./src/**/*.{ts,tsx}"],
   theme: {
     extend: {
       colors: {
-        /* ── Celestial Editorial palette ───────────────── */
-        primary: "#c0c1ff",
-        "on-primary": "#1000a9",
-        "primary-container": "#040050",
-        "on-primary-container": "#696cf8",
-        "inverse-primary": "#494bd6",
-        "primary-fixed": "#e1e0ff",
-        "primary-fixed-dim": "#c0c1ff",
-        "on-primary-fixed": "#07006c",
-        "on-primary-fixed-variant": "#2f2ebe",
+        /* ── Celestial Editorial palette (CSS-var driven) ── */
+        primary: rgb("primary"),
+        "on-primary": rgb("on-primary"),
+        "primary-container": rgb("primary-container"),
+        "on-primary-container": rgb("on-primary-container"),
+        "inverse-primary": rgb("inverse-primary"),
 
-        secondary: "#bcc7de",
-        "on-secondary": "#263143",
-        "secondary-container": "#3e495d",
-        "on-secondary-container": "#aeb9d0",
-        "secondary-fixed": "#d8e3fb",
-        "secondary-fixed-dim": "#bcc7de",
-        "on-secondary-fixed": "#111c2d",
-        "on-secondary-fixed-variant": "#3c475a",
+        secondary: rgb("secondary"),
+        "on-secondary": rgb("on-secondary"),
+        "secondary-container": rgb("secondary-container"),
+        "on-secondary-container": rgb("on-secondary-container"),
 
-        tertiary: "#3cddc7",
-        "on-tertiary": "#003731",
-        "tertiary-container": "#001612",
-        "on-tertiary-container": "#008d7e",
-        "tertiary-fixed": "#62fae3",
-        "tertiary-fixed-dim": "#3cddc7",
-        "on-tertiary-fixed": "#00201c",
-        "on-tertiary-fixed-variant": "#005047",
+        tertiary: rgb("tertiary"),
+        "on-tertiary": rgb("on-tertiary"),
+        "tertiary-container": rgb("tertiary-container"),
+        "on-tertiary-container": rgb("on-tertiary-container"),
 
-        error: "#ffb4ab",
-        "on-error": "#690005",
-        "error-container": "#93000a",
-        "on-error-container": "#ffdad6",
+        error: rgb("error"),
+        "on-error": rgb("on-error"),
+        "error-container": rgb("error-container"),
+        "on-error-container": rgb("on-error-container"),
 
-        surface: "#0b1326",
-        "surface-dim": "#0b1326",
-        "surface-bright": "#31394d",
-        "surface-container-lowest": "#060e20",
-        "surface-container-low": "#131b2e",
-        "surface-container": "#171f33",
-        "surface-container-high": "#222a3d",
-        "surface-container-highest": "#2d3449",
-        "surface-variant": "#2d3449",
-        "surface-tint": "#c0c1ff",
+        surface: rgb("surface"),
+        "surface-dim": rgb("surface-dim"),
+        "surface-bright": rgb("surface-bright"),
+        "surface-container-lowest": rgb("surface-container-lowest"),
+        "surface-container-low": rgb("surface-container-low"),
+        "surface-container": rgb("surface-container"),
+        "surface-container-high": rgb("surface-container-high"),
+        "surface-container-highest": rgb("surface-container-highest"),
+        "surface-variant": rgb("surface-variant"),
+        "surface-tint": rgb("surface-tint"),
 
-        "on-surface": "#dae2fd",
-        "on-surface-variant": "#c7c6cb",
-        "on-background": "#dae2fd",
-        background: "#0b1326",
+        "on-surface": rgb("on-surface"),
+        "on-surface-variant": rgb("on-surface-variant"),
+        "on-background": rgb("on-background"),
+        background: rgb("background"),
 
-        outline: "#909095",
-        "outline-variant": "#46464b",
+        outline: rgb("outline"),
+        "outline-variant": rgb("outline-variant"),
 
-        "inverse-surface": "#dae2fd",
-        "inverse-on-surface": "#283044",
+        "inverse-surface": rgb("inverse-surface"),
+        "inverse-on-surface": rgb("inverse-on-surface"),
 
-        /* keep old brand tokens as aliases so nothing breaks */
+        /* Legacy brand tokens (keep for compat) */
         brand: {
           50: "#e1e0ff",
           100: "#c0c1ff",

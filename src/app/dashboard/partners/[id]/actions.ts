@@ -46,21 +46,40 @@ export async function updatePartnerAction(partnerId: string, formData: FormData)
   const custom_domain_raw = String(formData.get("custom_domain") ?? "");
   const custom_domain = custom_domain_raw ? sanitizeDomain(custom_domain_raw) : null;
 
+  // White-label fields (only applied if present in formData)
+  const hide_branding = formData.has("hide_branding") ? formData.get("hide_branding") === "true" : undefined;
+  const custom_footer_text = formData.has("custom_footer_text")
+    ? (String(formData.get("custom_footer_text") ?? "").trim() || null)
+    : undefined;
+  const logo_size = formData.has("logo_size")
+    ? String(formData.get("logo_size") ?? "default")
+    : undefined;
+  const theme_mode = formData.has("theme_mode")
+    ? String(formData.get("theme_mode") ?? "dark")
+    : undefined;
+
   if (!name) throw new Error("Name is required");
   if (!isHexColor(primary_color)) throw new Error("Invalid primary color");
   if (!isHexColor(accent_color)) throw new Error("Invalid accent color");
 
+  // Build update payload — only include white-label fields if they were submitted
+  const updatePayload: Record<string, unknown> = {
+    name,
+    primary_color,
+    accent_color,
+    support_email,
+    support_phone,
+    custom_domain,
+  };
+  if (hide_branding !== undefined) updatePayload.hide_branding = hide_branding;
+  if (custom_footer_text !== undefined) updatePayload.custom_footer_text = custom_footer_text;
+  if (logo_size !== undefined) updatePayload.logo_size = logo_size;
+  if (theme_mode !== undefined) updatePayload.theme_mode = theme_mode;
+
   const supabase = await createClient();
   const { error } = await supabase
     .from("partners")
-    .update({
-      name,
-      primary_color,
-      accent_color,
-      support_email,
-      support_phone,
-      custom_domain,
-    })
+    .update(updatePayload)
     .eq("id", partnerId);
 
   if (error) throw new Error(error.message);

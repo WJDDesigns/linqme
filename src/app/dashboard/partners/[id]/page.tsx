@@ -6,6 +6,7 @@ import ColorInput from "@/components/ColorInput";
 import LogoUploadForm from "./LogoUploadForm";
 import DeletePartnerButton from "./DeletePartnerButton";
 import DomainSetup from "./DomainSetup";
+import WhiteLabelSection from "./WhiteLabelSection";
 import { updatePartnerAction, uploadLogoAction, deletePartnerAction } from "./actions";
 
 const INPUT_CLS =
@@ -197,6 +198,9 @@ export default async function PartnerDetailPage({ params }: PageProps) {
           domain={partner.custom_domain}
         />
       )}
+
+      {/* White-label branding */}
+      <WhiteLabelSection partner={partner} canEdit={canEdit} updateAction={boundUpdate} />
 
       {/* Danger zone */}
       {canEdit && (

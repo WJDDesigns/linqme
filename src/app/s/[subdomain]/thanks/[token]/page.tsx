@@ -5,6 +5,12 @@ interface Props {
   params: Promise<{ subdomain: string; token: string }>;
 }
 
+const LOGO_DIMS: Record<string, { wrapper: string; img: string }> = {
+  default: { wrapper: "w-10 h-10 rounded-xl", img: "h-8 w-auto" },
+  large: { wrapper: "w-16 h-16 rounded-2xl", img: "h-12 w-auto" },
+  "full-width": { wrapper: "h-14 w-auto rounded-2xl px-3", img: "h-10 w-auto" },
+};
+
 export default async function ThanksPage({ params }: Props) {
   const { token } = await params;
   const admin = createAdminClient();
@@ -12,7 +18,7 @@ export default async function ThanksPage({ params }: Props) {
     .from("submissions")
     .select(
       `id, status, submitted_at, client_name,
-       partners ( slug, name, custom_domain, logo_url, primary_color, support_email )`,
+       partners ( slug, name, custom_domain, logo_url, primary_color, support_email, plan_tier, hide_branding, custom_footer_text, logo_size, theme_mode )`,
     )
     .eq("access_token", token)
     .maybeSingle();
@@ -22,6 +28,12 @@ export default async function ThanksPage({ params }: Props) {
   if (!partner) notFound();
 
   const primary = partner.primary_color || "#c0c1ff";
+  const isPaid = (partner as Record<string, unknown>).plan_tier !== "free";
+  const hideBranding = isPaid && (partner as Record<string, unknown>).hide_branding;
+  const footerText = isPaid && (partner as Record<string, unknown>).custom_footer_text
+    ? String((partner as Record<string, unknown>).custom_footer_text)
+    : null;
+  const dims = LOGO_DIMS[String((partner as Record<string, unknown>).logo_size ?? "default")] ?? LOGO_DIMS.default;
 
   return (
     <main className="min-h-screen bg-background flex flex-col">
@@ -29,13 +41,13 @@ export default async function ThanksPage({ params }: Props) {
       <header className="fixed top-0 w-full z-50 flex items-center px-8 py-6 bg-background/60 backdrop-blur-xl">
         <div className="flex items-center gap-3">
           {partner.logo_url ? (
-            <div className="w-10 h-10 rounded-xl overflow-hidden flex items-center justify-center" style={{ backgroundColor: `${primary}20` }}>
+            <div className={`${dims.wrapper} overflow-hidden flex items-center justify-center`} style={{ backgroundColor: `${primary}20` }}>
               {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src={partner.logo_url} alt={partner.name} className="h-8 w-auto" />
+              <img src={partner.logo_url} alt={partner.name} className={dims.img} />
             </div>
           ) : (
-            <div className="w-10 h-10 rounded-xl flex items-center justify-center" style={{ backgroundColor: primary }}>
-              <span className="text-on-primary font-bold">{partner.name.slice(0, 1).toUpperCase()}</span>
+            <div className={`${dims.wrapper} flex items-center justify-center`} style={{ backgroundColor: primary }}>
+              <span className="text-on-primary font-bold text-lg">{partner.name.slice(0, 1).toUpperCase()}</span>
             </div>
           )}
           <span className="text-lg font-bold text-on-surface font-headline tracking-tight">{partner.name}</span>
@@ -72,10 +84,21 @@ export default async function ThanksPage({ params }: Props) {
 
       {/* Footer */}
       <footer className="w-full py-12 px-8 flex flex-col items-center gap-4 border-t border-on-surface/10">
-        <span className="text-sm font-bold text-on-surface font-headline">SiteLaunch</span>
-        <p className="text-[10px] uppercase tracking-[0.3em] text-on-surface/40">
-          &copy; {new Date().getFullYear()} SiteLaunch. The Cosmic Curator.
-        </p>
+        {hideBranding ? (
+          footerText ? (
+            <p className="text-xs text-on-surface/40">{footerText}</p>
+          ) : null
+        ) : (
+          <>
+            {footerText ? (
+              <p className="text-xs text-on-surface/60">{footerText}</p>
+            ) : null}
+            <span className="text-sm font-bold text-on-surface font-headline">SiteLaunch</span>
+            <p className="text-[10px] uppercase tracking-[0.3em] text-on-surface/40">
+              &copy; {new Date().getFullYear()} SiteLaunch &middot; WJD Designs
+            </p>
+          </>
+        )}
       </footer>
     </main>
   );

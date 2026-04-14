@@ -1,5 +1,6 @@
 import { requireSession, getCurrentAccount, getAccountUsage } from "@/lib/auth";
 import SidebarNav from "./SidebarNav";
+import ThemeToggle from "@/components/ThemeToggle";
 
 const TIER_LABELS: Record<string, string> = {
   free: "Free",
@@ -89,6 +90,11 @@ export default async function DashboardLayout({ children }: { children: React.Re
             )}
           </div>
         )}
+
+        {/* Theme toggle */}
+        <div className="px-3 mb-2">
+          <ThemeToggle />
+        </div>
 
         {/* User footer */}
         <div className="border-t border-on-surface/5 px-3 py-4">

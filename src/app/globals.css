@@ -2,12 +2,119 @@
 @tailwind components;
 @tailwind utilities;
 
-/* ── Celestial Editorial global styles ─────────── */
+/* ── Celestial Editorial – Theme Variables ─────── */
+
+:root {
+  /* Light theme */
+  --color-primary: 105 108 248;          /* #696cf8 */
+  --color-on-primary: 255 255 255;       /* white */
+  --color-primary-container: 225 224 255; /* #e1e0ff */
+  --color-on-primary-container: 7 0 108; /* #07006c */
+  --color-inverse-primary: 192 193 255;  /* #c0c1ff */
+
+  --color-secondary: 85 96 114;          /* #556072 */
+  --color-on-secondary: 255 255 255;
+  --color-secondary-container: 216 227 251; /* #d8e3fb */
+  --color-on-secondary-container: 17 28 45; /* #111c2d */
+
+  --color-tertiary: 0 109 98;            /* #006d62 */
+  --color-on-tertiary: 255 255 255;
+  --color-tertiary-container: 98 250 227; /* #62fae3 */
+  --color-on-tertiary-container: 0 32 28; /* #00201c */
+
+  --color-error: 186 26 26;              /* #ba1a1a */
+  --color-on-error: 255 255 255;
+  --color-error-container: 255 218 214;  /* #ffdad6 */
+  --color-on-error-container: 65 0 2;
+
+  --color-surface: 251 248 255;          /* #fbf8ff */
+  --color-surface-dim: 218 217 228;      /* #dad9e4 */
+  --color-surface-bright: 251 248 255;
+  --color-surface-container-lowest: 255 255 255;
+  --color-surface-container-low: 245 243 252;
+  --color-surface-container: 239 237 246;
+  --color-surface-container-high: 233 231 241;
+  --color-surface-container-highest: 228 226 235;
+  --color-surface-variant: 228 226 235;
+
+  --color-on-surface: 26 28 37;          /* #1a1c25 */
+  --color-on-surface-variant: 70 70 75;  /* #46464b */
+  --color-on-background: 26 28 37;
+  --color-background: 251 248 255;
+
+  --color-outline: 118 118 122;          /* #76767a */
+  --color-outline-variant: 199 198 203;  /* #c7c6cb */
+  --color-inverse-surface: 47 49 62;     /* #2f313e */
+  --color-inverse-on-surface: 241 240 250;
+
+  --color-surface-tint: 105 108 248;
+
+  /* Glass panels */
+  --glass-bg: rgba(233, 231, 241, 0.6);
+  --glass-strong-bg: rgba(228, 226, 235, 0.5);
+  --nebula-primary: rgba(105, 108, 248, 0.06);
+  --selection-bg: rgba(105, 108, 248, 0.2);
+  --scrollbar-thumb: rgba(105, 108, 248, 0.15);
+  --scrollbar-thumb-hover: rgba(105, 108, 248, 0.3);
+}
+
+.dark {
+  --color-primary: 192 193 255;          /* #c0c1ff */
+  --color-on-primary: 16 0 169;          /* #1000a9 */
+  --color-primary-container: 4 0 80;     /* #040050 */
+  --color-on-primary-container: 105 108 248; /* #696cf8 */
+  --color-inverse-primary: 73 75 214;    /* #494bd6 */
+
+  --color-secondary: 188 199 222;        /* #bcc7de */
+  --color-on-secondary: 38 49 67;        /* #263143 */
+  --color-secondary-container: 62 73 93; /* #3e495d */
+  --color-on-secondary-container: 174 185 208; /* #aeb9d0 */
+
+  --color-tertiary: 60 221 199;          /* #3cddc7 */
+  --color-on-tertiary: 0 55 49;          /* #003731 */
+  --color-tertiary-container: 0 22 18;   /* #001612 */
+  --color-on-tertiary-container: 0 141 126; /* #008d7e */
+
+  --color-error: 255 180 171;            /* #ffb4ab */
+  --color-on-error: 105 0 5;             /* #690005 */
+  --color-error-container: 147 0 10;     /* #93000a */
+  --color-on-error-container: 255 218 214;
+
+  --color-surface: 11 19 38;             /* #0b1326 */
+  --color-surface-dim: 11 19 38;
+  --color-surface-bright: 49 57 77;      /* #31394d */
+  --color-surface-container-lowest: 6 14 32; /* #060e20 */
+  --color-surface-container-low: 19 27 46;  /* #131b2e */
+  --color-surface-container: 23 31 51;      /* #171f33 */
+  --color-surface-container-high: 34 42 61; /* #222a3d */
+  --color-surface-container-highest: 45 52 73; /* #2d3449 */
+  --color-surface-variant: 45 52 73;
+
+  --color-on-surface: 218 226 253;       /* #dae2fd */
+  --color-on-surface-variant: 199 198 203; /* #c7c6cb */
+  --color-on-background: 218 226 253;
+  --color-background: 11 19 38;
+
+  --color-outline: 144 144 149;          /* #909095 */
+  --color-outline-variant: 70 70 75;     /* #46464b */
+  --color-inverse-surface: 218 226 253;
+  --color-inverse-on-surface: 40 48 68;  /* #283044 */
+
+  --color-surface-tint: 192 193 255;
+
+  /* Glass panels */
+  --glass-bg: rgba(23, 31, 51, 0.6);
+  --glass-strong-bg: rgba(45, 52, 73, 0.4);
+  --nebula-primary: rgba(192, 193, 255, 0.08);
+  --selection-bg: rgba(192, 193, 255, 0.3);
+  --scrollbar-thumb: rgba(192, 193, 255, 0.15);
+  --scrollbar-thumb-hover: rgba(192, 193, 255, 0.3);
+}
+
+/* ── Base ──────────────────────────────────────── */
 html, body { height: 100%; }
 
 body {
-  background-color: #0b1326;
-  color: #dae2fd;
   font-family: 'Inter', ui-sans-serif, system-ui, -apple-system, sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
@@ -18,25 +125,25 @@ h1, h2, h3, h4, .headline {
 }
 
 ::selection {
-  background-color: rgba(192, 193, 255, 0.3);
+  background-color: var(--selection-bg);
 }
 
 /* ── Glass panel utility ────────────────────────── */
 @layer utilities {
   .glass-panel {
-    background: rgba(23, 31, 51, 0.6);
+    background: var(--glass-bg);
     backdrop-filter: blur(12px);
     -webkit-backdrop-filter: blur(12px);
   }
 
   .glass-panel-strong {
-    background: rgba(45, 52, 73, 0.4);
+    background: var(--glass-strong-bg);
     backdrop-filter: blur(20px);
     -webkit-backdrop-filter: blur(20px);
   }
 
   .nebula-glow {
-    background: radial-gradient(circle at center, rgba(192, 193, 255, 0.08) 0%, transparent 70%);
+    background: radial-gradient(circle at center, var(--nebula-primary) 0%, transparent 70%);
   }
 }
 
@@ -72,9 +179,9 @@ h1, h2, h3, h4, .headline {
 ::-webkit-scrollbar { width: 6px; height: 6px; }
 ::-webkit-scrollbar-track { background: transparent; }
 ::-webkit-scrollbar-thumb {
-  background: rgba(192, 193, 255, 0.15);
+  background: var(--scrollbar-thumb);
   border-radius: 9999px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: rgba(192, 193, 255, 0.3);
+  background: var(--scrollbar-thumb-hover);
 }
