@@ -108,7 +108,7 @@ export default function SidebarNav({
             }`}
           >
             <i className="fa-solid fa-users w-5 text-center" />
-            {isAdmin ? "My Partners" : "Sub-partners"}
+            {isAdmin ? "My Customers" : "Partners"}
           </Link>
         )}
       </div>

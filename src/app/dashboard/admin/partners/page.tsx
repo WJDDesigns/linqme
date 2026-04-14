@@ -77,17 +77,17 @@ export default async function AdminPartnersPage({ searchParams }: PageProps) {
         <div className="mt-2 flex items-center justify-between gap-4">
           <div>
             <h1 className="text-3xl font-extrabold font-headline tracking-tight text-on-surface">
-              All Partners
+              Customers
             </h1>
             <p className="text-sm text-on-surface-variant mt-1">
-              {count ?? 0} partner{(count ?? 0) !== 1 ? "s" : ""} on the platform.
+              {count ?? 0} customer{(count ?? 0) !== 1 ? "s" : ""} on the platform.
             </p>
           </div>
           <Link
             href="/dashboard/partners/new"
             className="px-5 py-2.5 bg-primary text-on-primary font-bold rounded-lg text-sm hover:shadow-[0_0_20px_rgba(192,193,255,0.3)] transition-all whitespace-nowrap"
           >
-            <i className="fa-solid fa-plus text-xs mr-2" />New Partner
+            <i className="fa-solid fa-plus text-xs mr-2" />New Customer
           </Link>
         </div>
       </header>
@@ -129,7 +129,7 @@ export default async function AdminPartnersPage({ searchParams }: PageProps) {
           {(partners ?? []).length === 0 && (
             <div className="px-6 py-12 text-center text-sm text-on-surface-variant/60">
               <i className="fa-solid fa-sitemap text-3xl text-on-surface-variant/20 mb-3 block" />
-              No partners found.
+              No customers found.
             </div>
           )}
           {(partners ?? []).map((p) => {

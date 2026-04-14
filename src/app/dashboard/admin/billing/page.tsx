@@ -147,7 +147,7 @@ export default async function AdminBillingPage() {
           Billing &amp; Subscriptions
         </h1>
         <p className="text-sm text-on-surface-variant mt-1">
-          Manage partner plans, view revenue metrics, and handle refunds.
+          Manage customer plans, view revenue metrics, and handle refunds.
         </p>
       </header>
 
@@ -155,7 +155,7 @@ export default async function AdminBillingPage() {
       <section className="grid grid-cols-2 md:grid-cols-4 gap-4">
         <MetricCard label="MRR" value={`$${(mrr / 100).toLocaleString()}`} icon="fa-chart-line" />
         <MetricCard label="Active Subscriptions" value={String((activeSubs ?? []).length)} icon="fa-credit-card" />
-        <MetricCard label="Total Accounts" value={String(totalPartners ?? 0)} icon="fa-building" />
+        <MetricCard label="Total Customers" value={String(totalPartners ?? 0)} icon="fa-building" />
         <MetricCard label="Churned (this mo.)" value={String(canceledThisMonth ?? 0)} icon="fa-arrow-trend-down" />
       </section>
 
@@ -185,14 +185,14 @@ export default async function AdminBillingPage() {
         </div>
       </section>
 
-      {/* ── Partner Plan Management ── */}
+      {/* ── Customer Plan Management ── */}
       <section className="glass-panel rounded-2xl border border-outline-variant/15 overflow-hidden">
         <div className="px-6 py-4 border-b border-outline-variant/10">
           <h2 className="text-xs font-bold text-on-surface-variant uppercase tracking-widest">
-            Manage Partner Plans
+            Manage Customer Plans
           </h2>
           <p className="text-xs text-on-surface-variant/60 mt-0.5">
-            Manually upgrade or downgrade any partner. Changes take effect immediately.
+            Manually upgrade or downgrade any customer. Changes take effect immediately.
           </p>
         </div>
         <div className="divide-y divide-outline-variant/5">
