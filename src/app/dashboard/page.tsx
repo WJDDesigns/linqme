@@ -88,7 +88,7 @@ export default async function DashboardOverview() {
                     href={`/dashboard/partners/${p.id}`}
                     className="text-xs font-bold text-primary hover:underline transition-all"
                   >
-                    Manage &rarr;
+                    Manage <i className="fa-solid fa-arrow-right text-[10px] ml-1" />
                   </Link>
                 </div>
               </div>

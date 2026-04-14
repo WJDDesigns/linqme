@@ -80,28 +80,28 @@ export default function LandingPage() {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             <div className="md:col-span-2 glass-panel p-8 rounded-xl border border-outline-variant/10 relative overflow-hidden group">
               <div className="relative z-10">
-                <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center text-primary mb-4 text-xl">&#9670;</div>
+                <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center text-primary mb-4"><i className="fa-solid fa-wand-magic-sparkles" /></div>
                 <h3 className="text-2xl font-bold mb-3">Total White-Labeling</h3>
                 <p className="text-on-surface-variant max-w-sm">Your brand, your domain, your favicon. Your clients will never know SiteLaunch exists.</p>
               </div>
             </div>
             <div className="bg-surface-container-high p-8 rounded-xl flex flex-col justify-between">
               <div>
-                <div className="w-10 h-10 rounded-lg bg-tertiary/10 flex items-center justify-center text-tertiary mb-4 text-xl">&#9635;</div>
+                <div className="w-10 h-10 rounded-lg bg-tertiary/10 flex items-center justify-center text-tertiary mb-4"><i className="fa-solid fa-sitemap" /></div>
                 <h3 className="text-xl font-bold mb-3">Multi-tenant Control</h3>
               </div>
               <p className="text-on-surface-variant text-sm">Manage many projects from a single unified workspace. Permission levels for every team member.</p>
             </div>
             <div className="bg-surface-container-high p-8 rounded-xl flex flex-col justify-between">
               <div>
-                <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center text-primary mb-4 text-xl">&#9783;</div>
+                <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center text-primary mb-4"><i className="fa-solid fa-pen-ruler" /></div>
                 <h3 className="text-xl font-bold mb-3">Drag-and-Drop Builder</h3>
               </div>
               <p className="text-on-surface-variant text-sm">Create custom onboarding flows in seconds. No code required. Just pure creative speed.</p>
             </div>
             <div className="md:col-span-2 glass-panel p-8 rounded-xl border border-outline-variant/10 flex items-center justify-between">
               <div className="max-w-md">
-                <div className="w-10 h-10 rounded-lg bg-tertiary/10 flex items-center justify-center text-tertiary mb-4 text-xl">&#9919;</div>
+                <div className="w-10 h-10 rounded-lg bg-tertiary/10 flex items-center justify-center text-tertiary mb-4"><i className="fa-solid fa-shield-halved" /></div>
                 <h3 className="text-2xl font-bold mb-3">Encrypted Asset Storage</h3>
                 <p className="text-on-surface-variant">Secure file storage with signed URLs. Your client&apos;s data is safe and accessible only to authorized users.</p>
               </div>
@@ -230,7 +230,7 @@ function PricingCard({
       <ul className="space-y-4 mb-8 flex-grow">
         {features.map((f) => (
           <li key={f} className="flex items-center gap-2 text-sm">
-            <span className="text-tertiary">&#10003;</span>
+            <i className="fa-solid fa-check text-tertiary text-xs" />
             <span className={highlight ? "" : "text-on-surface-variant"}>{f}</span>
           </li>
         ))}

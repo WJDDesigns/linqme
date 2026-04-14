@@ -49,16 +49,7 @@ export default async function ThanksPage({ params }: Props) {
             className="mx-auto w-20 h-20 rounded-full flex items-center justify-center"
             style={{ backgroundColor: `${primary}18` }}
           >
-            <svg
-              className="w-10 h-10"
-              style={{ color: primary }}
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-              strokeWidth={2.5}
-            >
-              <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-            </svg>
+            <i className="fa-solid fa-check text-3xl" style={{ color: primary }} />
           </div>
           <div>
             <h1 className="text-3xl md:text-4xl font-extrabold font-headline text-on-surface tracking-tight">

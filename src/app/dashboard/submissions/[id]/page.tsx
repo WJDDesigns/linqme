@@ -59,7 +59,7 @@ export default async function SubmissionDetailPage({ params }: Props) {
           href="/dashboard/submissions"
           className="text-xs text-on-surface-variant/60 hover:text-primary transition-colors"
         >
-          &larr; Submissions
+          <i className="fa-solid fa-arrow-left text-[10px] mr-1" /> Submissions
         </Link>
         <div className="mt-2 flex items-center justify-between gap-4">
           <div>
@@ -125,7 +125,7 @@ export default async function SubmissionDetailPage({ params }: Props) {
                                         rel="noreferrer"
                                         className="text-xs font-bold text-primary hover:underline shrink-0"
                                       >
-                                        Download &darr;
+                                        Download <i className="fa-solid fa-download text-[10px] ml-1" />
                                       </a>
                                     )}
                                   </li>

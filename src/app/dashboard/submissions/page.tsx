@@ -88,7 +88,7 @@ export default async function SubmissionsListPage() {
                         href={`/dashboard/submissions/${s.id}`}
                         className="text-xs font-bold text-primary hover:underline"
                       >
-                        View &rarr;
+                        View <i className="fa-solid fa-arrow-right text-[10px] ml-1" />
                       </Link>
                     </div>
                   </div>

@@ -112,9 +112,7 @@ export default function SubmissionForm({
       <div className="min-h-[60vh] flex items-center justify-center p-6">
         <div className="text-center space-y-6 sl-fade-up">
           <div className="mx-auto w-20 h-20 rounded-full flex items-center justify-center sl-check" style={{ backgroundColor: primaryColor + "18" }}>
-            <svg className="w-10 h-10" style={{ color: primaryColor }} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
-              <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-            </svg>
+            <i className="fa-solid fa-check text-3xl" style={{ color: primaryColor }} />
           </div>
           <h1 className="text-3xl font-extrabold font-headline text-on-surface tracking-tight">All done!</h1>
           <p className="text-on-surface-variant text-lg">Thanks for submitting everything. We&apos;ll take it from here.</p>
@@ -186,9 +184,7 @@ export default function SubmissionForm({
                 disabled={stepIdx === 0 || pending || submitting || transitioning}
                 className="flex items-center gap-2 text-on-surface-variant hover:text-on-surface disabled:opacity-0 transition-all text-sm uppercase tracking-widest font-label"
               >
-                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
-                </svg>
+                <i className="fa-solid fa-chevron-left text-sm" />
                 Previous
               </button>
               <button
@@ -202,9 +198,9 @@ export default function SubmissionForm({
                 ) : pending ? (
                   <><Spinner /> Saving...</>
                 ) : isLast ? (
-                  <>Submit <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" /></svg></>
+                  <>Submit <i className="fa-solid fa-check text-sm ml-1" /></>
                 ) : (
-                  <>Next Step <svg className="w-4 h-4 transition-transform group-hover:translate-x-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" /></svg></>
+                  <>Next Step <i className="fa-solid fa-chevron-right text-sm ml-1 transition-transform group-hover:translate-x-0.5" /></>
                 )}
               </button>
             </div>
@@ -216,12 +212,7 @@ export default function SubmissionForm({
 }
 
 function Spinner() {
-  return (
-    <svg className="w-4 h-4 animate-spin" viewBox="0 0 24 24" fill="none">
-      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="3" />
-      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
-    </svg>
-  );
+  return <i className="fa-solid fa-spinner fa-spin text-sm" />;
 }
 
 function CelestialField({
@@ -326,10 +317,8 @@ function CelestialField({
       )}
 
       {error && (
-        <p className="text-sm text-error mt-1.5 sl-fade-up flex items-center gap-1">
-          <svg className="w-3.5 h-3.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
-            <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
-          </svg>
+        <p className="text-sm text-error mt-1.5 sl-fade-up flex items-center gap-1.5">
+          <i className="fa-solid fa-circle-exclamation text-xs flex-shrink-0" />
           {error}
         </p>
       )}

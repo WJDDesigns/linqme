@@ -117,7 +117,7 @@ export default async function BillingPage() {
             href={`mailto:hello@mysitelaunch.com?subject=Upgrade%20${account.slug}`}
             className="px-5 py-2.5 bg-primary text-on-primary font-bold rounded-lg text-sm hover:shadow-[0_0_20px_rgba(192,193,255,0.3)] transition-all"
           >
-            Contact sales &rarr;
+            Contact sales <i className="fa-solid fa-arrow-right text-[10px] ml-1" />
           </a>
         </div>
       </section>
@@ -149,7 +149,7 @@ export default async function BillingPage() {
               <ul className="mt-4 space-y-2 text-sm flex-grow">
                 {t.features.map((f) => (
                   <li key={f} className="flex items-center gap-2">
-                    <span className="text-tertiary">&#10003;</span>
+                    <i className="fa-solid fa-check text-tertiary text-xs" />
                     <span className="text-on-surface-variant">{f}</span>
                   </li>
                 ))}
@@ -168,7 +168,7 @@ export default async function BillingPage() {
                         : "border border-outline-variant/30 hover:bg-surface-variant/30"
                     }`}
                   >
-                    {t.cta} &rarr;
+                    {t.cta} <i className="fa-solid fa-arrow-right text-[10px] ml-1" />
                   </a>
                 )}
               </div>

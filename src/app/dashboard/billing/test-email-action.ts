@@ -20,7 +20,7 @@ export async function sendTestEmailAction(): Promise<TestEmailResult> {
     subject: "SiteLaunch test email",
     html: `
       <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; color: #0f172a;">
-        <h2 style="margin: 0 0 12px;">Your Resend setup works 🎉</h2>
+        <h2 style="margin: 0 0 12px;">Your Resend setup works!</h2>
         <p style="margin: 0; color: #475569;">
           If you're reading this, SiteLaunch can deliver email to ${session.email}.
         </p>

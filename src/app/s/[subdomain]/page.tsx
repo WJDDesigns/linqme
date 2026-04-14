@@ -62,9 +62,7 @@ export default async function PartnerHomePage({ params }: Props) {
               style={{ backgroundColor: primary }}
             >
               Start onboarding
-              <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
-              </svg>
+              <i className="fa-solid fa-arrow-right text-sm ml-1" />
             </button>
           </form>
           {partner.support_email && (

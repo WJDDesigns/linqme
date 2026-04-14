@@ -180,8 +180,8 @@ export default function TemplatePicker({
               disabled={pending}
               className="w-full p-6 border-2 border-dashed border-outline-variant/30 rounded-2xl hover:border-primary/40 transition-all text-center group cursor-pointer"
             >
-              <div className="w-12 h-12 mx-auto rounded-xl bg-surface-container-high flex items-center justify-center text-2xl mb-3 group-hover:bg-primary/20 transition-colors">
-                +
+              <div className="w-12 h-12 mx-auto rounded-xl bg-surface-container-high flex items-center justify-center mb-3 group-hover:bg-primary/20 transition-colors text-on-surface-variant group-hover:text-primary">
+                <i className="fa-solid fa-plus text-lg" />
               </div>
               <div className="text-sm font-bold text-on-surface">Start from Scratch</div>
               <div className="text-xs text-on-surface-variant mt-1">
@@ -207,7 +207,9 @@ export default function TemplatePicker({
                       }`}
                     >
                       <div className="flex items-start gap-3">
-                        <div className="text-2xl">{t.icon || "📄"}</div>
+                        <div className="w-10 h-10 rounded-xl bg-surface-container-highest flex items-center justify-center text-primary shrink-0">
+                          <i className={`fa-solid ${t.icon || "fa-file-lines"} text-lg`} />
+                        </div>
                         <div className="flex-1 min-w-0">
                           <div className="text-sm font-bold text-on-surface truncate">{t.name}</div>
                           <div className="text-xs text-on-surface-variant mt-1 line-clamp-2">
@@ -251,8 +253,9 @@ export default function TemplatePicker({
         <div className="shrink-0 border-t border-outline-variant/10 bg-surface-container-low/50 px-6 py-4">
           <div className="max-w-4xl mx-auto flex items-center justify-between gap-4">
             <div className="min-w-0">
-              <div className="text-sm font-bold text-on-surface truncate">
-                {selected.icon} {selected.name}
+              <div className="text-sm font-bold text-on-surface truncate flex items-center gap-2">
+                <i className={`fa-solid ${selected.icon || "fa-file-lines"} text-primary`} />
+                {selected.name}
               </div>
               <div className="text-xs text-on-surface-variant">
                 {(selected.schema as FormSchema).steps.map((s) => s.title).join(" → ")}

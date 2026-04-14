@@ -14,28 +14,33 @@ interface FieldTypeInfo {
 }
 
 const FIELD_CATALOGUE: FieldTypeInfo[] = [
-  { type: "text", label: "Short Text", icon: "Aa", group: "standard" },
-  { type: "textarea", label: "Long Text", icon: "\u00b6", group: "standard" },
-  { type: "email", label: "Email", icon: "@", group: "standard" },
-  { type: "tel", label: "Phone", icon: "\u260e", group: "standard" },
-  { type: "number", label: "Number", icon: "#", group: "standard" },
-  { type: "select", label: "Dropdown", icon: "\u25be", group: "standard" },
-  { type: "radio", label: "Radio Choice", icon: "\u25c9", group: "standard" },
-  { type: "checkbox", label: "Checkbox", icon: "\u2611", group: "standard" },
-  { type: "date", label: "Date Picker", icon: "\ud83d\udcc5", group: "standard" },
-  { type: "url", label: "URL", icon: "\ud83d\udd17", group: "advanced" },
-  { type: "color", label: "Color Picker", icon: "\ud83c\udfa8", group: "advanced" },
-  { type: "address", label: "Address", icon: "\ud83d\udccd", group: "advanced" },
-  { type: "heading", label: "Section Heading", icon: "H", group: "advanced" },
-  { type: "file", label: "File Upload", icon: "\ud83d\udcce", group: "advanced" },
-  { type: "files", label: "Multi-File", icon: "\ud83d\udcc1", group: "advanced" },
+  { type: "text", label: "Short Text", icon: "fa-font", group: "standard" },
+  { type: "textarea", label: "Long Text", icon: "fa-align-left", group: "standard" },
+  { type: "email", label: "Email", icon: "fa-envelope", group: "standard" },
+  { type: "tel", label: "Phone", icon: "fa-phone", group: "standard" },
+  { type: "number", label: "Number", icon: "fa-hashtag", group: "standard" },
+  { type: "select", label: "Dropdown", icon: "fa-caret-down", group: "standard" },
+  { type: "radio", label: "Radio Choice", icon: "fa-circle-dot", group: "standard" },
+  { type: "checkbox", label: "Checkbox", icon: "fa-square-check", group: "standard" },
+  { type: "date", label: "Date Picker", icon: "fa-calendar", group: "standard" },
+  { type: "url", label: "URL", icon: "fa-link", group: "advanced" },
+  { type: "color", label: "Color Picker", icon: "fa-palette", group: "advanced" },
+  { type: "address", label: "Address", icon: "fa-location-dot", group: "advanced" },
+  { type: "heading", label: "Section Heading", icon: "fa-heading", group: "advanced" },
+  { type: "file", label: "File Upload", icon: "fa-paperclip", group: "advanced" },
+  { type: "files", label: "Multi-File", icon: "fa-folder-open", group: "advanced" },
 ];
 
 function iconFor(type: FieldType) {
-  return FIELD_CATALOGUE.find((c) => c.type === type)?.icon ?? "?";
+  return FIELD_CATALOGUE.find((c) => c.type === type)?.icon ?? "fa-question";
 }
 function labelFor(type: FieldType) {
   return FIELD_CATALOGUE.find((c) => c.type === type)?.label ?? type;
+}
+
+/** Render a Font Awesome icon */
+function FaIcon({ name, className }: { name: string; className?: string }) {
+  return <i className={`fa-solid ${name} ${className ?? ""}`} />;
 }
 
 /* ── Helpers ───────────────────────────────────────────────── */
@@ -322,7 +327,7 @@ export default function FormEditor({ initialSchema, onOpenTemplates }: { initial
                       {/* Step header */}
                       <div className="flex items-center gap-2 sm:gap-3 px-4 sm:px-6 py-4">
                         <button onClick={() => toggleStep(step.id)} className="text-on-surface-variant hover:text-on-surface text-sm w-5 shrink-0">
-                          {isExpanded ? "\u25be" : "\u25b8"}
+                          <i className={`fa-solid ${isExpanded ? "fa-chevron-down" : "fa-chevron-right"} text-[10px]`} />
                         </button>
                         <div className="w-6 h-6 rounded-full bg-primary flex items-center justify-center text-[10px] text-on-primary font-bold shrink-0">
                           {si + 1}
@@ -337,9 +342,9 @@ export default function FormEditor({ initialSchema, onOpenTemplates }: { initial
                           {step.fields.length} field{step.fields.length !== 1 ? "s" : ""}
                         </span>
                         <div className="flex items-center gap-0.5 shrink-0">
-                          <button disabled={si === 0} onClick={() => moveStep(step.id, -1)} className="p-1 text-on-surface-variant hover:text-on-surface disabled:opacity-30 text-sm">&uarr;</button>
-                          <button disabled={si === schema.steps.length - 1} onClick={() => moveStep(step.id, 1)} className="p-1 text-on-surface-variant hover:text-on-surface disabled:opacity-30 text-sm">&darr;</button>
-                          <button disabled={schema.steps.length <= 1} onClick={() => removeStep(step.id)} className="p-1 text-on-surface-variant hover:text-error disabled:opacity-30 text-sm ml-0.5">&times;</button>
+                          <button disabled={si === 0} onClick={() => moveStep(step.id, -1)} className="p-1 text-on-surface-variant hover:text-on-surface disabled:opacity-30"><i className="fa-solid fa-arrow-up text-xs" /></button>
+                          <button disabled={si === schema.steps.length - 1} onClick={() => moveStep(step.id, 1)} className="p-1 text-on-surface-variant hover:text-on-surface disabled:opacity-30"><i className="fa-solid fa-arrow-down text-xs" /></button>
+                          <button disabled={schema.steps.length <= 1} onClick={() => removeStep(step.id)} className="p-1 text-on-surface-variant hover:text-error disabled:opacity-30 ml-0.5"><i className="fa-solid fa-xmark text-xs" /></button>
                         </div>
                       </div>
 
@@ -385,11 +390,11 @@ export default function FormEditor({ initialSchema, onOpenTemplates }: { initial
                                       : "bg-surface-container-low border border-outline-variant/10 hover:border-primary/30 hover:bg-surface-container-high"
                                   }`}
                                 >
-                                  <div className="text-on-surface-variant/40 hover:text-on-surface-variant cursor-grab text-xs select-none shrink-0">{"\u2807"}</div>
-                                  <div className={`w-8 h-8 rounded-lg flex items-center justify-center text-sm font-bold shrink-0 ${
+                                  <div className="text-on-surface-variant/40 hover:text-on-surface-variant cursor-grab select-none shrink-0"><i className="fa-solid fa-grip-vertical text-[10px]" /></div>
+                                  <div className={`w-8 h-8 rounded-lg flex items-center justify-center text-sm shrink-0 ${
                                     isSelected ? "bg-primary/20 text-primary" : "bg-surface-container-highest text-primary"
                                   }`}>
-                                    {iconFor(field.type)}
+                                    <FaIcon name={iconFor(field.type)} />
                                   </div>
                                   <div className="flex-1 min-w-0">
                                     <div className="text-sm font-medium text-on-surface truncate">{field.label}</div>
@@ -402,7 +407,7 @@ export default function FormEditor({ initialSchema, onOpenTemplates }: { initial
                                     onClick={(e) => { e.stopPropagation(); removeField(step.id, field.id); }}
                                     className="p-1 text-on-surface-variant/40 hover:text-error text-sm transition-colors shrink-0"
                                   >
-                                    &times;
+                                    <i className="fa-solid fa-xmark text-xs" />
                                   </button>
                                 </div>
                               </div>
@@ -428,7 +433,9 @@ export default function FormEditor({ initialSchema, onOpenTemplates }: { initial
                 onClick={addStep}
                 className="w-full h-16 border-2 border-dashed border-outline-variant/20 rounded-2xl flex items-center justify-center gap-2 group hover:border-primary/40 transition-all cursor-pointer"
               >
-                <div className="w-7 h-7 rounded-full bg-surface-container flex items-center justify-center text-on-surface-variant group-hover:text-primary transition-colors text-lg">+</div>
+                <div className="w-7 h-7 rounded-full bg-surface-container flex items-center justify-center text-on-surface-variant group-hover:text-primary transition-colors">
+                  <i className="fa-solid fa-plus text-sm" />
+                </div>
                 <span className="text-xs font-bold text-on-surface-variant uppercase tracking-widest">Add Step</span>
               </button>
             </div>
@@ -493,7 +500,7 @@ function FieldPalette({ onDragStart, onClickAdd }: {
             className="w-full p-2.5 bg-surface-container rounded-xl border border-outline-variant/10 cursor-grab hover:border-primary/40 hover:bg-surface-container-high transition-all flex items-center gap-3 group"
           >
             <div className="w-7 h-7 rounded-lg bg-surface-container-highest flex items-center justify-center text-primary group-hover:bg-primary/20 transition-colors text-sm shrink-0">
-              {f.icon}
+              <FaIcon name={f.icon} />
             </div>
             <span className="text-sm font-medium text-on-surface truncate">{f.label}</span>
           </button>
@@ -512,7 +519,7 @@ function FieldPalette({ onDragStart, onClickAdd }: {
             className="w-full p-2.5 bg-surface-container rounded-xl border border-outline-variant/10 cursor-grab hover:border-primary/40 hover:bg-surface-container-high transition-all flex items-center gap-3 group"
           >
             <div className="w-7 h-7 rounded-lg bg-surface-container-highest flex items-center justify-center text-primary group-hover:bg-primary/20 transition-colors text-sm shrink-0">
-              {f.icon}
+              <FaIcon name={f.icon} />
             </div>
             <span className="text-sm font-medium text-on-surface truncate">{f.label}</span>
           </button>
@@ -532,9 +539,9 @@ function FieldSettingsPanel({ field, onUpdate, onClose }: {
   return (
     <div>
       <div className="flex items-center gap-2 mb-6">
-        <span className="text-primary text-lg">{iconFor(field.type)}</span>
+        <FaIcon name={iconFor(field.type)} className="text-primary text-lg" />
         <h3 className="text-xs font-bold text-on-surface uppercase tracking-wider flex-1">Field Settings</h3>
-        <button onClick={onClose} className="text-on-surface-variant hover:text-on-surface text-sm p-1 transition-colors">&times;</button>
+        <button onClick={onClose} className="text-on-surface-variant hover:text-on-surface p-1 transition-colors"><i className="fa-solid fa-xmark text-xs" /></button>
       </div>
       <div className="space-y-5">
         <section className="space-y-3">

@@ -9,10 +9,10 @@ const TIER_LABELS: Record<string, string> = {
 };
 
 const NAV_ITEMS = [
-  { href: "/dashboard", label: "Dashboard", icon: "grid" },
-  { href: "/dashboard/form", label: "Form Builder", icon: "form" },
-  { href: "/dashboard/submissions", label: "Submissions", icon: "inbox" },
-  { href: "/dashboard/billing", label: "Settings", icon: "settings" },
+  { href: "/dashboard", label: "Dashboard", icon: "fa-table-cells" },
+  { href: "/dashboard/form", label: "Form Builder", icon: "fa-pen-ruler" },
+  { href: "/dashboard/submissions", label: "Submissions", icon: "fa-inbox" },
+  { href: "/dashboard/billing", label: "Settings", icon: "fa-gear" },
 ];
 
 export default async function DashboardLayout({ children }: { children: React.ReactNode }) {
@@ -64,7 +64,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
               href={item.href}
               className="flex items-center gap-3 px-4 py-3 text-on-surface/60 hover:bg-on-surface/5 hover:text-on-surface transition-all duration-200 rounded-lg text-sm font-medium"
             >
-              <NavIcon name={item.icon} />
+              <i className={`fa-solid ${item.icon} w-5 text-center`} />
               {item.label}
             </Link>
           ))}
@@ -73,7 +73,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
               href="/dashboard/partners"
               className="flex items-center gap-3 px-4 py-3 text-on-surface/60 hover:bg-on-surface/5 hover:text-on-surface transition-all duration-200 rounded-lg text-sm font-medium"
             >
-              <NavIcon name="partners" />
+              <i className="fa-solid fa-users w-5 text-center" />
               {isAdmin ? "Partners" : "Sub-partners"}
             </Link>
           )}
@@ -126,17 +126,3 @@ export default async function DashboardLayout({ children }: { children: React.Re
   );
 }
 
-function NavIcon({ name }: { name: string }) {
-  const icons: Record<string, string> = {
-    grid: "M4 5a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v4a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V5zm10 0a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v4a1 1 0 0 1-1 1h-4a1 1 0 0 1-1-1V5zM4 15a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v4a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1v-4zm10 0a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v4a1 1 0 0 1-1 1h-4a1 1 0 0 1-1-1v-4z",
-    form: "M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2M9 5a2 2 0 0 0 2 2h2a2 2 0 0 0 2-2M9 5a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2m-6 9 2 2 4-4",
-    inbox: "M20 13V6a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v7m16 0v5a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2v-5m16 0h-2.586a1 1 0 0 0-.707.293l-2.414 2.414a1 1 0 0 1-.707.293h-3.172a1 1 0 0 1-.707-.293l-2.414-2.414A1 1 0 0 0 6.586 13H4",
-    settings: "M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 0 0 2.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 0 0 1.066 2.573c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 0 0-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 0 0-2.573 1.066c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 0 0-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 0 0-1.066-2.573c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 0 0 1.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0z",
-    partners: "M17 20h5v-2a3 3 0 0 0-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 0 1 5.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 0 1 9.288 0M15 7a3 3 0 1 1-6 0 3 3 0 0 1 6 0z",
-  };
-  return (
-    <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-      <path strokeLinecap="round" strokeLinejoin="round" d={icons[name] ?? icons.grid} />
-    </svg>
-  );
-}

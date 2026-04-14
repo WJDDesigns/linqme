@@ -28,7 +28,7 @@ values (
   'Website Design Onboarding',
   'Comprehensive 8-step client onboarding form for web design agencies. Covers contact info, package selection, branding, content, ecommerce, and launch planning.',
   'web-design',
-  '🚀',
+  'fa-rocket',
   1,
   false,
   true,
@@ -171,7 +171,7 @@ values (
   'Simple Starter',
   'Basic 3-step onboarding form. Great starting point for any service business.',
   'general',
-  '⚡',
+  'fa-bolt',
   1,
   false,
   true,
@@ -224,6 +224,6 @@ on conflict (slug) do update set
 update public.form_templates
 set description = 'Default 3-step form covering business info, contact details, and goals.',
     category = 'general',
-    icon = '📋',
+    icon = 'fa-clipboard-list',
     is_predefined = true
 where slug = 'site-onboarding-v1';

@@ -25,7 +25,7 @@ export async function sendWelcomeEmail(args: {
 
   const html = `
     <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; color: #0f172a; max-width: 560px;">
-      <h2 style="margin: 0 0 12px;">Welcome to SiteLaunch, ${escapeHtml(args.companyName)} 👋</h2>
+      <h2 style="margin: 0 0 12px;">Welcome to SiteLaunch, ${escapeHtml(args.companyName)}!</h2>
       <p style="margin: 0 0 8px; color: #475569;">${escapeHtml(planLine)}</p>
       <p style="margin: 0 0 16px; color: #475569;">
         Your client-facing storefront lives at
