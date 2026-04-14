@@ -267,7 +267,7 @@ export default function FormEditor({ initialSchema, onOpenTemplates }: { initial
   return (
     <div className="flex flex-col h-screen">
       {/* ── Top bar with title + save ──────────────────────── */}
-      <div className="shrink-0 px-6 py-4 border-b border-outline-variant/10 bg-surface-container-low/50 flex items-center justify-between gap-4">
+      <div className="shrink-0 px-6 lg:px-8 py-4 border-b border-outline-variant/10 bg-surface-container-low/50 flex items-center justify-between gap-4">
         <div className="min-w-0">
           <h1 className="text-xl font-headline font-bold tracking-tight text-on-surface truncate">Form editor</h1>
           <p className="text-xs text-on-surface-variant hidden sm:block">Customize the onboarding form your clients fill out.</p>
@@ -320,7 +320,7 @@ export default function FormEditor({ initialSchema, onOpenTemplates }: { initial
           w-full lg:w-64 xl:w-72 shrink-0 bg-surface-container-low/50 overflow-y-auto border-r border-outline-variant/10
           ${mobilePanel === "palette" ? "block" : "hidden"} lg:block
         `}>
-          <div className="p-5">
+          <div className="p-6">
             <FieldPalette onDragStart={startDragPalette} onClickAdd={(type, label) => {
               const target = schema.steps.find((s) => expandedSteps.has(s.id)) ?? schema.steps[0];
               if (!target) return;
@@ -466,7 +466,7 @@ export default function FormEditor({ initialSchema, onOpenTemplates }: { initial
           w-full lg:w-72 xl:w-80 shrink-0 bg-surface-container-low/50 overflow-y-auto border-l border-outline-variant/10
           ${mobilePanel === "settings" ? "block" : "hidden"} lg:block
         `}>
-          <div className="p-5">
+          <div className="p-6">
             {selectedField && selectedStep ? (
               <FieldSettingsPanel
                 field={selectedField}
