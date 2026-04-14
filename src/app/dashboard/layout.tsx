@@ -1,5 +1,5 @@
-import Link from "next/link";
 import { requireSession, getCurrentAccount, getAccountUsage } from "@/lib/auth";
+import SidebarNav from "./SidebarNav";
 
 const TIER_LABELS: Record<string, string> = {
   free: "Free",
@@ -8,7 +8,7 @@ const TIER_LABELS: Record<string, string> = {
   enterprise: "Enterprise",
 };
 
-const NAV_ITEMS = [
+const WORKSPACE_NAV = [
   { href: "/dashboard", label: "Dashboard", icon: "fa-table-cells" },
   { href: "/dashboard/form", label: "Form Builder", icon: "fa-pen-ruler" },
   { href: "/dashboard/submissions", label: "Submissions", icon: "fa-inbox" },
@@ -63,50 +63,16 @@ export default async function DashboardLayout({ children }: { children: React.Re
           </div>
         </div>
 
-        {/* Nav */}
-        <nav className="flex-1 px-3 space-y-1">
-          {NAV_ITEMS.map((item) => (
-            <Link
-              key={item.href}
-              href={item.href}
-              className="flex items-center gap-3 px-4 py-3 text-on-surface/60 hover:bg-on-surface/5 hover:text-on-surface transition-all duration-200 rounded-lg text-sm font-medium"
-            >
-              <i className={`fa-solid ${item.icon} w-5 text-center`} />
-              {item.label}
-            </Link>
-          ))}
-          {showPartners && (
-            <Link
-              href="/dashboard/partners"
-              className="flex items-center gap-3 px-4 py-3 text-on-surface/60 hover:bg-on-surface/5 hover:text-on-surface transition-all duration-200 rounded-lg text-sm font-medium"
-            >
-              <i className="fa-solid fa-users w-5 text-center" />
-              {isAdmin ? "Partners" : "Sub-partners"}
-            </Link>
-          )}
+        {/* Nav with mode toggle */}
+        <SidebarNav
+          isAdmin={isAdmin}
+          showPartners={showPartners}
+          accountName={account?.name ?? null}
+          workspaceItems={WORKSPACE_NAV}
+          adminItems={ADMIN_NAV}
+        />
 
-          {isAdmin && (
-            <>
-              <div className="mt-4 mb-2 px-4">
-                <span className="text-[10px] uppercase tracking-widest text-on-surface-variant/40 font-bold">
-                  Admin
-                </span>
-              </div>
-              {ADMIN_NAV.map((item) => (
-                <Link
-                  key={item.href}
-                  href={item.href}
-                  className="flex items-center gap-3 px-4 py-3 text-on-surface/60 hover:bg-on-surface/5 hover:text-on-surface transition-all duration-200 rounded-lg text-sm font-medium"
-                >
-                  <i className={`fa-solid ${item.icon} w-5 text-center`} />
-                  {item.label}
-                </Link>
-              ))}
-            </>
-          )}
-        </nav>
-
-        {/* Usage meter */}
+        {/* Usage meter — workspace context */}
         {usageLine && (
           <div className="px-4 py-3 mx-3 mb-2 rounded-xl bg-surface-container-low">
             <div className="text-[10px] uppercase tracking-widest text-on-surface-variant/60 mb-1 font-label">
@@ -152,4 +118,3 @@ export default async function DashboardLayout({ children }: { children: React.Re
     </div>
   );
 }
-
