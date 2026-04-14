@@ -8,7 +8,9 @@ export type FieldType =
   | "url"
   | "number"
   | "select"
-  | "checkbox";
+  | "checkbox"
+  | "file"
+  | "files";
 
 export interface FieldDef {
   id: string;
@@ -18,6 +20,16 @@ export interface FieldDef {
   placeholder?: string;
   options?: string[];
   rows?: number;
+  accept?: string;
+  hint?: string;
+}
+
+export interface UploadedFile {
+  id: string;
+  filename: string;
+  mime_type: string | null;
+  size_bytes: number | null;
+  storage_path: string;
 }
 
 export interface StepDef {
@@ -43,6 +55,8 @@ export function validateStepData(
 ): { ok: true } | { ok: false; errors: Record<string, string> } {
   const errors: Record<string, string> = {};
   for (const f of step.fields) {
+    // File fields are validated separately (upload state lives in submission_files).
+    if (f.type === "file" || f.type === "files") continue;
     const v = data[f.id];
     if (f.required) {
       if (v === undefined || v === null || v === "") {

@@ -30,6 +30,29 @@ export default async function SubmissionDetailPage({ params }: Props) {
   const schema = tpl?.schema as FormSchema | undefined;
   const data = (sub.data as Record<string, unknown>) ?? {};
 
+  // Load uploaded files for this submission and build signed download URLs.
+  const { data: fileRows } = await supabase
+    .from("submission_files")
+    .select("id, field_key, filename, mime_type, size_bytes, storage_path, created_at")
+    .eq("submission_id", sub.id)
+    .order("created_at", { ascending: true });
+
+  type FileRow = NonNullable<typeof fileRows>[number] & { url: string | null };
+  const filesByField: Record<string, FileRow[]> = {};
+  for (const f of fileRows ?? []) {
+    const { data: signed } = await supabase.storage
+      .from("submissions")
+      .createSignedUrl(f.storage_path, 60 * 60); // 1 hour
+    (filesByField[f.field_key] ||= []).push({ ...f, url: signed?.signedUrl ?? null });
+  }
+
+  function prettySize(bytes: number | null): string {
+    if (!bytes) return "";
+    if (bytes < 1024) return `${bytes} B`;
+    if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
+    return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+  }
+
   return (
     <div className="max-w-3xl space-y-6">
       <header>
@@ -78,6 +101,42 @@ export default async function SubmissionDetailPage({ params }: Props) {
                 </h3>
                 <dl className="space-y-3">
                   {step.fields.map((f) => {
+                    if (f.type === "file" || f.type === "files") {
+                      const files = filesByField[f.id] ?? [];
+                      return (
+                        <div key={f.id} className="grid grid-cols-3 gap-4">
+                          <dt className="text-xs text-slate-500">{f.label}</dt>
+                          <dd className="col-span-2">
+                            {files.length === 0 ? (
+                              <span className="text-sm text-slate-400">—</span>
+                            ) : (
+                              <ul className="space-y-1.5">
+                                {files.map((file) => (
+                                  <li key={file.id} className="flex items-center justify-between gap-3 rounded-lg border border-slate-200 bg-slate-50 px-3 py-2">
+                                    <div className="min-w-0">
+                                      <div className="text-sm font-medium text-slate-900 truncate">{file.filename}</div>
+                                      <div className="text-xs text-slate-500">
+                                        {file.mime_type ?? "file"} · {prettySize(file.size_bytes)}
+                                      </div>
+                                    </div>
+                                    {file.url && (
+                                      <a
+                                        href={file.url}
+                                        target="_blank"
+                                        rel="noreferrer"
+                                        className="text-xs font-medium text-brand-600 hover:text-brand-700 shrink-0"
+                                      >
+                                        Download ↓
+                                      </a>
+                                    )}
+                                  </li>
+                                ))}
+                              </ul>
+                            )}
+                          </dd>
+                        </div>
+                      );
+                    }
                     const v = data[f.id];
                     const display =
                       v === undefined || v === null || v === ""

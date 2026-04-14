@@ -1,17 +1,21 @@
 "use client";
 
 import { useState, useTransition } from "react";
-import type { FormSchema, FieldDef } from "@/lib/forms";
+import type { FormSchema, FieldDef, UploadedFile } from "@/lib/forms";
+import FileField from "./FileField";
 
 interface Props {
   schema: FormSchema;
   initialData: Record<string, unknown>;
+  initialFiles: Record<string, UploadedFile[]>;
   primaryColor: string;
   saveStep: (
     stepId: string,
     formData: FormData,
   ) => Promise<{ errors?: Record<string, string>; nextStepId?: string; done?: boolean }>;
   submit: () => Promise<void>;
+  uploadFile: (fieldId: string, formData: FormData) => Promise<UploadedFile>;
+  deleteFile: (fileId: string) => Promise<void>;
 }
 
 const INPUT_CLS =
@@ -20,9 +24,12 @@ const INPUT_CLS =
 export default function SubmissionForm({
   schema,
   initialData,
+  initialFiles,
   primaryColor,
   saveStep,
   submit,
+  uploadFile,
+  deleteFile,
 }: Props) {
   const [stepIdx, setStepIdx] = useState(0);
   const [data, setData] = useState<Record<string, unknown>>(initialData);
@@ -94,15 +101,26 @@ export default function SubmissionForm({
       </header>
 
       <form onSubmit={handleNext} className="space-y-5">
-        {step.fields.map((f) => (
-          <FieldRenderer
-            key={f.id}
-            field={f}
-            value={data[f.id]}
-            error={errors[f.id]}
-            onChange={(v) => updateField(f.id, v)}
-          />
-        ))}
+        {step.fields.map((f) =>
+          f.type === "file" || f.type === "files" ? (
+            <FileField
+              key={f.id}
+              field={f}
+              initialFiles={initialFiles[f.id] ?? []}
+              upload={uploadFile}
+              remove={deleteFile}
+              primaryColor={primaryColor}
+            />
+          ) : (
+            <FieldRenderer
+              key={f.id}
+              field={f}
+              value={data[f.id]}
+              error={errors[f.id]}
+              onChange={(v) => updateField(f.id, v)}
+            />
+          ),
+        )}
 
         <div className="flex items-center justify-between pt-4">
           <button

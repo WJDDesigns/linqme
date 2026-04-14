@@ -1,9 +1,10 @@
 import { notFound, redirect } from "next/navigation";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { absoluteUrl } from "@/lib/host-url";
-import type { FormSchema } from "@/lib/forms";
+import type { FormSchema, UploadedFile } from "@/lib/forms";
 import SubmissionForm from "./SubmissionForm";
 import { saveStepAction, submitSubmissionAction } from "./actions";
+import { uploadFileAction, deleteFileAction } from "./files-actions";
 
 interface Props {
   params: Promise<{ subdomain: string; token: string }>;
@@ -45,9 +46,29 @@ export default async function SubmissionPage({ params }: Props) {
 
   const primary = partner.primary_color || "#2563eb";
 
+  // Load any files already uploaded, grouped by field_key.
+  const { data: existingFiles } = await admin
+    .from("submission_files")
+    .select("id, filename, mime_type, size_bytes, storage_path, field_key")
+    .eq("submission_id", sub.id)
+    .order("created_at", { ascending: true });
+
+  const initialFiles: Record<string, UploadedFile[]> = {};
+  for (const f of existingFiles ?? []) {
+    (initialFiles[f.field_key] ||= []).push({
+      id: f.id,
+      filename: f.filename,
+      mime_type: f.mime_type,
+      size_bytes: f.size_bytes,
+      storage_path: f.storage_path,
+    });
+  }
+
   // Bind token so client can call actions without exposing the token to the closure
   const boundSave = saveStepAction.bind(null, token);
   const boundSubmit = submitSubmissionAction.bind(null, token);
+  const boundUpload = uploadFileAction.bind(null, token);
+  const boundDelete = deleteFileAction.bind(null, token);
 
   return (
     <main className="min-h-screen bg-slate-50">
@@ -63,9 +84,12 @@ export default async function SubmissionPage({ params }: Props) {
       <SubmissionForm
         schema={schema}
         initialData={(sub.data as Record<string, unknown>) ?? {}}
+        initialFiles={initialFiles}
         primaryColor={primary}
         saveStep={boundSave}
         submit={boundSubmit}
+        uploadFile={boundUpload}
+        deleteFile={boundDelete}
       />
     </main>
   );
