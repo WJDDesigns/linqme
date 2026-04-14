@@ -39,7 +39,7 @@ const STATUS_STYLES: Record<
   },
 };
 
-const VERCEL_CNAME = "cname.vercel-dns.com";
+const VERCEL_CNAME = "cname.mysitelaunch.com";
 
 export default function DomainSetup({ partnerId, domain, cnameTarget = VERCEL_CNAME }: Props) {
   const [result, setResult] = useState<DomainCheckResult | null>(null);

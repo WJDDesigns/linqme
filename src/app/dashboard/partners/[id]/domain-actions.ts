@@ -13,7 +13,7 @@ export interface DomainCheckResult {
   cnameTarget?: string;
 }
 
-const EXPECTED_TARGET = "cname.vercel-dns.com";
+const EXPECTED_TARGET = "cname.mysitelaunch.com";
 
 export async function verifyDomainAction(
   partnerId: string,

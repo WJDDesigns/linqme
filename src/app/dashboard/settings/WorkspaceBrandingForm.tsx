@@ -84,7 +84,7 @@ export default function WorkspaceBrandingForm({ workspace, rootHost }: Props) {
 
       <Field
         label="Custom domain"
-        hint="Point a CNAME to cname.vercel-dns.com after saving."
+        hint="Point a CNAME to cname.mysitelaunch.com after saving."
       >
         <input
           name="custom_domain"
