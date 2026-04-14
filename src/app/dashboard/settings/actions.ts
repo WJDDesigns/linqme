@@ -91,3 +91,66 @@ export async function updateWorkspaceSettingsAction(formData: FormData) {
   revalidatePath("/dashboard/form");
   revalidatePath("/dashboard");
 }
+
+export async function uploadWorkspaceLogoAction(formData: FormData) {
+  const session = await requireSession();
+  const account = await getCurrentAccount(session.userId);
+  if (!account) throw new Error("No workspace found");
+
+  const file = formData.get("logo") as File | null;
+  if (!file || typeof file === "string" || file.size === 0) {
+    throw new Error("No file provided");
+  }
+  if (file.size > 5 * 1024 * 1024) {
+    throw new Error("Logo must be 5MB or smaller");
+  }
+  if (!file.type.startsWith("image/")) {
+    throw new Error("Logo must be an image");
+  }
+
+  const admin = createAdminClient();
+  const ext = (file.name.split(".").pop() || "png").toLowerCase().replace(/[^a-z0-9]/g, "");
+  const path = `${account.id}/logo-${Date.now()}.${ext}`;
+
+  const bytes = Buffer.from(await file.arrayBuffer());
+  const { error: uploadError } = await admin.storage
+    .from("logos")
+    .upload(path, bytes, {
+      contentType: file.type,
+      upsert: true,
+    });
+  if (uploadError) throw new Error(uploadError.message);
+
+  const { data: pub } = admin.storage.from("logos").getPublicUrl(path);
+
+  const { error: updateError } = await admin
+    .from("partners")
+    .update({ logo_url: pub.publicUrl })
+    .eq("id", account.id);
+  if (updateError) throw new Error(updateError.message);
+
+  revalidatePath("/dashboard/settings");
+  revalidatePath("/dashboard");
+}
+
+export async function updateWorkspaceWhiteLabelAction(formData: FormData) {
+  const session = await requireSession();
+  const account = await getCurrentAccount(session.userId);
+  if (!account) throw new Error("No workspace found");
+
+  const hide_branding = formData.get("hide_branding") === "true";
+  const custom_footer_text = String(formData.get("custom_footer_text") ?? "").trim() || null;
+  const logo_size = String(formData.get("logo_size") ?? "default");
+  const theme_mode = String(formData.get("theme_mode") ?? "dark");
+
+  const admin = createAdminClient();
+  const { error } = await admin
+    .from("partners")
+    .update({ hide_branding, custom_footer_text, logo_size, theme_mode })
+    .eq("id", account.id);
+
+  if (error) throw new Error(error.message);
+
+  revalidatePath("/dashboard/settings");
+  revalidatePath("/dashboard");
+}
