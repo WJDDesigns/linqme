@@ -24,18 +24,18 @@ export default function TestEmailButton() {
             else setMsg({ kind: "ok", text: res.message });
           })
         }
-        className="rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-xs font-semibold text-slate-800 hover:bg-slate-50 disabled:opacity-60"
+        className="px-4 py-2 bg-surface-container-high text-on-surface text-xs font-bold rounded-lg border border-outline-variant/15 hover:border-primary/30 hover:bg-surface-container-highest disabled:opacity-60 transition-all duration-200"
       >
-        {pending ? "Sending…" : "Send test email"}
+        {pending ? "Sending..." : "Send test email"}
       </button>
       {msg && (
         <span
           className={
             msg.kind === "ok"
-              ? "text-xs text-emerald-700"
+              ? "text-xs text-tertiary"
               : msg.kind === "warn"
-                ? "text-xs text-amber-700"
-                : "text-xs text-red-700"
+                ? "text-xs text-primary"
+                : "text-xs text-error"
           }
         >
           {msg.text}

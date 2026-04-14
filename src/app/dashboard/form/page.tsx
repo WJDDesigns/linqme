@@ -10,8 +10,8 @@ export default async function FormEditorPage() {
   if (!account) {
     return (
       <div className="max-w-xl">
-        <h1 className="text-3xl font-bold tracking-tight">Form editor</h1>
-        <p className="text-sm text-slate-600 mt-2">
+        <h1 className="text-3xl font-headline font-bold tracking-tight text-on-surface">Form editor</h1>
+        <p className="text-sm text-on-surface-variant mt-2">
           No workspace is associated with your account yet.
         </p>
       </div>
@@ -38,15 +38,15 @@ export default async function FormEditorPage() {
   return (
     <div className="space-y-6 max-w-3xl">
       <header>
-        <h1 className="text-3xl font-bold tracking-tight">Form editor</h1>
-        <p className="text-sm text-slate-600 mt-1">
+        <h1 className="text-3xl font-headline font-bold tracking-tight text-on-surface">Form editor</h1>
+        <p className="text-sm text-on-surface-variant mt-1">
           Customize the onboarding form your clients fill out. Changes apply
           to new submissions immediately.
         </p>
       </header>
 
       {!pf ? (
-        <div className="bg-white rounded-2xl border border-slate-200 p-6 text-sm text-slate-600">
+        <div className="bg-surface-container rounded-2xl border border-outline-variant/15 p-6 text-sm text-on-surface-variant">
           No active form found. Visit your partner settings to create one.
         </div>
       ) : (

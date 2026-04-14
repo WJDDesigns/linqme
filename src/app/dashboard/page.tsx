@@ -6,40 +6,52 @@ export default async function DashboardOverview() {
   const session = await requireSession();
   const partners = await getVisiblePartners();
 
-  // Some aggregate metrics for superadmin
   const supabase = await createClient();
   const { count: submissionCount } = await supabase
     .from("submissions")
     .select("id", { count: "exact", head: true });
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-10">
+      {/* Header */}
       <header>
-        <h1 className="text-3xl font-bold tracking-tight">
+        <h1 className="text-3xl font-extrabold font-headline tracking-tight text-on-surface">
           {session.role === "superadmin" ? "Overview" : "Your dashboard"}
         </h1>
-        <p className="text-sm text-slate-600 mt-1">
+        <p className="text-on-surface-variant font-body mt-1">
           {session.role === "superadmin"
             ? "Platform-wide view. Manage partners, track submissions, configure settings."
             : "Manage your brand, form, and client submissions."}
         </p>
       </header>
 
-      {/* Stat cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        <StatCard label="Partners" value={partners.length.toString()} />
-        <StatCard label="Submissions" value={(submissionCount ?? 0).toString()} />
-        <StatCard label="Role" value={session.role} />
+      {/* Stat cards — Bento style */}
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
+        <StatCard
+          label="Partners"
+          value={partners.length.toString()}
+          color="primary"
+        />
+        <StatCard
+          label="Submissions"
+          value={(submissionCount ?? 0).toString()}
+          color="on-surface"
+        />
+        <StatCard
+          label="Role"
+          value={session.role}
+          color="tertiary"
+        />
       </div>
 
       {/* Recent partners */}
-      <section className="bg-white rounded-2xl border border-slate-200 p-6">
-        <div className="flex items-center justify-between mb-4">
-          <h2 className="text-lg font-semibold">Partners</h2>
+      <section className="bg-surface-container rounded-2xl overflow-hidden shadow-2xl shadow-black/20">
+        <div className="flex items-center justify-between px-8 py-5">
+          <h2 className="text-lg font-bold font-headline text-on-surface tracking-tight">Partners</h2>
           {session.role === "superadmin" && (
             <Link
               href="/dashboard/partners/new"
-              className="rounded-lg bg-brand-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-brand-700"
+              className="px-4 py-2 bg-primary text-on-primary font-semibold rounded-lg text-xs hover:shadow-[0_0_20px_rgba(192,193,255,0.3)] transition-all"
             >
               + New partner
             </Link>
@@ -47,47 +59,59 @@ export default async function DashboardOverview() {
         </div>
 
         {partners.length === 0 ? (
-          <p className="text-sm text-slate-500">
+          <div className="px-8 pb-8 text-sm text-on-surface-variant">
             No partners yet. {session.role === "superadmin" && "Create one to get started."}
-          </p>
+          </div>
         ) : (
-          <ul className="divide-y divide-slate-100">
+          <div className="divide-y divide-outline-variant/5">
             {partners.slice(0, 5).map((p) => (
-              <li key={p.id} className="py-3 flex items-center justify-between">
-                <div className="flex items-center gap-3">
+              <div key={p.id} className="grid grid-cols-12 px-8 py-5 items-center hover:bg-white/[0.02] transition-colors group">
+                <div className="col-span-6 flex items-center gap-4">
                   <div
-                    className="w-8 h-8 rounded-lg flex items-center justify-center text-white text-xs font-bold"
-                    style={{ backgroundColor: p.primary_color || "#2563eb" }}
+                    className="w-10 h-10 rounded-lg bg-surface-container-high flex items-center justify-center text-primary text-xs font-bold"
+                    style={{ backgroundColor: p.primary_color ? `${p.primary_color}20` : undefined }}
                   >
                     {p.name.slice(0, 1).toUpperCase()}
                   </div>
                   <div>
-                    <div className="font-medium">{p.name}</div>
-                    <div className="text-xs text-slate-500">
+                    <p className="font-semibold text-on-surface group-hover:text-primary transition-colors">{p.name}</p>
+                    <p className="text-xs text-on-surface-variant/60">
                       {p.custom_domain || `${p.slug}.${process.env.NEXT_PUBLIC_ROOT_DOMAIN}`}
-                    </div>
+                    </p>
                   </div>
                 </div>
-                <Link
-                  href={`/dashboard/partners/${p.id}`}
-                  className="text-xs font-medium text-brand-600 hover:text-brand-700"
-                >
-                  Manage →
-                </Link>
-              </li>
+                <div className="col-span-3">
+                  <span className="text-xs text-on-surface-variant font-mono">{p.slug}</span>
+                </div>
+                <div className="col-span-3 text-right">
+                  <Link
+                    href={`/dashboard/partners/${p.id}`}
+                    className="text-xs font-bold text-primary hover:underline transition-all"
+                  >
+                    Manage &rarr;
+                  </Link>
+                </div>
+              </div>
             ))}
-          </ul>
+          </div>
         )}
       </section>
     </div>
   );
 }
 
-function StatCard({ label, value }: { label: string; value: string }) {
+function StatCard({ label, value, color }: { label: string; value: string; color: string }) {
+  const colorMap: Record<string, string> = {
+    primary: "text-primary",
+    "on-surface": "text-on-surface",
+    tertiary: "text-tertiary",
+  };
   return (
-    <div className="bg-white rounded-2xl border border-slate-200 p-5">
-      <div className="text-xs uppercase tracking-wide text-slate-500">{label}</div>
-      <div className="mt-1 text-2xl font-bold text-slate-900">{value}</div>
+    <div className="bg-surface-container-low p-8 rounded-xl relative overflow-hidden group">
+      <p className="text-xs font-label uppercase tracking-widest text-on-surface-variant/60 mb-2">{label}</p>
+      <h3 className={`text-4xl font-extrabold font-headline ${colorMap[color] ?? "text-on-surface"}`}>
+        {value}
+      </h3>
     </div>
   );
 }

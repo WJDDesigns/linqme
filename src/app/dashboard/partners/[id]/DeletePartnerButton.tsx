@@ -18,7 +18,7 @@ export default function DeletePartnerButton({ partnerId, partnerName, deleteActi
       <button
         type="button"
         onClick={() => setConfirming(true)}
-        className="text-xs font-medium text-red-600 hover:text-red-700"
+        className="px-4 py-2 bg-error-container/20 text-error text-xs font-bold rounded-lg border border-error/20 hover:bg-error-container/40 transition-all"
       >
         Delete partner
       </button>
@@ -26,8 +26,8 @@ export default function DeletePartnerButton({ partnerId, partnerName, deleteActi
   }
 
   return (
-    <div className="flex items-center gap-2">
-      <span className="text-xs text-slate-700">Delete {partnerName}?</span>
+    <div className="flex items-center gap-3">
+      <span className="text-xs text-on-surface-variant">Delete {partnerName}?</span>
       <button
         type="button"
         disabled={pending}
@@ -35,26 +35,24 @@ export default function DeletePartnerButton({ partnerId, partnerName, deleteActi
           startTransition(async () => {
             try {
               await deleteAction(partnerId);
-              // Navigate using the browser's origin — server-side redirect
-              // resolves against Next's internal localhost in dev.
               window.location.href = "/dashboard";
             } catch (err) {
               setError(err instanceof Error ? err.message : "Delete failed");
             }
           })
         }
-        className="rounded-lg bg-red-600 px-2 py-1 text-xs font-medium text-white hover:bg-red-700 disabled:opacity-50"
+        className="px-3 py-1.5 bg-error text-on-error text-xs font-bold rounded-lg disabled:opacity-50 transition-all"
       >
-        {pending ? "Deleting…" : "Yes, delete"}
+        {pending ? "Deleting..." : "Yes, delete"}
       </button>
       <button
         type="button"
         onClick={() => setConfirming(false)}
-        className="text-xs text-slate-500 hover:text-slate-900"
+        className="text-xs text-on-surface-variant/60 hover:text-on-surface transition-colors"
       >
         Cancel
       </button>
-      {error && <span className="text-xs text-red-600">{error}</span>}
+      {error && <span className="text-xs text-error">{error}</span>}
     </div>
   );
 }

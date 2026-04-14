@@ -5,7 +5,7 @@ import Link from "next/link";
 import { signupAction } from "./actions";
 
 const INPUT_CLS =
-  "block w-full px-3 py-2 text-sm border border-slate-300 rounded-lg focus:border-brand-500 focus:ring-1 focus:ring-brand-500 outline-none";
+  "block w-full px-4 py-3 text-sm bg-surface-container-lowest border-0 rounded-xl text-on-surface placeholder:text-on-surface-variant/40 focus:ring-1 focus:ring-primary/40 outline-none transition-all duration-200";
 
 export default function SignupForm({ rootHost }: { rootHost: string }) {
   const [error, setError] = useState<string | null>(null);
@@ -25,15 +25,13 @@ export default function SignupForm({ rootHost }: { rootHost: string }) {
       return;
     }
 
-    // Hard navigation so the server picks up the fresh auth cookie.
-    // Using the current origin avoids Next 15's server-side host-resolution bug.
     window.location.href = result.next;
   }
 
   return (
     <form
       onSubmit={handleSubmit}
-      className="bg-white rounded-2xl border border-slate-200 p-6 space-y-5 shadow-sm"
+      className="glass-panel rounded-2xl border border-outline-variant/15 p-6 space-y-5"
     >
       <Field label="Your work email">
         <input
@@ -79,14 +77,14 @@ export default function SignupForm({ rootHost }: { rootHost: string }) {
             className={`${INPUT_CLS} rounded-r-none`}
             placeholder="acme"
           />
-          <span className="px-3 py-2 text-sm text-slate-500 bg-slate-100 border border-l-0 border-slate-300 rounded-r-lg whitespace-nowrap">
+          <span className="px-3 py-3 text-sm text-on-surface-variant bg-surface-container-high border-0 rounded-r-xl whitespace-nowrap">
             .{rootHost}
           </span>
         </div>
       </Field>
 
       <fieldset className="space-y-2">
-        <legend className="text-sm font-medium text-slate-700">
+        <legend className="text-xs font-semibold text-on-surface-variant uppercase tracking-widest">
           What best describes you?
         </legend>
         <PlanOption
@@ -105,7 +103,7 @@ export default function SignupForm({ rootHost }: { rootHost: string }) {
       </fieldset>
 
       {error && (
-        <div className="rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">
+        <div className="rounded-xl border border-error/20 bg-error-container/10 px-3 py-2 text-sm text-error">
           {error}
         </div>
       )}
@@ -113,14 +111,14 @@ export default function SignupForm({ rootHost }: { rootHost: string }) {
       <button
         type="submit"
         disabled={submitting}
-        className="w-full rounded-lg bg-slate-900 px-4 py-2.5 text-sm font-semibold text-white hover:bg-slate-800 disabled:opacity-60"
+        className="w-full rounded-xl bg-primary text-on-primary px-4 py-3 text-sm font-bold hover:shadow-[0_0_20px_rgba(192,193,255,0.3)] disabled:opacity-60 transition-all duration-300"
       >
-        {submitting ? "Creating workspace…" : "Create workspace →"}
+        {submitting ? "Creating workspace..." : "Create workspace"}
       </button>
 
-      <p className="text-xs text-slate-500 text-center">
+      <p className="text-xs text-on-surface-variant/60 text-center">
         Already have an account?{" "}
-        <Link href="/login" className="font-medium text-slate-900 underline">
+        <Link href="/login" className="font-medium text-primary hover:underline">
           Sign in
         </Link>
       </p>
@@ -139,9 +137,9 @@ function Field({
 }) {
   return (
     <label className="block">
-      <span className="text-sm font-medium text-slate-700">{label}</span>
-      {hint && <span className="block text-xs text-slate-500 mt-0.5 mb-1.5">{hint}</span>}
-      <div className="mt-1">{children}</div>
+      <span className="text-xs font-semibold text-on-surface-variant uppercase tracking-widest">{label}</span>
+      {hint && <span className="block text-xs text-on-surface-variant/60 mt-0.5 mb-1.5">{hint}</span>}
+      <div className="mt-1.5">{children}</div>
     </label>
   );
 }
@@ -160,17 +158,17 @@ function PlanOption({
   defaultChecked?: boolean;
 }) {
   return (
-    <label className="flex items-start gap-3 p-3 rounded-lg border border-slate-200 hover:border-slate-400 cursor-pointer has-[:checked]:border-slate-900 has-[:checked]:bg-slate-50 transition">
+    <label className="flex items-start gap-3 p-3 rounded-xl border border-outline-variant/15 hover:border-primary/30 cursor-pointer has-[:checked]:border-primary/50 has-[:checked]:bg-primary/5 transition-all duration-200">
       <input
         type="radio"
         name={name}
         value={value}
         defaultChecked={defaultChecked}
-        className="mt-1 h-4 w-4 text-slate-900 focus:ring-slate-900"
+        className="mt-1 h-4 w-4 accent-primary"
       />
       <div>
-        <div className="text-sm font-medium text-slate-900">{title}</div>
-        <div className="text-xs text-slate-600 mt-0.5">{desc}</div>
+        <div className="text-sm font-medium text-on-surface">{title}</div>
+        <div className="text-xs text-on-surface-variant/60 mt-0.5">{desc}</div>
       </div>
     </label>
   );

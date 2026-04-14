@@ -8,7 +8,7 @@ import DeletePartnerButton from "./DeletePartnerButton";
 import { updatePartnerAction, uploadLogoAction, deletePartnerAction } from "./actions";
 
 const INPUT_CLS =
-  "block w-full px-3 py-2 text-sm border border-slate-300 rounded-lg focus:border-brand-500 focus:ring-1 focus:ring-brand-500 outline-none";
+  "block w-full px-4 py-3 text-sm bg-surface-container-lowest border-0 rounded-xl text-on-surface placeholder:text-on-surface-variant/40 focus:ring-1 focus:ring-primary/40 outline-none transition-all duration-200";
 
 interface PageProps {
   params: Promise<{ id: string }>;
@@ -27,7 +27,6 @@ export default async function PartnerDetailPage({ params }: PageProps) {
 
   if (error || !partner) notFound();
 
-  // Determine if current user can edit
   let canEdit = session.role === "superadmin";
   if (!canEdit) {
     const { data: membership } = await supabase
@@ -40,24 +39,21 @@ export default async function PartnerDetailPage({ params }: PageProps) {
   }
 
   const rootHost = (process.env.NEXT_PUBLIC_ROOT_DOMAIN ?? "mysitelaunch.com").replace(/:\d+$/, "");
-
-  // Bind partnerId into the server actions
   const boundUpdate = updatePartnerAction.bind(null, id);
   const boundUpload = uploadLogoAction.bind(null, id);
-
   const storefrontHost = partner.custom_domain || `${partner.slug}.${rootHost}`;
 
   return (
     <div className="max-w-3xl space-y-6">
       <header>
-        <Link href="/dashboard/partners" className="text-xs text-slate-500 hover:text-slate-900">
-          ← Partners
+        <Link href="/dashboard/partners" className="text-xs text-on-surface-variant/60 hover:text-primary transition-colors">
+          &larr; Partners
         </Link>
-        <div className="mt-1 flex items-center justify-between gap-4">
+        <div className="mt-2 flex items-center justify-between gap-4">
           <div className="flex items-center gap-3">
             <div
-              className="w-10 h-10 rounded-lg flex items-center justify-center text-white text-sm font-bold overflow-hidden"
-              style={{ backgroundColor: partner.primary_color || "#2563eb" }}
+              className="w-10 h-10 rounded-lg flex items-center justify-center text-on-primary text-sm font-bold overflow-hidden"
+              style={{ backgroundColor: partner.primary_color || "#696cf8" }}
             >
               {partner.logo_url ? (
                 // eslint-disable-next-line @next/next/no-img-element
@@ -67,36 +63,36 @@ export default async function PartnerDetailPage({ params }: PageProps) {
               )}
             </div>
             <div>
-              <h1 className="text-3xl font-bold tracking-tight">{partner.name}</h1>
-              <p className="text-xs text-slate-500 font-mono mt-0.5">{storefrontHost}</p>
+              <h1 className="text-3xl font-extrabold font-headline tracking-tight text-on-surface">{partner.name}</h1>
+              <p className="text-xs text-on-surface-variant font-mono mt-0.5">{storefrontHost}</p>
             </div>
           </div>
           <a
-            href={`http://${storefrontHost}${storefrontHost.includes(":") ? "" : ""}`}
+            href={`http://${storefrontHost}`}
             target="_blank"
             rel="noreferrer"
-            className="text-xs font-medium text-brand-600 hover:text-brand-700"
+            className="text-xs font-bold text-primary hover:underline"
           >
-            View storefront ↗
+            View storefront &nearr;
           </a>
         </div>
       </header>
 
       {/* Logo */}
-      <section className="bg-white rounded-2xl border border-slate-200 p-6">
-        <h2 className="text-sm font-semibold text-slate-900 mb-4">Logo</h2>
+      <section className="glass-panel rounded-2xl border border-outline-variant/15 p-6">
+        <h2 className="text-xs font-bold text-on-surface-variant uppercase tracking-widest mb-4">Logo</h2>
         {canEdit ? (
           <LogoUploadForm
             currentLogoUrl={partner.logo_url ?? null}
             uploadAction={boundUpload}
           />
         ) : (
-          <div className="w-20 h-20 rounded-xl border border-slate-200 bg-slate-50 flex items-center justify-center overflow-hidden">
+          <div className="w-20 h-20 rounded-xl bg-surface-container-high flex items-center justify-center overflow-hidden">
             {partner.logo_url ? (
               // eslint-disable-next-line @next/next/no-img-element
               <img src={partner.logo_url} alt="Logo" className="w-full h-full object-contain" />
             ) : (
-              <span className="text-xs text-slate-400">No logo</span>
+              <span className="text-xs text-on-surface-variant/40">No logo</span>
             )}
           </div>
         )}
@@ -105,9 +101,9 @@ export default async function PartnerDetailPage({ params }: PageProps) {
       {/* Branding + details form */}
       <form
         action={boundUpdate}
-        className="bg-white rounded-2xl border border-slate-200 p-6 space-y-5"
+        className="glass-panel rounded-2xl border border-outline-variant/15 p-6 space-y-5"
       >
-        <h2 className="text-sm font-semibold text-slate-900">Branding &amp; details</h2>
+        <h2 className="text-xs font-bold text-on-surface-variant uppercase tracking-widest">Branding &amp; details</h2>
 
         <Field label="Name">
           <input
@@ -124,9 +120,9 @@ export default async function PartnerDetailPage({ params }: PageProps) {
             <input
               value={partner.slug}
               disabled
-              className={`${INPUT_CLS} rounded-r-none bg-slate-50 text-slate-500`}
+              className={`${INPUT_CLS} rounded-r-none opacity-50`}
             />
-            <span className="px-3 py-2 text-sm text-slate-500 bg-slate-100 border border-l-0 border-slate-300 rounded-r-lg whitespace-nowrap">
+            <span className="px-3 py-3 text-sm text-on-surface-variant bg-surface-container-high border-0 rounded-r-xl whitespace-nowrap">
               .{rootHost}
             </span>
           </div>
@@ -136,13 +132,13 @@ export default async function PartnerDetailPage({ params }: PageProps) {
           <Field label="Primary color">
             <ColorInput
               name="primary_color"
-              defaultValue={partner.primary_color || "#2563eb"}
+              defaultValue={partner.primary_color || "#c0c1ff"}
             />
           </Field>
           <Field label="Accent color">
             <ColorInput
               name="accent_color"
-              defaultValue={partner.accent_color || "#f97316"}
+              defaultValue={partner.accent_color || "#3cddc7"}
             />
           </Field>
         </div>
@@ -185,7 +181,7 @@ export default async function PartnerDetailPage({ params }: PageProps) {
           <div className="flex items-center justify-end gap-3 pt-2">
             <button
               type="submit"
-              className="rounded-lg bg-brand-600 px-4 py-2 text-sm font-medium text-white hover:bg-brand-700"
+              className="px-6 py-2.5 bg-primary text-on-primary font-bold rounded-lg text-sm hover:shadow-[0_0_20px_rgba(192,193,255,0.3)] transition-all"
             >
               Save changes
             </button>
@@ -193,11 +189,11 @@ export default async function PartnerDetailPage({ params }: PageProps) {
         )}
       </form>
 
-      {/* Danger zone — visible to superadmin and partner_owners on this partner */}
+      {/* Danger zone */}
       {canEdit && (
-        <section className="bg-white rounded-2xl border border-red-200 p-6">
-          <h2 className="text-sm font-semibold text-red-700 mb-1">Danger zone</h2>
-          <p className="text-xs text-slate-600 mb-3">
+        <section className="glass-panel rounded-2xl border border-error/20 p-6">
+          <h2 className="text-xs font-bold text-error uppercase tracking-widest mb-1">Danger zone</h2>
+          <p className="text-xs text-on-surface-variant mb-3">
             Deleting a partner removes all their forms, submissions, and members. This cannot be undone.
           </p>
           <DeletePartnerButton
@@ -222,9 +218,9 @@ function Field({
 }) {
   return (
     <label className="block">
-      <span className="text-sm font-medium text-slate-700">{label}</span>
-      {hint && <span className="block text-xs text-slate-500 mt-0.5 mb-1.5">{hint}</span>}
-      <div className="mt-1">{children}</div>
+      <span className="text-xs font-semibold text-on-surface-variant uppercase tracking-widest">{label}</span>
+      {hint && <span className="block text-xs text-on-surface-variant/60 mt-0.5 mb-1.5">{hint}</span>}
+      <div className="mt-1.5">{children}</div>
     </label>
   );
 }

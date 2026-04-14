@@ -12,11 +12,6 @@ interface Props {
 
 export default async function SubmissionPage({ params }: Props) {
   const { token } = await params;
-  // Note: we intentionally do NOT re-validate the URL's subdomain against the
-  // submission's partner. The access_token is itself the secret that authorizes
-  // access, and Next's internal RSC pre-rendering of server-action redirects
-  // can fire this route with a stale "host=localhost" context that would
-  // otherwise poison the client cache with a 404.
   const admin = createAdminClient();
   const { data: sub, error } = await admin
     .from("submissions")
@@ -44,9 +39,8 @@ export default async function SubmissionPage({ params }: Props) {
   const schema = tpl?.schema as FormSchema | undefined;
   if (!schema) notFound();
 
-  const primary = partner.primary_color || "#2563eb";
+  const primary = partner.primary_color || "#c0c1ff";
 
-  // Load any files already uploaded, grouped by field_key.
   const { data: existingFiles } = await admin
     .from("submission_files")
     .select("id, filename, mime_type, size_bytes, storage_path, field_key")
@@ -64,33 +58,45 @@ export default async function SubmissionPage({ params }: Props) {
     });
   }
 
-  // Bind token so client can call actions without exposing the token to the closure
   const boundSave = saveStepAction.bind(null, token);
   const boundSubmit = submitSubmissionAction.bind(null, token);
   const boundUpload = uploadFileAction.bind(null, token);
   const boundDelete = deleteFileAction.bind(null, token);
 
   return (
-    <main className="min-h-screen bg-slate-50">
-      <header className="px-6 py-4 flex items-center gap-3 border-b border-slate-200 bg-white">
-        {partner.logo_url ? (
-          /* eslint-disable-next-line @next/next/no-img-element */
-          <img src={partner.logo_url} alt={partner.name} className="h-8 w-auto" />
-        ) : (
-          <div className="text-base font-semibold text-slate-900">{partner.name}</div>
-        )}
+    <main className="min-h-screen bg-background">
+      {/* Header */}
+      <header className="fixed top-0 w-full z-50 flex justify-between items-center px-8 py-6 bg-background/60 backdrop-blur-xl">
+        <div className="flex items-center gap-3">
+          {partner.logo_url ? (
+            <div className="w-10 h-10 rounded-xl overflow-hidden flex items-center justify-center" style={{ backgroundColor: `${primary}20` }}>
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src={partner.logo_url} alt={partner.name} className="h-8 w-auto" />
+            </div>
+          ) : (
+            <div className="w-10 h-10 rounded-xl flex items-center justify-center" style={{ backgroundColor: primary }}>
+              <span className="text-on-primary font-bold">{partner.name.slice(0, 1).toUpperCase()}</span>
+            </div>
+          )}
+          <div className="flex flex-col">
+            <span className="text-lg font-bold text-on-surface font-headline tracking-tight">{partner.name}</span>
+            <span className="text-[10px] uppercase tracking-[0.2em] font-medium" style={{ color: `${primary}99` }}>Powered by SiteLaunch</span>
+          </div>
+        </div>
       </header>
 
-      <SubmissionForm
-        schema={schema}
-        initialData={(sub.data as Record<string, unknown>) ?? {}}
-        initialFiles={initialFiles}
-        primaryColor={primary}
-        saveStep={boundSave}
-        submit={boundSubmit}
-        uploadFile={boundUpload}
-        deleteFile={boundDelete}
-      />
+      <div className="pt-24">
+        <SubmissionForm
+          schema={schema}
+          initialData={(sub.data as Record<string, unknown>) ?? {}}
+          initialFiles={initialFiles}
+          primaryColor={primary}
+          saveStep={boundSave}
+          submit={boundSubmit}
+          uploadFile={boundUpload}
+          deleteFile={boundDelete}
+        />
+      </div>
     </main>
   );
 }

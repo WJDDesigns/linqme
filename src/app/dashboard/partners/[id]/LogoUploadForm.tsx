@@ -30,12 +30,12 @@ export default function LogoUploadForm({ currentLogoUrl, uploadAction }: Props) 
         });
       }}
     >
-      <div className="w-20 h-20 rounded-xl border border-slate-200 bg-slate-50 flex items-center justify-center overflow-hidden shrink-0">
+      <div className="w-20 h-20 rounded-xl bg-surface-container-high flex items-center justify-center overflow-hidden shrink-0">
         {currentLogoUrl ? (
           // eslint-disable-next-line @next/next/no-img-element
           <img src={currentLogoUrl} alt="Logo" className="w-full h-full object-contain" />
         ) : (
-          <span className="text-xs text-slate-400">No logo</span>
+          <span className="text-xs text-on-surface-variant/40">No logo</span>
         )}
       </div>
       <div className="flex-1 space-y-2">
@@ -44,19 +44,19 @@ export default function LogoUploadForm({ currentLogoUrl, uploadAction }: Props) 
           name="logo"
           accept="image/png,image/jpeg,image/svg+xml,image/webp"
           required
-          className="block w-full text-xs text-slate-600 file:mr-3 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-medium file:bg-brand-50 file:text-brand-700 hover:file:bg-brand-100"
+          className="block w-full text-xs text-on-surface-variant file:mr-3 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-bold file:bg-primary/10 file:text-primary hover:file:bg-primary/20 transition-all"
         />
         <div className="flex items-center gap-2">
           <button
             type="submit"
             disabled={pending}
-            className="rounded-lg bg-slate-900 px-3 py-1.5 text-xs font-medium text-white hover:bg-slate-800 disabled:opacity-50"
+            className="px-4 py-2 bg-primary text-on-primary text-xs font-bold rounded-lg disabled:opacity-50 hover:shadow-[0_0_15px_rgba(192,193,255,0.3)] transition-all"
           >
-            {pending ? "Uploading…" : "Upload logo"}
+            {pending ? "Uploading..." : "Upload logo"}
           </button>
-          {error && <span className="text-xs text-red-600">{error}</span>}
+          {error && <span className="text-xs text-error">{error}</span>}
         </div>
-        <p className="text-xs text-slate-500">PNG, JPG, SVG, or WebP. Max 5MB.</p>
+        <p className="text-xs text-on-surface-variant/60">PNG, JPG, SVG, or WebP. Max 5MB.</p>
       </div>
     </form>
   );

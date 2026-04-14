@@ -6,11 +6,11 @@ export default async function PartnersListPage() {
   const partners = await getVisiblePartners();
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-8">
       <header className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">Partners</h1>
-          <p className="text-sm text-slate-600 mt-1">
+          <h1 className="text-3xl font-extrabold font-headline tracking-tight text-on-surface">Partners</h1>
+          <p className="text-on-surface-variant mt-1">
             {session.role === "superadmin"
               ? "All partners on the platform."
               : "Partners you belong to."}
@@ -19,58 +19,54 @@ export default async function PartnersListPage() {
         {session.role === "superadmin" && (
           <Link
             href="/dashboard/partners/new"
-            className="rounded-lg bg-brand-600 px-4 py-2 text-sm font-medium text-white hover:bg-brand-700"
+            className="px-5 py-2.5 bg-primary text-on-primary font-bold rounded-lg text-sm hover:shadow-[0_0_20px_rgba(192,193,255,0.3)] transition-all"
           >
             + New partner
           </Link>
         )}
       </header>
 
-      <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden">
+      <div className="bg-surface-container rounded-2xl overflow-hidden shadow-2xl shadow-black/20">
         {partners.length === 0 ? (
-          <div className="p-8 text-sm text-slate-500 text-center">
+          <div className="p-8 text-sm text-on-surface-variant text-center">
             No partners yet.
           </div>
         ) : (
-          <table className="w-full text-sm">
-            <thead className="bg-slate-50 text-xs uppercase tracking-wide text-slate-500">
-              <tr>
-                <th className="text-left px-5 py-3 font-medium">Name</th>
-                <th className="text-left px-5 py-3 font-medium">Slug</th>
-                <th className="text-left px-5 py-3 font-medium">Domain</th>
-                <th className="px-5 py-3" />
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-slate-100">
+          <>
+            <div className="grid grid-cols-12 px-8 py-5 text-[10px] uppercase tracking-widest text-on-surface-variant/70 font-bold border-b border-outline-variant/10">
+              <div className="col-span-4">Name</div>
+              <div className="col-span-3">Slug</div>
+              <div className="col-span-4">Domain</div>
+              <div className="col-span-1" />
+            </div>
+            <div className="divide-y divide-outline-variant/5">
               {partners.map((p) => (
-                <tr key={p.id} className="hover:bg-slate-50">
-                  <td className="px-5 py-3">
-                    <div className="flex items-center gap-3">
-                      <div
-                        className="w-8 h-8 rounded-lg flex items-center justify-center text-white text-xs font-bold"
-                        style={{ backgroundColor: p.primary_color || "#2563eb" }}
-                      >
-                        {p.name.slice(0, 1).toUpperCase()}
-                      </div>
-                      <span className="font-medium text-slate-900">{p.name}</span>
+                <div key={p.id} className="grid grid-cols-12 px-8 py-5 items-center hover:bg-white/[0.02] transition-colors group">
+                  <div className="col-span-4 flex items-center gap-3">
+                    <div
+                      className="w-8 h-8 rounded-lg flex items-center justify-center text-on-primary text-xs font-bold"
+                      style={{ backgroundColor: p.primary_color || "#696cf8" }}
+                    >
+                      {p.name.slice(0, 1).toUpperCase()}
                     </div>
-                  </td>
-                  <td className="px-5 py-3 text-slate-600 font-mono text-xs">{p.slug}</td>
-                  <td className="px-5 py-3 text-slate-600">
+                    <span className="font-semibold text-on-surface group-hover:text-primary transition-colors">{p.name}</span>
+                  </div>
+                  <div className="col-span-3 font-mono text-xs text-on-surface-variant">{p.slug}</div>
+                  <div className="col-span-4 text-sm text-on-surface-variant">
                     {p.custom_domain || `${p.slug}.${process.env.NEXT_PUBLIC_ROOT_DOMAIN}`}
-                  </td>
-                  <td className="px-5 py-3 text-right">
+                  </div>
+                  <div className="col-span-1 text-right">
                     <Link
                       href={`/dashboard/partners/${p.id}`}
-                      className="text-brand-600 hover:text-brand-700 font-medium text-xs"
+                      className="text-xs font-bold text-primary hover:underline"
                     >
-                      Manage →
+                      Manage &rarr;
                     </Link>
-                  </td>
-                </tr>
+                  </div>
+                </div>
               ))}
-            </tbody>
-          </table>
+            </div>
+          </>
         )}
       </div>
     </div>

@@ -7,7 +7,7 @@ interface Props {
   defaultValue?: string;
 }
 
-export default function ColorInput({ name, defaultValue = "#2563eb" }: Props) {
+export default function ColorInput({ name, defaultValue = "#c0c1ff" }: Props) {
   const [value, setValue] = useState(defaultValue);
 
   return (
@@ -16,7 +16,7 @@ export default function ColorInput({ name, defaultValue = "#2563eb" }: Props) {
         type="color"
         value={value}
         onChange={(e) => setValue(e.target.value)}
-        className="w-10 h-10 rounded-lg border border-slate-300 cursor-pointer bg-white"
+        className="w-10 h-10 rounded-lg border-0 cursor-pointer bg-surface-container-lowest"
         aria-label={`${name} color picker`}
       />
       <input
@@ -24,7 +24,7 @@ export default function ColorInput({ name, defaultValue = "#2563eb" }: Props) {
         value={value}
         onChange={(e) => setValue(e.target.value)}
         pattern="#[0-9a-fA-F]{6}"
-        className="block px-3 py-2 font-mono text-xs border border-slate-300 rounded-lg focus:border-brand-500 focus:ring-1 focus:ring-brand-500 outline-none"
+        className="block px-3 py-2 font-mono text-xs bg-surface-container-lowest border-0 rounded-lg text-on-surface focus:ring-1 focus:ring-primary/40 outline-none"
         style={{ maxWidth: "120px" }}
       />
     </div>

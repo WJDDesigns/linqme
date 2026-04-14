@@ -2,17 +2,79 @@
 @tailwind components;
 @tailwind utilities;
 
-:root {
-  --brand-50:  239 246 255;
-  --brand-100: 219 234 254;
-  --brand-500:  59 130 246;
-  --brand-600:  37  99 235;
-  --brand-700:  29  78 216;
+/* ── Celestial Editorial global styles ─────────── */
+html, body { height: 100%; }
+
+body {
+  background-color: #0b1326;
+  color: #dae2fd;
+  font-family: 'Inter', ui-sans-serif, system-ui, -apple-system, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
-html, body { height: 100%; }
-body {
-  @apply bg-slate-50 text-slate-900 antialiased;
-  font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto,
-               "Helvetica Neue", Arial, "Apple Color Emoji", "Segoe UI Emoji", sans-serif;
+h1, h2, h3, h4, .headline {
+  font-family: 'Plus Jakarta Sans', ui-sans-serif, system-ui, sans-serif;
+}
+
+::selection {
+  background-color: rgba(192, 193, 255, 0.3);
+}
+
+/* ── Glass panel utility ────────────────────────── */
+@layer utilities {
+  .glass-panel {
+    background: rgba(23, 31, 51, 0.6);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+  }
+
+  .glass-panel-strong {
+    background: rgba(45, 52, 73, 0.4);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+  }
+
+  .nebula-glow {
+    background: radial-gradient(circle at center, rgba(192, 193, 255, 0.08) 0%, transparent 70%);
+  }
+}
+
+/* ── Celestial animations ───────────────────────── */
+@keyframes celestial-fade-up {
+  from { opacity: 0; transform: translateY(20px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes celestial-fade-in {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+@keyframes celestial-glow-pulse {
+  0%, 100% { box-shadow: 0 0 20px rgba(192, 193, 255, 0); }
+  50%      { box-shadow: 0 0 20px rgba(192, 193, 255, 0.2); }
+}
+
+.animate-fade-up {
+  animation: celestial-fade-up 0.5s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+.animate-fade-in {
+  animation: celestial-fade-in 0.4s ease-out both;
+}
+
+/* Staggered delays */
+.delay-1 { animation-delay: 0.05s; }
+.delay-2 { animation-delay: 0.1s; }
+.delay-3 { animation-delay: 0.15s; }
+.delay-4 { animation-delay: 0.2s; }
+.delay-5 { animation-delay: 0.25s; }
+
+/* ── Scrollbar styling ──────────────────────────── */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb {
+  background: rgba(192, 193, 255, 0.15);
+  border-radius: 9999px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(192, 193, 255, 0.3);
 }

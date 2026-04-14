@@ -3,11 +3,11 @@ import { requireSession } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 
 const STATUS_STYLES: Record<string, string> = {
-  draft: "bg-slate-100 text-slate-600",
-  submitted: "bg-blue-100 text-blue-700",
-  in_review: "bg-amber-100 text-amber-700",
-  complete: "bg-emerald-100 text-emerald-700",
-  archived: "bg-slate-100 text-slate-400",
+  draft: "bg-surface-container-high text-on-surface-variant",
+  submitted: "bg-primary/10 text-primary border border-primary/20",
+  in_review: "bg-tertiary/10 text-tertiary border border-tertiary/20",
+  complete: "bg-tertiary/10 text-tertiary border border-tertiary/20",
+  archived: "bg-surface-container-high text-on-surface-variant/60",
 };
 
 export default async function SubmissionsListPage() {
@@ -26,78 +26,76 @@ export default async function SubmissionsListPage() {
   const rows = submissions ?? [];
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-8">
       <header>
-        <h1 className="text-3xl font-bold tracking-tight">Submissions</h1>
-        <p className="text-sm text-slate-600 mt-1">
+        <h1 className="text-3xl font-extrabold font-headline tracking-tight text-on-surface">Submissions</h1>
+        <p className="text-on-surface-variant mt-1">
           Onboarding responses from clients.
         </p>
       </header>
 
-      <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden">
+      <div className="bg-surface-container rounded-2xl overflow-hidden shadow-2xl shadow-black/20">
         {rows.length === 0 ? (
-          <div className="p-8 text-sm text-slate-500 text-center">
+          <div className="p-8 text-sm text-on-surface-variant text-center">
             No submissions yet.
           </div>
         ) : (
-          <table className="w-full text-sm">
-            <thead className="bg-slate-50 text-xs uppercase tracking-wide text-slate-500">
-              <tr>
-                <th className="text-left px-5 py-3 font-medium">Client</th>
-                <th className="text-left px-5 py-3 font-medium">Partner</th>
-                <th className="text-left px-5 py-3 font-medium">Status</th>
-                <th className="text-left px-5 py-3 font-medium">Received</th>
-                <th className="px-5 py-3" />
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-slate-100">
+          <>
+            {/* Table header */}
+            <div className="grid grid-cols-12 px-8 py-5 text-[10px] uppercase tracking-widest text-on-surface-variant/70 font-bold border-b border-outline-variant/10">
+              <div className="col-span-4">Client</div>
+              <div className="col-span-3">Partner</div>
+              <div className="col-span-2">Status</div>
+              <div className="col-span-2">Received</div>
+              <div className="col-span-1" />
+            </div>
+            {/* Rows */}
+            <div className="divide-y divide-outline-variant/5">
               {rows.map((s) => {
                 const partner = Array.isArray(s.partners) ? s.partners[0] : s.partners;
                 const when = s.submitted_at || s.created_at;
                 return (
-                  <tr key={s.id} className="hover:bg-slate-50">
-                    <td className="px-5 py-3">
-                      <div className="font-medium text-slate-900">
-                        {s.client_name || "—"}
+                  <div key={s.id} className="grid grid-cols-12 px-8 py-5 items-center hover:bg-white/[0.02] transition-colors group">
+                    <div className="col-span-4">
+                      <p className="font-semibold text-on-surface group-hover:text-primary transition-colors">
+                        {s.client_name || "\u2014"}
+                      </p>
+                      <p className="text-xs text-on-surface-variant/60">{s.client_email || "no email yet"}</p>
+                    </div>
+                    <div className="col-span-3 flex items-center gap-2">
+                      <div
+                        className="w-6 h-6 rounded flex items-center justify-center text-on-primary text-[10px] font-bold"
+                        style={{ backgroundColor: partner?.primary_color || "#696cf8" }}
+                      >
+                        {partner?.name?.slice(0, 1).toUpperCase() ?? "?"}
                       </div>
-                      <div className="text-xs text-slate-500">{s.client_email || "no email yet"}</div>
-                    </td>
-                    <td className="px-5 py-3">
-                      <div className="flex items-center gap-2">
-                        <div
-                          className="w-5 h-5 rounded flex items-center justify-center text-white text-[10px] font-bold"
-                          style={{ backgroundColor: partner?.primary_color || "#2563eb" }}
-                        >
-                          {partner?.name?.slice(0, 1).toUpperCase() ?? "?"}
-                        </div>
-                        <span className="text-slate-700">{partner?.name ?? "—"}</span>
-                      </div>
-                    </td>
-                    <td className="px-5 py-3">
+                      <span className="text-sm text-on-surface">{partner?.name ?? "\u2014"}</span>
+                    </div>
+                    <div className="col-span-2">
                       <span
-                        className={`inline-block px-2 py-0.5 rounded-full text-[11px] font-medium ${
-                          STATUS_STYLES[s.status] ?? "bg-slate-100 text-slate-600"
+                        className={`inline-block px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-tighter ${
+                          STATUS_STYLES[s.status] ?? STATUS_STYLES.draft
                         }`}
                       >
                         {s.status}
                       </span>
-                    </td>
-                    <td className="px-5 py-3 text-slate-600">
-                      {when ? new Date(when).toLocaleDateString() : "—"}
-                    </td>
-                    <td className="px-5 py-3 text-right">
+                    </div>
+                    <div className="col-span-2 text-xs text-on-surface">
+                      {when ? new Date(when).toLocaleDateString() : "\u2014"}
+                    </div>
+                    <div className="col-span-1 text-right">
                       <Link
                         href={`/dashboard/submissions/${s.id}`}
-                        className="text-brand-600 hover:text-brand-700 font-medium text-xs"
+                        className="text-xs font-bold text-primary hover:underline"
                       >
-                        View →
+                        View &rarr;
                       </Link>
-                    </td>
-                  </tr>
+                    </div>
+                  </div>
                 );
               })}
-            </tbody>
-          </table>
+            </div>
+          </>
         )}
       </div>
     </div>

@@ -4,7 +4,7 @@ import { createPartnerAction } from "./actions";
 import ColorInput from "@/components/ColorInput";
 
 const INPUT_CLS =
-  "block w-full px-3 py-2 text-sm border border-slate-300 rounded-lg focus:border-brand-500 focus:ring-1 focus:ring-brand-500 outline-none";
+  "block w-full px-4 py-3 text-sm bg-surface-container-lowest border-0 rounded-xl text-on-surface placeholder:text-on-surface-variant/40 focus:ring-1 focus:ring-primary/40 outline-none transition-all duration-200";
 
 export default async function NewPartnerPage() {
   await requireSuperadmin();
@@ -13,18 +13,18 @@ export default async function NewPartnerPage() {
   return (
     <div className="max-w-2xl space-y-6">
       <header>
-        <Link href="/dashboard/partners" className="text-xs text-slate-500 hover:text-slate-900">
-          ← Partners
+        <Link href="/dashboard/partners" className="text-xs text-on-surface-variant/60 hover:text-primary transition-colors">
+          &larr; Partners
         </Link>
-        <h1 className="text-3xl font-bold tracking-tight mt-1">New partner</h1>
-        <p className="text-sm text-slate-600 mt-1">
+        <h1 className="text-3xl font-extrabold font-headline tracking-tight text-on-surface mt-2">New partner</h1>
+        <p className="text-on-surface-variant mt-1">
           Create a new partner tenant. They&apos;ll get their own subdomain and branding.
         </p>
       </header>
 
       <form
         action={createPartnerAction}
-        className="bg-white rounded-2xl border border-slate-200 p-6 space-y-5"
+        className="glass-panel rounded-2xl border border-outline-variant/15 p-6 space-y-5"
       >
         <Field label="Name" hint="Displayed to their clients.">
           <input name="name" required autoFocus className={INPUT_CLS} placeholder="POP Marketing" />
@@ -42,7 +42,7 @@ export default async function NewPartnerPage() {
               className={`${INPUT_CLS} rounded-r-none`}
               placeholder="pop"
             />
-            <span className="px-3 py-2 text-sm text-slate-500 bg-slate-100 border border-l-0 border-slate-300 rounded-r-lg whitespace-nowrap">
+            <span className="px-3 py-3 text-sm text-on-surface-variant bg-surface-container-high border-0 rounded-r-xl whitespace-nowrap">
               .{rootHost}
             </span>
           </div>
@@ -50,10 +50,10 @@ export default async function NewPartnerPage() {
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
           <Field label="Primary color">
-            <ColorInput name="primary_color" defaultValue="#2563eb" />
+            <ColorInput name="primary_color" defaultValue="#c0c1ff" />
           </Field>
           <Field label="Accent color">
-            <ColorInput name="accent_color" defaultValue="#f97316" />
+            <ColorInput name="accent_color" defaultValue="#3cddc7" />
           </Field>
         </div>
 
@@ -90,13 +90,13 @@ export default async function NewPartnerPage() {
         <div className="flex items-center justify-end gap-3 pt-2">
           <Link
             href="/dashboard/partners"
-            className="text-sm text-slate-600 hover:text-slate-900"
+            className="text-sm text-on-surface-variant/60 hover:text-on-surface transition-colors"
           >
             Cancel
           </Link>
           <button
             type="submit"
-            className="rounded-lg bg-brand-600 px-4 py-2 text-sm font-medium text-white hover:bg-brand-700"
+            className="px-6 py-2.5 bg-primary text-on-primary font-bold rounded-lg text-sm hover:shadow-[0_0_20px_rgba(192,193,255,0.3)] transition-all"
           >
             Create partner
           </button>
@@ -117,9 +117,9 @@ function Field({
 }) {
   return (
     <label className="block">
-      <span className="text-sm font-medium text-slate-700">{label}</span>
-      {hint && <span className="block text-xs text-slate-500 mt-0.5 mb-1.5">{hint}</span>}
-      <div className="mt-1">{children}</div>
+      <span className="text-xs font-semibold text-on-surface-variant uppercase tracking-widest">{label}</span>
+      {hint && <span className="block text-xs text-on-surface-variant/60 mt-0.5 mb-1.5">{hint}</span>}
+      <div className="mt-1.5">{children}</div>
     </label>
   );
 }
