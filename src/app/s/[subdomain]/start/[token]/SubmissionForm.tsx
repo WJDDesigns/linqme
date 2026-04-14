@@ -231,6 +231,25 @@ function CelestialField({
 }) {
   const str = (value as string) ?? "";
   const focusRing = { "--tw-ring-color": primaryColor + "66" } as React.CSSProperties;
+  const errBorder = error ? "#ffb4ab" : undefined;
+
+  /* Heading fields are display-only — no input */
+  if (field.type === "heading") {
+    return (
+      <div className="py-4 border-b border-[#46464b]/20">
+        <h3 className="text-lg font-bold text-[#dae2fd] font-headline">{field.label}</h3>
+        {field.content && <p className="text-sm text-[#c7c6cb] mt-1 leading-relaxed">{field.content}</p>}
+        {field.hint && <p className="text-xs text-[#c7c6cb]/60 mt-1">{field.hint}</p>}
+      </div>
+    );
+  }
+
+  /* Multi-option checkbox (when field has options array) */
+  const isMultiCheckbox = field.type === "checkbox" && field.options && field.options.length > 0;
+  /* Parse multi-checkbox value as array */
+  const checkedValues: string[] = isMultiCheckbox
+    ? (Array.isArray(value) ? value as string[] : typeof value === "string" && value ? value.split("||") : [])
+    : [];
 
   return (
     <div className="group">
@@ -238,25 +257,71 @@ function CelestialField({
         {field.label}
         {field.required && <span className="ml-1" style={{ color: primaryColor }}>*</span>}
       </label>
+      {field.hint && <p className="text-xs text-[#c7c6cb]/60 mb-2 ml-1">{field.hint}</p>}
 
       {field.type === "textarea" ? (
-        <textarea id={field.id} name={field.id} required={field.required} placeholder={field.placeholder} rows={field.rows ?? 3} value={str} onChange={(e) => onChange(e.target.value)} className={INPUT_CLS} style={{ ...focusRing, borderColor: error ? "#ffb4ab" : undefined }} />
+        <textarea id={field.id} name={field.id} required={field.required} placeholder={field.placeholder} rows={field.rows ?? 3} value={str} onChange={(e) => onChange(e.target.value)} className={INPUT_CLS} style={{ ...focusRing, borderColor: errBorder }} />
+
       ) : field.type === "select" ? (
         <select id={field.id} name={field.id} required={field.required} value={str} onChange={(e) => onChange(e.target.value)} className={INPUT_CLS} style={focusRing}>
           <option value="">Select...</option>
           {(field.options ?? []).map((opt) => <option key={opt} value={opt}>{opt}</option>)}
         </select>
+
+      ) : field.type === "radio" ? (
+        <div className="space-y-2">
+          {(field.options ?? []).map((opt) => (
+            <label key={opt} className="flex items-center gap-3 cursor-pointer py-3 px-4 rounded-xl border-2 transition-all duration-200" style={str === opt ? { borderColor: primaryColor, backgroundColor: primaryColor + "08" } : { borderColor: "#46464b26" }}>
+              <input type="radio" name={field.id} value={opt} checked={str === opt} onChange={() => onChange(opt)} className="h-4 w-4" style={{ accentColor: primaryColor }} />
+              <span className="text-sm text-[#dae2fd]">{opt}</span>
+            </label>
+          ))}
+        </div>
+
+      ) : isMultiCheckbox ? (
+        <div className="space-y-2">
+          {(field.options ?? []).map((opt) => {
+            const isChecked = checkedValues.includes(opt);
+            const atMax = field.maxSelections && field.maxSelections > 0 && checkedValues.length >= field.maxSelections && !isChecked;
+            return (
+              <label key={opt} className={`flex items-center gap-3 cursor-pointer py-3 px-4 rounded-xl border-2 transition-all duration-200 ${atMax ? "opacity-40 cursor-not-allowed" : ""}`} style={isChecked ? { borderColor: primaryColor, backgroundColor: primaryColor + "08" } : { borderColor: "#46464b26" }}>
+                <input type="checkbox" value={opt} checked={isChecked} disabled={!!atMax} onChange={() => {
+                  const next = isChecked ? checkedValues.filter((v) => v !== opt) : [...checkedValues, opt];
+                  onChange(next.join("||"));
+                }} className="h-4 w-4 rounded" style={{ accentColor: primaryColor }} />
+                <span className="text-sm text-[#dae2fd]">{opt}</span>
+              </label>
+            );
+          })}
+          {field.maxSelections && field.maxSelections > 0 && (
+            <p className="text-xs text-[#c7c6cb]/60 ml-1">Select up to {field.maxSelections}</p>
+          )}
+        </div>
+
       ) : field.type === "checkbox" ? (
         <label htmlFor={field.id} className="flex items-center gap-3 cursor-pointer py-3 px-4 rounded-xl border-2 transition-all duration-200" style={value ? { borderColor: primaryColor, backgroundColor: primaryColor + "08" } : { borderColor: "#46464b26" }}>
           <input id={field.id} name={field.id} type="checkbox" checked={!!value} onChange={(e) => onChange(e.target.checked ? "yes" : "")} className="h-5 w-5 rounded" style={{ accentColor: primaryColor }} />
-          <span className="text-sm text-on-surface">{field.placeholder || "Yes"}</span>
+          <span className="text-sm text-[#dae2fd]">{field.placeholder || "Yes"}</span>
         </label>
+
+      ) : field.type === "date" ? (
+        <input id={field.id} name={field.id} required={field.required} type="date" value={str} onChange={(e) => onChange(e.target.value)} className={INPUT_CLS} style={{ ...focusRing, borderColor: errBorder, colorScheme: "dark" }} />
+
+      ) : field.type === "color" ? (
+        <div className="flex items-center gap-3">
+          <input type="color" value={str || "#c0c1ff"} onChange={(e) => onChange(e.target.value)} className="w-12 h-12 rounded-xl border-0 cursor-pointer bg-transparent" />
+          <input id={field.id} name={field.id} required={field.required} placeholder={field.placeholder || "#c0c1ff"} value={str} onChange={(e) => onChange(e.target.value)} className={`${INPUT_CLS} flex-1`} style={{ ...focusRing, borderColor: errBorder }} />
+        </div>
+
+      ) : field.type === "address" ? (
+        <textarea id={field.id} name={field.id} required={field.required} placeholder={field.placeholder || "Street address, City, State, ZIP"} rows={3} value={str} onChange={(e) => onChange(e.target.value)} className={INPUT_CLS} style={{ ...focusRing, borderColor: errBorder }} />
+
       ) : (
         <input
           id={field.id} name={field.id} required={field.required} placeholder={field.placeholder}
           type={field.type === "email" ? "email" : field.type === "tel" ? "tel" : field.type === "url" ? "url" : field.type === "number" ? "number" : "text"}
           value={str} onChange={(e) => onChange(e.target.value)} className={INPUT_CLS}
-          style={{ ...focusRing, borderColor: error ? "#ffb4ab" : undefined }}
+          style={{ ...focusRing, borderColor: errBorder }}
         />
       )}
 

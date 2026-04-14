@@ -1,7 +1,7 @@
 import { requireSession, getCurrentAccount } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 import type { FormSchema } from "@/lib/forms";
-import FormEditor from "./FormEditor";
+import FormEditorShell from "./FormEditorShell";
 
 export default async function FormEditorPage() {
   const session = await requireSession();
@@ -33,21 +33,8 @@ export default async function FormEditorPage() {
     .maybeSingle();
 
   const tpl = pf && (Array.isArray(pf.form_templates) ? pf.form_templates[0] : pf.form_templates);
-  const schema: FormSchema = (tpl?.schema as FormSchema) ?? { steps: [] };
+  const schema: FormSchema | null = (tpl?.schema as FormSchema) ?? null;
+  const hasForm = !!pf && !!schema;
 
-  if (!pf) {
-    return (
-      <div className="max-w-5xl mx-auto px-6 md:px-10 py-8">
-        <h1 className="text-3xl font-headline font-bold tracking-tight text-on-surface">Form editor</h1>
-        <p className="text-sm text-on-surface-variant mt-1">
-          Customize the onboarding form your clients fill out.
-        </p>
-        <div className="mt-6 bg-surface-container rounded-2xl border border-outline-variant/15 p-6 text-sm text-on-surface-variant">
-          No active form found. Visit your partner settings to create one.
-        </div>
-      </div>
-    );
-  }
-
-  return <FormEditor initialSchema={schema} />;
+  return <FormEditorShell initialSchema={schema} hasForm={hasForm} />;
 }

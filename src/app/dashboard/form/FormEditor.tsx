@@ -20,8 +20,13 @@ const FIELD_CATALOGUE: FieldTypeInfo[] = [
   { type: "tel", label: "Phone", icon: "\u260e", group: "standard" },
   { type: "number", label: "Number", icon: "#", group: "standard" },
   { type: "select", label: "Dropdown", icon: "\u25be", group: "standard" },
+  { type: "radio", label: "Radio Choice", icon: "\u25c9", group: "standard" },
   { type: "checkbox", label: "Checkbox", icon: "\u2611", group: "standard" },
+  { type: "date", label: "Date Picker", icon: "\ud83d\udcc5", group: "standard" },
   { type: "url", label: "URL", icon: "\ud83d\udd17", group: "advanced" },
+  { type: "color", label: "Color Picker", icon: "\ud83c\udfa8", group: "advanced" },
+  { type: "address", label: "Address", icon: "\ud83d\udccd", group: "advanced" },
+  { type: "heading", label: "Section Heading", icon: "H", group: "advanced" },
   { type: "file", label: "File Upload", icon: "\ud83d\udcce", group: "advanced" },
   { type: "files", label: "Multi-File", icon: "\ud83d\udcc1", group: "advanced" },
 ];
@@ -41,8 +46,11 @@ function uid() {
 
 function makeField(type: FieldType, label: string): FieldDef {
   const base: FieldDef = { id: `field_${uid()}`, type, label, required: false };
-  if (type === "select") base.options = ["Option 1", "Option 2"];
+  if (type === "select" || type === "radio") base.options = ["Option 1", "Option 2"];
+  if (type === "checkbox") base.options = [];
   if (type === "textarea") base.rows = 4;
+  if (type === "color") base.placeholder = "#c0c1ff";
+  if (type === "heading") base.content = "";
   return base;
 }
 
@@ -63,7 +71,7 @@ const INPUT_CLS =
 
 /* ── Main editor ───────────────────────────────────────────── */
 
-export default function FormEditor({ initialSchema }: { initialSchema: FormSchema }) {
+export default function FormEditor({ initialSchema, onOpenTemplates }: { initialSchema: FormSchema; onOpenTemplates?: () => void }) {
   const [schema, setSchema] = useState<FormSchema>(initialSchema);
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState<{ kind: "ok" | "err"; text: string } | null>(null);
@@ -245,6 +253,14 @@ export default function FormEditor({ initialSchema }: { initialSchema: FormSchem
             <span className={`text-xs font-medium hidden sm:block ${message.kind === "ok" ? "text-tertiary" : "text-error"}`}>
               {message.text}
             </span>
+          )}
+          {onOpenTemplates && (
+            <button
+              onClick={onOpenTemplates}
+              className="px-4 py-2 text-xs font-bold uppercase tracking-widest text-on-surface-variant border border-outline-variant/20 rounded-lg hover:text-primary hover:border-primary/30 transition-all whitespace-nowrap hidden sm:block"
+            >
+              Templates
+            </button>
           )}
           <button
             disabled={saving}
@@ -545,10 +561,25 @@ function FieldSettingsPanel({ field, onUpdate, onClose }: {
           </div>
         </section>
 
-        {field.type === "select" && (
+        {(field.type === "select" || field.type === "radio" || field.type === "checkbox") && (
           <section className="space-y-3">
-            <div className="text-[10px] font-bold text-on-surface-variant uppercase tracking-widest">Choices</div>
+            <div className="text-[10px] font-bold text-on-surface-variant uppercase tracking-widest">
+              {field.type === "checkbox" ? "Checkbox Options" : "Choices"}
+            </div>
             <textarea value={(field.options ?? []).join("\n")} onChange={(e) => onUpdate({ options: e.target.value.split("\n").filter((l) => l.trim()) })} rows={5} placeholder="One option per line" className={`${INPUT_CLS} font-mono`} />
+            {field.type === "checkbox" && (
+              <label className="flex items-center gap-2">
+                <span className="text-[11px] font-medium text-on-surface-variant">Max selections</span>
+                <input type="number" min={0} max={50} value={field.maxSelections ?? 0} onChange={(e) => onUpdate({ maxSelections: Number(e.target.value) || 0 })} placeholder="0 = unlimited" className="w-20 px-2 py-1 text-sm bg-surface-container-highest/50 border-0 rounded-lg text-on-surface outline-none" />
+              </label>
+            )}
+          </section>
+        )}
+
+        {field.type === "heading" && (
+          <section className="space-y-3">
+            <div className="text-[10px] font-bold text-on-surface-variant uppercase tracking-widest">Heading Content</div>
+            <textarea value={field.content ?? ""} onChange={(e) => onUpdate({ content: e.target.value || undefined })} placeholder="Additional description text shown below the heading..." rows={4} className={INPUT_CLS} />
           </section>
         )}
 

@@ -8,7 +8,12 @@ export type FieldType =
   | "url"
   | "number"
   | "select"
+  | "radio"
   | "checkbox"
+  | "date"
+  | "color"
+  | "heading"
+  | "address"
   | "file"
   | "files";
 
@@ -22,6 +27,10 @@ export interface FieldDef {
   rows?: number;
   accept?: string;
   hint?: string;
+  /** For heading fields — rich text / description content */
+  content?: string;
+  /** For checkbox fields — max selections allowed */
+  maxSelections?: number;
 }
 
 export interface UploadedFile {
@@ -57,6 +66,8 @@ export function validateStepData(
   for (const f of step.fields) {
     // File fields are validated separately (upload state lives in submission_files).
     if (f.type === "file" || f.type === "files") continue;
+    // Heading fields are display-only, never validated.
+    if (f.type === "heading") continue;
     const v = data[f.id];
     if (f.required) {
       if (v === undefined || v === null || v === "") {
@@ -77,6 +88,12 @@ export function validateStepData(
     }
     if (f.type === "number" && typeof v === "string") {
       if (Number.isNaN(Number(v))) errors[f.id] = "Must be a number";
+    }
+    if (f.type === "color" && typeof v === "string") {
+      if (!/^#[0-9a-f]{3,8}$/i.test(v)) errors[f.id] = "Invalid hex color";
+    }
+    if (f.type === "date" && typeof v === "string") {
+      if (Number.isNaN(Date.parse(v))) errors[f.id] = "Invalid date";
     }
   }
   return Object.keys(errors).length ? { ok: false, errors } : { ok: true };
