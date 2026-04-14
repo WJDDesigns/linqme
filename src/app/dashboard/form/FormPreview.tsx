@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import type { FormSchema, FieldDef } from "@/lib/forms";
+import { isLightColor } from "@/lib/color-utils";
 
 interface Props {
   schema: FormSchema;
@@ -9,7 +10,7 @@ interface Props {
 }
 
 const INPUT_CLS =
-  "block w-full px-4 py-3 text-base bg-[#060e20] border-0 rounded-xl text-[#dae2fd] placeholder:text-[#c7c6cb]/40 focus:ring-1 outline-none transition-all duration-200";
+  "block w-full px-4 py-3 text-base bg-surface-container-lowest border-0 rounded-xl text-on-surface placeholder:text-on-surface-variant/40 focus:ring-1 outline-none transition-all duration-200";
 
 export default function FormPreview({ schema, primaryColor }: Props) {
   const [stepIdx, setStepIdx] = useState(0);
@@ -28,8 +29,8 @@ export default function FormPreview({ schema, primaryColor }: Props) {
       {/* Fake header bar */}
       <div className="px-6 py-5 border-b border-on-surface/10 bg-background/60 backdrop-blur-xl">
         <div className="flex items-center gap-3">
-          <div className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ backgroundColor: primaryColor }}>
-            <span className="text-on-primary font-bold text-xs">P</span>
+          <div className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ backgroundColor: primaryColor, color: isLightColor(primaryColor) ? "#1a1c25" : "#ffffff" }}>
+            <span className="font-bold text-xs">P</span>
           </div>
           <span className="text-sm font-bold text-on-surface font-headline">Preview Mode</span>
         </div>
@@ -44,12 +45,12 @@ export default function FormPreview({ schema, primaryColor }: Props) {
                 onClick={() => setStepIdx(i)}
                 className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold transition-all shrink-0 ${
                   i === stepIdx
-                    ? "text-on-primary shadow-lg"
+                    ? "shadow-lg"
                     : i < stepIdx
-                      ? "text-on-primary opacity-70"
+                      ? "opacity-70"
                       : "bg-surface-container-high text-on-surface-variant/40"
                 }`}
-                style={i <= stepIdx ? { backgroundColor: primaryColor } : undefined}
+                style={i <= stepIdx ? { backgroundColor: primaryColor, color: isLightColor(primaryColor) ? "#1a1c25" : "#ffffff" } : undefined}
               >
                 {i < stepIdx ? <i className="fa-solid fa-check text-[10px]" /> : i + 1}
               </button>
@@ -107,8 +108,8 @@ export default function FormPreview({ schema, primaryColor }: Props) {
           <button
             onClick={() => setStepIdx(Math.min(schema.steps.length - 1, stepIdx + 1))}
             disabled={stepIdx === schema.steps.length - 1}
-            className="flex items-center gap-2 px-5 py-3 text-sm font-bold text-on-primary rounded-xl disabled:opacity-30 transition-all"
-            style={{ backgroundColor: primaryColor }}
+            className="flex items-center gap-2 px-5 py-3 text-sm font-bold rounded-xl disabled:opacity-30 transition-all"
+            style={{ backgroundColor: primaryColor, color: isLightColor(primaryColor) ? "#1a1c25" : "#ffffff" }}
           >
             {stepIdx === schema.steps.length - 1 ? "Submit" : "Continue"} <i className="fa-solid fa-chevron-right text-xs" />
           </button>
@@ -152,7 +153,7 @@ function PreviewField({ field, primaryColor, delay }: { field: FieldDef; primary
       ) : field.type === "radio" ? (
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
           {(field.options ?? []).map((o) => (
-            <div key={o} className="px-4 py-3 rounded-xl border border-outline-variant/20 bg-[#060e20] text-sm text-[#dae2fd] cursor-default">
+            <div key={o} className="px-4 py-3 rounded-xl border border-outline-variant/20 bg-surface-container-lowest text-sm text-on-surface cursor-default">
               {o}
             </div>
           ))}
@@ -160,16 +161,16 @@ function PreviewField({ field, primaryColor, delay }: { field: FieldDef; primary
       ) : field.type === "checkbox" && field.options && field.options.length > 0 ? (
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
           {field.options.map((o) => (
-            <div key={o} className="px-4 py-3 rounded-xl border border-outline-variant/20 bg-[#060e20] text-sm text-[#dae2fd] cursor-default flex items-center gap-2">
+            <div key={o} className="px-4 py-3 rounded-xl border border-outline-variant/20 bg-surface-container-lowest text-sm text-on-surface cursor-default flex items-center gap-2">
               <div className="w-4 h-4 rounded border border-outline-variant/30" />
               {o}
             </div>
           ))}
         </div>
       ) : field.type === "checkbox" ? (
-        <div className="flex items-center gap-2 px-4 py-3 rounded-xl border border-outline-variant/20 bg-[#060e20]">
+        <div className="flex items-center gap-2 px-4 py-3 rounded-xl border border-outline-variant/20 bg-surface-container-lowest">
           <div className="w-4 h-4 rounded border border-outline-variant/30" />
-          <span className="text-sm text-[#dae2fd]">{field.label}</span>
+          <span className="text-sm text-on-surface">{field.label}</span>
         </div>
       ) : field.type === "color" ? (
         <div className="flex items-center gap-3">
@@ -177,9 +178,9 @@ function PreviewField({ field, primaryColor, delay }: { field: FieldDef; primary
           <input disabled value={field.placeholder || "#c0c1ff"} className={`${INPUT_CLS} flex-1`} />
         </div>
       ) : field.type === "date" ? (
-        <input type="date" disabled className={INPUT_CLS} style={{ colorScheme: "dark" }} />
+        <input type="date" disabled className={`${INPUT_CLS} dark:[color-scheme:dark]`} />
       ) : field.type === "file" || field.type === "files" ? (
-        <div className="flex flex-col items-center justify-center gap-3 px-4 py-10 rounded-2xl border-2 border-dashed border-outline-variant/30 bg-[#060e20]/30 cursor-default">
+        <div className="flex flex-col items-center justify-center gap-3 px-4 py-10 rounded-2xl border-2 border-dashed border-outline-variant/30 bg-surface-container-lowest/50 cursor-default">
           <div className="w-16 h-16 rounded-full bg-surface-container-high flex items-center justify-center">
             <i className="fa-solid fa-cloud-arrow-up text-3xl" style={{ color: primaryColor }} />
           </div>

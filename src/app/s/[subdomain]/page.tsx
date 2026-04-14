@@ -1,5 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
 import { notFound } from "next/navigation";
+import { contrastText } from "@/lib/color-utils";
 import { startSubmissionAction } from "./actions";
 
 interface Props {
@@ -68,8 +69,8 @@ export default async function PartnerHomePage({ params }: Props) {
             <input type="hidden" name="subdomain" value={identifier} />
             <button
               type="submit"
-              className="px-10 py-4 text-on-primary font-headline font-bold rounded-xl shadow-[0_10px_30px_rgba(192,193,255,0.2)] hover:shadow-[0_15px_40px_rgba(192,193,255,0.35)] hover:-translate-y-1 transition-all flex items-center gap-3 mx-auto"
-              style={{ backgroundColor: primary }}
+              className="px-10 py-4 font-headline font-bold rounded-xl shadow-[0_10px_30px_rgba(192,193,255,0.2)] hover:shadow-[0_15px_40px_rgba(192,193,255,0.35)] hover:-translate-y-1 transition-all flex items-center gap-3 mx-auto"
+              style={{ backgroundColor: primary, color: contrastText(primary) }}
             >
               Start onboarding
               <i className="fa-solid fa-arrow-right text-sm ml-1" />

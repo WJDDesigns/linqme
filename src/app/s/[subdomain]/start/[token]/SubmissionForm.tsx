@@ -2,6 +2,7 @@
 
 import { useState, useTransition, useEffect, useRef, useCallback } from "react";
 import type { FormSchema, FieldDef, UploadedFile } from "@/lib/forms";
+import { isLightColor } from "@/lib/color-utils";
 import FileField from "./FileField";
 
 interface Props {
@@ -49,7 +50,9 @@ const GREETINGS = [
 ];
 
 const INPUT_CLS =
-  "block w-full px-4 py-3 text-base bg-[#060e20] border-0 rounded-xl text-[#dae2fd] placeholder:text-[#c7c6cb]/40 focus:ring-1 outline-none transition-all duration-200";
+  "block w-full px-4 py-3 text-base bg-surface-container-lowest border-0 rounded-xl text-on-surface placeholder:text-on-surface-variant/40 focus:ring-1 outline-none transition-all duration-200";
+
+
 
 export default function SubmissionForm({
   schema, initialData, initialFiles, primaryColor,
@@ -190,8 +193,8 @@ export default function SubmissionForm({
               <button
                 type="submit"
                 disabled={pending || submitting || transitioning}
-                className="group px-10 py-4 font-headline font-bold rounded-xl shadow-[0_10px_30px_rgba(192,193,255,0.2)] hover:shadow-[0_15px_40px_rgba(192,193,255,0.35)] hover:-translate-y-1 transition-all flex items-center gap-3 text-on-primary disabled:opacity-60"
-                style={{ backgroundColor: primaryColor }}
+                className="group px-10 py-4 font-headline font-bold rounded-xl shadow-[0_10px_30px_rgba(192,193,255,0.2)] hover:shadow-[0_15px_40px_rgba(192,193,255,0.35)] hover:-translate-y-1 transition-all flex items-center gap-3 disabled:opacity-60"
+                style={{ backgroundColor: primaryColor, color: isLightColor(primaryColor) ? "#1a1c25" : "#ffffff" }}
               >
                 {submitting ? (
                   <><Spinner /> Submitting...</>
@@ -227,10 +230,10 @@ function CelestialField({
   /* Heading fields are display-only — no input */
   if (field.type === "heading") {
     return (
-      <div className="py-4 border-b border-[#46464b]/20">
-        <h3 className="text-lg font-bold text-[#dae2fd] font-headline">{field.label}</h3>
-        {field.content && <p className="text-sm text-[#c7c6cb] mt-1 leading-relaxed">{field.content}</p>}
-        {field.hint && <p className="text-xs text-[#c7c6cb]/60 mt-1">{field.hint}</p>}
+      <div className="py-4 border-b border-on-surface-variant/20">
+        <h3 className="text-lg font-bold text-on-surface font-headline">{field.label}</h3>
+        {field.content && <p className="text-sm text-on-surface-variant mt-1 leading-relaxed">{field.content}</p>}
+        {field.hint && <p className="text-xs text-on-surface-variant/60 mt-1">{field.hint}</p>}
       </div>
     );
   }
@@ -248,7 +251,7 @@ function CelestialField({
         {field.label}
         {field.required && <span className="ml-1" style={{ color: primaryColor }}>*</span>}
       </label>
-      {field.hint && <p className="text-xs text-[#c7c6cb]/60 mb-2 ml-1">{field.hint}</p>}
+      {field.hint && <p className="text-xs text-on-surface-variant/60 mb-2 ml-1">{field.hint}</p>}
 
       {field.type === "textarea" ? (
         <textarea id={field.id} name={field.id} required={field.required} placeholder={field.placeholder} rows={field.rows ?? 3} value={str} onChange={(e) => onChange(e.target.value)} className={INPUT_CLS} style={{ ...focusRing, borderColor: errBorder }} />
@@ -262,9 +265,9 @@ function CelestialField({
       ) : field.type === "radio" ? (
         <div className="space-y-2">
           {(field.options ?? []).map((opt) => (
-            <label key={opt} className="flex items-center gap-3 cursor-pointer py-3 px-4 rounded-xl border-2 transition-all duration-200" style={str === opt ? { borderColor: primaryColor, backgroundColor: primaryColor + "08" } : { borderColor: "#46464b26" }}>
+            <label key={opt} className="flex items-center gap-3 cursor-pointer py-3 px-4 rounded-xl border-2 transition-all duration-200" style={str === opt ? { borderColor: primaryColor, backgroundColor: primaryColor + "08" } : { borderColor: "var(--color-outline-variant)" }}>
               <input type="radio" name={field.id} value={opt} checked={str === opt} onChange={() => onChange(opt)} className="h-4 w-4" style={{ accentColor: primaryColor }} />
-              <span className="text-sm text-[#dae2fd]">{opt}</span>
+              <span className="text-sm text-on-surface">{opt}</span>
             </label>
           ))}
         </div>
@@ -275,28 +278,28 @@ function CelestialField({
             const isChecked = checkedValues.includes(opt);
             const atMax = field.maxSelections && field.maxSelections > 0 && checkedValues.length >= field.maxSelections && !isChecked;
             return (
-              <label key={opt} className={`flex items-center gap-3 cursor-pointer py-3 px-4 rounded-xl border-2 transition-all duration-200 ${atMax ? "opacity-40 cursor-not-allowed" : ""}`} style={isChecked ? { borderColor: primaryColor, backgroundColor: primaryColor + "08" } : { borderColor: "#46464b26" }}>
+              <label key={opt} className={`flex items-center gap-3 cursor-pointer py-3 px-4 rounded-xl border-2 transition-all duration-200 ${atMax ? "opacity-40 cursor-not-allowed" : ""}`} style={isChecked ? { borderColor: primaryColor, backgroundColor: primaryColor + "08" } : { borderColor: "var(--color-outline-variant)" }}>
                 <input type="checkbox" value={opt} checked={isChecked} disabled={!!atMax} onChange={() => {
                   const next = isChecked ? checkedValues.filter((v) => v !== opt) : [...checkedValues, opt];
                   onChange(next.join("||"));
                 }} className="h-4 w-4 rounded" style={{ accentColor: primaryColor }} />
-                <span className="text-sm text-[#dae2fd]">{opt}</span>
+                <span className="text-sm text-on-surface">{opt}</span>
               </label>
             );
           })}
           {field.maxSelections && field.maxSelections > 0 && (
-            <p className="text-xs text-[#c7c6cb]/60 ml-1">Select up to {field.maxSelections}</p>
+            <p className="text-xs text-on-surface-variant/60 ml-1">Select up to {field.maxSelections}</p>
           )}
         </div>
 
       ) : field.type === "checkbox" ? (
-        <label htmlFor={field.id} className="flex items-center gap-3 cursor-pointer py-3 px-4 rounded-xl border-2 transition-all duration-200" style={value ? { borderColor: primaryColor, backgroundColor: primaryColor + "08" } : { borderColor: "#46464b26" }}>
+        <label htmlFor={field.id} className="flex items-center gap-3 cursor-pointer py-3 px-4 rounded-xl border-2 transition-all duration-200" style={value ? { borderColor: primaryColor, backgroundColor: primaryColor + "08" } : { borderColor: "var(--color-outline-variant)" }}>
           <input id={field.id} name={field.id} type="checkbox" checked={!!value} onChange={(e) => onChange(e.target.checked ? "yes" : "")} className="h-5 w-5 rounded" style={{ accentColor: primaryColor }} />
-          <span className="text-sm text-[#dae2fd]">{field.placeholder || "Yes"}</span>
+          <span className="text-sm text-on-surface">{field.placeholder || "Yes"}</span>
         </label>
 
       ) : field.type === "date" ? (
-        <input id={field.id} name={field.id} required={field.required} type="date" value={str} onChange={(e) => onChange(e.target.value)} className={INPUT_CLS} style={{ ...focusRing, borderColor: errBorder, colorScheme: "dark" }} />
+        <input id={field.id} name={field.id} required={field.required} type="date" value={str} onChange={(e) => onChange(e.target.value)} className={`${INPUT_CLS} dark:[color-scheme:dark]`} style={{ ...focusRing, borderColor: errBorder }} />
 
       ) : field.type === "color" ? (
         <div className="flex items-center gap-3">
