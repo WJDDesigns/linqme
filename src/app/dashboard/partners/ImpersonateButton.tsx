@@ -37,7 +37,8 @@ export default function ImpersonateButton({ partnerId, size = "sm" }: Props) {
       title="Login as this customer"
       className="text-xs font-bold text-amber-400/70 hover:text-amber-400 disabled:opacity-50 transition-colors"
     >
-      <i className="fa-solid fa-user-secret" />
+      <i className="fa-solid fa-user-secret" aria-hidden="true" />
+      <span className="sr-only">Login as this customer</span>
     </button>
   );
 }

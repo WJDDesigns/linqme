@@ -2,6 +2,7 @@ import { requireSession, getCurrentAccount, getAccountUsage, getImpersonatingPar
 import { createAdminClient } from "@/lib/supabase/admin";
 import SidebarNav from "./SidebarNav";
 import ImpersonationBanner from "./ImpersonationBanner";
+import UpgradeBanner from "./UpgradeBanner";
 import ThemeToggle from "@/components/ThemeToggle";
 import SiteLaunchLogo from "@/components/SiteLaunchLogo";
 import Link from "next/link";
@@ -76,15 +77,17 @@ export default async function DashboardLayout({ children }: { children: React.Re
 
   let usageLine: string | null = null;
   let usageRatio = 0;
+  let usageUsed = 0;
+  const usageLimit = account?.submissionsMonthlyLimit ?? null;
   if (account) {
-    const used = await getAccountUsage(account.id);
-    const limit = account.submissionsMonthlyLimit;
+    usageUsed = await getAccountUsage(account.id);
+    const limit = usageLimit;
     if (limit === null) {
-      usageLine = `${used} submissions this month`;
+      usageLine = `${usageUsed} submissions this month`;
       usageRatio = 0;
     } else {
-      usageLine = `${used} / ${limit} submissions`;
-      usageRatio = limit > 0 ? Math.min(1, used / limit) : 1;
+      usageLine = `${usageUsed} / ${limit} submissions`;
+      usageRatio = limit > 0 ? Math.min(1, usageUsed / limit) : 1;
     }
   }
 
@@ -176,6 +179,14 @@ export default async function DashboardLayout({ children }: { children: React.Re
 
       {/* Main */}
       <main className="flex-1 md:ml-64 min-h-screen">
+        {/* Upgrade banner for free-tier users near their limit */}
+        {account && usageLimit !== null && account.planTier === "free" && (
+          <UpgradeBanner
+            used={usageUsed}
+            limit={usageLimit}
+            planName={TIER_LABELS[account.planTier] ?? "Free"}
+          />
+        )}
         {children}
       </main>
       </div>

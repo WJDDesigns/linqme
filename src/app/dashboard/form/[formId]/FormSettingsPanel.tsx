@@ -112,8 +112,8 @@ export default function FormSettingsPanel({
           <div className="bg-surface-container rounded-2xl border border-outline-variant/15 p-6 w-full max-w-lg shadow-2xl space-y-5" onClick={(e) => e.stopPropagation()}>
             <div className="flex items-center justify-between">
               <h2 className="text-lg font-bold text-on-surface">Form settings</h2>
-              <button onClick={() => setShowSettings(false)} className="text-on-surface-variant/60 hover:text-on-surface transition-colors">
-                <i className="fa-solid fa-xmark" />
+              <button onClick={() => setShowSettings(false)} className="text-on-surface-variant/60 hover:text-on-surface transition-colors" aria-label="Close settings">
+                <i className="fa-solid fa-xmark" aria-hidden="true" />
               </button>
             </div>
 

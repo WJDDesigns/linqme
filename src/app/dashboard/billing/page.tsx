@@ -4,6 +4,8 @@ import { getPlans } from "@/lib/plans";
 import { createAdminClient } from "@/lib/supabase/admin";
 import TestEmailButton from "./TestEmailButton";
 import UpgradeButton from "./UpgradeButton";
+import SwitchPlanButton from "./SwitchPlanButton";
+import CancelPlanButton from "./CancelPlanButton";
 import ManageSubscriptionButton from "./ManageSubscriptionButton";
 
 export default async function BillingPage() {
@@ -150,21 +152,37 @@ export default async function BillingPage() {
                     Your current plan
                   </div>
                 ) : isDowngrade ? (
-                  hasSubscription ? (
-                    <p className="text-xs text-on-surface-variant/60 text-center py-2.5">
-                      Manage subscription to downgrade
-                    </p>
+                  plan.priceMonthly === 0 && hasSubscription ? (
+                    /* Paid → Free: cancel at end of period */
+                    <CancelPlanButton isCanceling={!!isCanceling} />
+                  ) : plan.priceMonthly > 0 && hasSubscription ? (
+                    /* Higher paid → Lower paid: switch with proration credit */
+                    <SwitchPlanButton
+                      targetSlug={plan.slug}
+                      label={`Downgrade to ${plan.name}`}
+                      isDowngrade
+                    />
                   ) : (
                     <div className="text-xs font-medium text-on-surface-variant/60 text-center py-2.5">
                       Free tier
                     </div>
                   )
                 ) : isUpgrade && plan.priceMonthly > 0 ? (
-                  <UpgradeButton
-                    tier={plan.slug as "pro" | "enterprise"}
-                    label={currentTier === "free" ? "Upgrade" : `Switch to ${plan.name}`}
-                    highlight={plan.highlight}
-                  />
+                  hasSubscription ? (
+                    /* Lower paid → Higher paid: switch with proration */
+                    <SwitchPlanButton
+                      targetSlug={plan.slug}
+                      label={`Upgrade to ${plan.name}`}
+                      highlight={plan.highlight}
+                    />
+                  ) : (
+                    /* Free → Paid: new checkout session */
+                    <UpgradeButton
+                      tier={plan.slug as "pro" | "enterprise"}
+                      label="Upgrade"
+                      highlight={plan.highlight}
+                    />
+                  )
                 ) : null}
               </div>
             </div>

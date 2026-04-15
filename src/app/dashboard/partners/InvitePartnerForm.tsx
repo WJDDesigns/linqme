@@ -67,8 +67,9 @@ export default function InvitePartnerForm({ inviteAction }: Props) {
         <button
           onClick={() => { setOpen(false); setMessage(null); }}
           className="text-xs text-on-surface-variant/40 hover:text-on-surface transition-colors"
+          aria-label="Close invite form"
         >
-          <i className="fa-solid fa-xmark" />
+          <i className="fa-solid fa-xmark" aria-hidden="true" />
         </button>
       </div>
 

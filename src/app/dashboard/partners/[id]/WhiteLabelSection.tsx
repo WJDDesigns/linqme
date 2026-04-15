@@ -76,6 +76,13 @@ export default function WhiteLabelSection({ partner, canEdit, updateAction }: Pr
               Paid plans and above can hide the SiteLaunch footer, add custom footer text,
               customize the logo size, and choose a light or dark theme for their onboarding portal.
             </p>
+            <a
+              href="/dashboard/billing"
+              className="inline-flex items-center gap-1.5 mt-3 px-4 py-2 bg-primary text-on-primary font-bold rounded-lg text-xs hover:shadow-[0_0_15px_rgba(192,193,255,0.4)] transition-all"
+            >
+              <i className="fa-solid fa-rocket text-[10px]" />
+              View plans & upgrade
+            </a>
           </div>
         </div>
       )}

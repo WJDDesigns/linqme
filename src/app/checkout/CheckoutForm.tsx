@@ -201,15 +201,15 @@ export default function CheckoutForm({ plans, defaultPlan, partnerProfile, partn
             Billing Address <span className="text-error">*</span>
           </label>
           <div className="space-y-2 mt-1">
-            <input autoComplete="address-line1" className={INPUT_CLS} placeholder="Street address" value={biz.billing_address_line1} onChange={(e) => updateBiz("billing_address_line1", e.target.value)} />
-            <input autoComplete="address-line2" className={INPUT_CLS} placeholder="Apt, suite, unit (optional)" value={biz.billing_address_line2} onChange={(e) => updateBiz("billing_address_line2", e.target.value)} />
+            <input autoComplete="address-line1" aria-label="Street address" className={INPUT_CLS} placeholder="Street address" value={biz.billing_address_line1} onChange={(e) => updateBiz("billing_address_line1", e.target.value)} />
+            <input autoComplete="address-line2" aria-label="Apartment, suite, or unit" className={INPUT_CLS} placeholder="Apt, suite, unit (optional)" value={biz.billing_address_line2} onChange={(e) => updateBiz("billing_address_line2", e.target.value)} />
             <div className="grid grid-cols-2 gap-2">
-              <input autoComplete="address-level2" className={INPUT_CLS} placeholder="City" value={biz.billing_city} onChange={(e) => updateBiz("billing_city", e.target.value)} />
-              <input autoComplete="address-level1" className={INPUT_CLS} placeholder="State" value={biz.billing_state} onChange={(e) => updateBiz("billing_state", e.target.value)} />
+              <input autoComplete="address-level2" aria-label="City" className={INPUT_CLS} placeholder="City" value={biz.billing_city} onChange={(e) => updateBiz("billing_city", e.target.value)} />
+              <input autoComplete="address-level1" aria-label="State" className={INPUT_CLS} placeholder="State" value={biz.billing_state} onChange={(e) => updateBiz("billing_state", e.target.value)} />
             </div>
             <div className="grid grid-cols-2 gap-2">
-              <input autoComplete="postal-code" className={INPUT_CLS} placeholder="ZIP code" value={biz.billing_zip} onChange={(e) => updateBiz("billing_zip", e.target.value)} />
-              <select autoComplete="country" className={SELECT_CLS} value={biz.billing_country} onChange={(e) => updateBiz("billing_country", e.target.value)}>
+              <input autoComplete="postal-code" aria-label="ZIP code" className={INPUT_CLS} placeholder="ZIP code" value={biz.billing_zip} onChange={(e) => updateBiz("billing_zip", e.target.value)} />
+              <select autoComplete="country" aria-label="Country" className={SELECT_CLS} value={biz.billing_country} onChange={(e) => updateBiz("billing_country", e.target.value)}>
                 <option value="US">United States</option>
                 <option value="CA">Canada</option>
                 <option value="GB">United Kingdom</option>

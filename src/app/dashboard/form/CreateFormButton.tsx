@@ -2,6 +2,7 @@
 
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { createFormAction } from "./form-actions";
 
 interface Props {
@@ -37,7 +38,7 @@ export default function CreateFormButton({ canCreate, formsLimit, prominent }: P
 
   if (!canCreate) {
     return (
-      <div className={prominent ? "" : ""}>
+      <div className="flex items-center gap-3">
         <button
           disabled
           className={`${
@@ -50,6 +51,12 @@ export default function CreateFormButton({ canCreate, formsLimit, prominent }: P
           <i className="fa-solid fa-lock text-[10px] mr-1.5" />
           {prominent ? "Create form" : "+ New form"}
         </button>
+        <Link
+          href="/dashboard/billing"
+          className="text-xs font-bold text-primary hover:underline"
+        >
+          Upgrade to unlock more forms
+        </Link>
       </div>
     );
   }
@@ -86,7 +93,18 @@ export default function CreateFormButton({ canCreate, formsLimit, prominent }: P
               />
             </label>
             {error && (
-              <p className="text-xs text-error mt-2">{error}</p>
+              <div className="mt-2">
+                <p className="text-xs text-error">{error}</p>
+                {error.includes("Upgrade") && (
+                  <Link
+                    href="/dashboard/billing"
+                    className="inline-flex items-center gap-1 text-xs font-bold text-primary mt-1 hover:underline"
+                  >
+                    <i className="fa-solid fa-rocket text-[10px]" />
+                    View plans
+                  </Link>
+                )}
+              </div>
             )}
             <div className="flex items-center justify-end gap-3 mt-5">
               <button

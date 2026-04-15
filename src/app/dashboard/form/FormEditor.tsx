@@ -507,9 +507,9 @@ export default function FormEditor({ initialSchema, onOpenTemplates, formId }: {
                           {step.fields.length} field{step.fields.length !== 1 ? "s" : ""}
                         </span>
                         <div className="flex items-center gap-0.5 shrink-0">
-                          <button disabled={si === 0} onClick={() => moveStep(step.id, -1)} className="p-1 text-on-surface-variant hover:text-on-surface disabled:opacity-30"><i className="fa-solid fa-arrow-up text-xs" /></button>
-                          <button disabled={si === schema.steps.length - 1} onClick={() => moveStep(step.id, 1)} className="p-1 text-on-surface-variant hover:text-on-surface disabled:opacity-30"><i className="fa-solid fa-arrow-down text-xs" /></button>
-                          <button disabled={schema.steps.length <= 1} onClick={() => removeStep(step.id)} className="p-1 text-on-surface-variant hover:text-error disabled:opacity-30 ml-0.5"><i className="fa-solid fa-xmark text-xs" /></button>
+                          <button disabled={si === 0} onClick={() => moveStep(step.id, -1)} className="p-1 text-on-surface-variant hover:text-on-surface disabled:opacity-30" aria-label="Move step up"><i className="fa-solid fa-arrow-up text-xs" aria-hidden="true" /></button>
+                          <button disabled={si === schema.steps.length - 1} onClick={() => moveStep(step.id, 1)} className="p-1 text-on-surface-variant hover:text-on-surface disabled:opacity-30" aria-label="Move step down"><i className="fa-solid fa-arrow-down text-xs" aria-hidden="true" /></button>
+                          <button disabled={schema.steps.length <= 1} onClick={() => removeStep(step.id)} className="p-1 text-on-surface-variant hover:text-error disabled:opacity-30 ml-0.5" aria-label="Remove step"><i className="fa-solid fa-xmark text-xs" aria-hidden="true" /></button>
                         </div>
                       </div>
 
@@ -706,7 +706,7 @@ function FieldSettingsPanel({ field, onUpdate, onClose }: {
       <div className="flex items-center gap-2 mb-6">
         <FaIcon name={iconFor(field.type)} className="text-primary text-lg" />
         <h3 className="text-xs font-bold text-on-surface uppercase tracking-wider flex-1">Field Settings</h3>
-        <button onClick={onClose} className="text-on-surface-variant hover:text-on-surface p-1 transition-colors"><i className="fa-solid fa-xmark text-xs" /></button>
+        <button onClick={onClose} className="text-on-surface-variant hover:text-on-surface p-1 transition-colors" aria-label="Close field settings"><i className="fa-solid fa-xmark text-xs" aria-hidden="true" /></button>
       </div>
       <div className="space-y-5">
         <section className="space-y-3">
@@ -1225,9 +1225,9 @@ function RepeaterSettingsPanel({ config, onUpdate }: {
                   <span className="text-[9px] text-on-surface-variant/40 uppercase">{sf.type}</span>
                   {sf.required && <span className="text-[9px] text-tertiary font-bold">*</span>}
                   <div className="flex items-center gap-0.5">
-                    <button onClick={(e) => { e.stopPropagation(); moveSubField(si, -1); }} disabled={si === 0} className="p-0.5 text-on-surface-variant/40 hover:text-on-surface disabled:opacity-30"><i className="fa-solid fa-arrow-up text-[8px]" /></button>
-                    <button onClick={(e) => { e.stopPropagation(); moveSubField(si, 1); }} disabled={si === config.subFields.length - 1} className="p-0.5 text-on-surface-variant/40 hover:text-on-surface disabled:opacity-30"><i className="fa-solid fa-arrow-down text-[8px]" /></button>
-                    <button onClick={(e) => { e.stopPropagation(); removeSubField(si); }} className="p-0.5 text-on-surface-variant/40 hover:text-error ml-1"><i className="fa-solid fa-trash text-[8px]" /></button>
+                    <button onClick={(e) => { e.stopPropagation(); moveSubField(si, -1); }} disabled={si === 0} className="p-0.5 text-on-surface-variant/40 hover:text-on-surface disabled:opacity-30" aria-label="Move sub-field up"><i className="fa-solid fa-arrow-up text-[8px]" aria-hidden="true" /></button>
+                    <button onClick={(e) => { e.stopPropagation(); moveSubField(si, 1); }} disabled={si === config.subFields.length - 1} className="p-0.5 text-on-surface-variant/40 hover:text-on-surface disabled:opacity-30" aria-label="Move sub-field down"><i className="fa-solid fa-arrow-down text-[8px]" aria-hidden="true" /></button>
+                    <button onClick={(e) => { e.stopPropagation(); removeSubField(si); }} className="p-0.5 text-on-surface-variant/40 hover:text-error ml-1" aria-label="Remove sub-field"><i className="fa-solid fa-trash text-[8px]" aria-hidden="true" /></button>
                   </div>
                 </div>
 

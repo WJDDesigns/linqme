@@ -32,10 +32,12 @@ export default function InviteForm({ inviteAction }: Props) {
         type="email"
         required
         placeholder="team@example.com"
+        aria-label="Team member email"
         className={`${INPUT_CLS} flex-1`}
       />
       <select
         name="role"
+        aria-label="Team member role"
         className={`${INPUT_CLS} sm:w-44`}
         defaultValue="partner_member"
       >

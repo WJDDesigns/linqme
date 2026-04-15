@@ -23,24 +23,17 @@ export async function sendWelcomeEmail(args: {
       ? "Your Agency + Partners workspace is ready — you can spin up sub-partners whenever you want."
       : "Your Agency workspace is ready.";
 
-  const html = `
-    <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; color: #0f172a; max-width: 560px;">
-      <h2 style="margin: 0 0 12px;">Welcome to SiteLaunch, ${escapeHtml(args.companyName)}!</h2>
-      <p style="margin: 0 0 8px; color: #475569;">${escapeHtml(planLine)}</p>
-      <p style="margin: 0 0 16px; color: #475569;">
+  const html = emailTemplate({
+    heading: `Welcome to SiteLaunch, ${args.companyName}!`,
+    body: `
+      <p style="margin: 0 0 8px;">${escapeHtml(planLine)}</p>
+      <p style="margin: 0 0 0;">
         Your client-facing storefront lives at
-        <a href="${storefrontUrl}" style="color: #0f172a;">${storefrontUrl.replace(/^https?:\/\//, "")}</a>.
+        <a href="${storefrontUrl}" style="color: #696cf8; font-weight: 600;">${storefrontUrl.replace(/^https?:\/\//, "")}</a>.
       </p>
-      <a href="${dashboardUrl}"
-         style="display: inline-block; background: #0f172a; color: #fff; text-decoration: none;
-                padding: 10px 16px; border-radius: 8px; font-weight: 600; font-size: 14px;">
-        Open dashboard →
-      </a>
-      <p style="margin: 24px 0 0; color: #94a3b8; font-size: 12px;">
-        Need help? Reply to this email.
-      </p>
-    </div>
-  `;
+    `,
+    cta: { label: "Open dashboard →", url: dashboardUrl },
+  });
 
   await sendMail({
     to: args.to,
@@ -58,15 +51,7 @@ export async function sendWelcomeEmail(args: {
  */
 import { createAdminClient } from "@/lib/supabase/admin";
 import { sendMail } from "@/lib/email";
-
-function escapeHtml(s: string): string {
-  return s
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;")
-    .replace(/'/g, "&#39;");
-}
+import { emailTemplate, escapeHtml } from "@/lib/email-templates";
 
 function appUrl(path: string): string {
   const root = process.env.NEXT_PUBLIC_APP_URL ?? "https://app.mysitelaunch.com";
@@ -139,23 +124,17 @@ export async function notifyPartnerOfSubmission(submissionId: string): Promise<v
 
   // --- Partner notification ------------------------------------------------
   if (partnerEmails.length > 0) {
-    const html = `
-      <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; color: #0f172a; max-width: 560px;">
-        <h2 style="margin: 0 0 12px;">New submission for ${escapeHtml(partner.name)}</h2>
-        <p style="margin: 0 0 8px; color: #475569;">
+    const html = emailTemplate({
+      heading: `New submission for ${partner.name}`,
+      body: `
+        <p style="margin: 0 0 8px;">
           <strong>${escapeHtml(clientName)}</strong> just submitted their onboarding form.
         </p>
-        <p style="margin: 0 0 16px; color: #475569;">Client email: ${escapeHtml(clientEmail)}</p>
-        <a href="${dashboardLink}"
-           style="display: inline-block; background: #0f172a; color: #fff; text-decoration: none;
-                  padding: 10px 16px; border-radius: 8px; font-weight: 600; font-size: 14px;">
-          View submission →
-        </a>
-        <p style="margin: 24px 0 0; color: #94a3b8; font-size: 12px;">
-          Sent from SiteLaunch on behalf of ${escapeHtml(partner.name)}.
-        </p>
-      </div>
-    `;
+        <p style="margin: 0 0 0;">Client email: <a href="mailto:${escapeHtml(clientEmail)}" style="color: #696cf8;">${escapeHtml(clientEmail)}</a></p>
+      `,
+      cta: { label: "View submission →", url: dashboardLink },
+      partnerName: partner.name,
+    });
     await sendMail({
       to: partnerEmails,
       subject: `New submission · ${clientName} · ${partner.name}`,
@@ -166,18 +145,16 @@ export async function notifyPartnerOfSubmission(submissionId: string): Promise<v
 
   // --- Client confirmation -------------------------------------------------
   if (sub.client_email) {
-    const html = `
-      <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; color: #0f172a; max-width: 560px;">
-        <h2 style="margin: 0 0 12px;">Thanks, ${escapeHtml(clientName)} — we got it!</h2>
-        <p style="margin: 0 0 8px; color: #475569;">
-          Your onboarding info has been received by ${escapeHtml(partner.name)}.
-          They'll reach out with next steps shortly.
+    const html = emailTemplate({
+      heading: `Thanks, ${clientName} — we got it!`,
+      body: `
+        <p style="margin: 0 0 0;">
+          Your onboarding info has been received by <strong>${escapeHtml(partner.name)}</strong>.
+          They&rsquo;ll reach out with next steps shortly.
         </p>
-        <p style="margin: 16px 0 0; color: #94a3b8; font-size: 12px;">
-          Sent from SiteLaunch on behalf of ${escapeHtml(partner.name)}.
-        </p>
-      </div>
-    `;
+      `,
+      partnerName: partner.name,
+    });
     await sendMail({
       to: sub.client_email,
       subject: `We received your onboarding info · ${partner.name}`,

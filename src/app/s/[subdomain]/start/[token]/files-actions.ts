@@ -5,6 +5,46 @@ import type { UploadedFile } from "@/lib/forms";
 
 const MAX_BYTES = 50 * 1024 * 1024; // 50 MB per file
 
+/** Allowed file types for submission uploads */
+const ALLOWED_TYPES = new Set([
+  // Documents
+  "application/pdf",
+  "application/msword",
+  "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+  "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+  "application/vnd.openxmlformats-officedocument.presentationml.presentation",
+  "text/plain",
+  "text/csv",
+  // Images
+  "image/png",
+  "image/jpeg",
+  "image/gif",
+  "image/webp",
+  "image/svg+xml",
+  // Video/audio
+  "video/mp4",
+  "video/quicktime",
+  "audio/mpeg",
+  "audio/wav",
+  // Archives
+  "application/zip",
+  "application/x-zip-compressed",
+]);
+
+/** Also allow by extension for cases where MIME type is unreliable */
+const ALLOWED_EXTENSIONS = new Set([
+  ".pdf", ".doc", ".docx", ".xls", ".xlsx", ".pptx", ".txt", ".csv",
+  ".png", ".jpg", ".jpeg", ".gif", ".webp", ".svg",
+  ".mp4", ".mov", ".mp3", ".wav",
+  ".zip",
+]);
+
+function isAllowedFile(file: File): boolean {
+  if (ALLOWED_TYPES.has(file.type)) return true;
+  const ext = file.name.slice(file.name.lastIndexOf(".")).toLowerCase();
+  return ALLOWED_EXTENSIONS.has(ext);
+}
+
 async function loadSubmissionMeta(token: string) {
   const admin = createAdminClient();
   const { data, error } = await admin
@@ -35,6 +75,7 @@ export async function uploadFileAction(
   }
   const f = file as File;
   if (f.size > MAX_BYTES) throw new Error("File is too large (50 MB max)");
+  if (!isAllowedFile(f)) throw new Error("File type not allowed. Please upload a document, image, video, or archive.");
 
   const admin = createAdminClient();
 

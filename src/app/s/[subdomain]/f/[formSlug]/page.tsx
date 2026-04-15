@@ -2,6 +2,7 @@ import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { notFound } from "next/navigation";
 import Image from "next/image";
+import type { Metadata } from "next";
 import { contrastText } from "@/lib/color-utils";
 import { startSubmissionAction } from "../../actions";
 import SiteLaunchLogo from "@/components/SiteLaunchLogo";
@@ -11,6 +12,30 @@ import Link from "next/link";
 
 interface Props {
   params: Promise<{ subdomain: string; formSlug: string }>;
+}
+
+export async function generateMetadata({ params }: Props): Promise<Metadata> {
+  const { subdomain, formSlug } = await params;
+  const identifier = decodeURIComponent(subdomain);
+  const supabase = await createClient();
+
+  const { data: partner } = await supabase
+    .from("partners")
+    .select("name, logo_url")
+    .or(`slug.eq.${identifier},custom_domain.eq.${identifier}`)
+    .maybeSingle();
+
+  if (!partner) return { title: "Not Found" };
+
+  return {
+    title: `${formSlug} — ${partner.name}`,
+    description: `Complete the ${formSlug} form for ${partner.name}. Powered by SiteLaunch.`,
+    openGraph: {
+      title: `${partner.name} — ${formSlug}`,
+      description: `Complete the ${formSlug} form for ${partner.name}.`,
+      ...(partner.logo_url ? { images: [{ url: partner.logo_url, width: 400, height: 400, alt: partner.name }] } : {}),
+    },
+  };
 }
 
 export default async function FormSlugPage({ params }: Props) {

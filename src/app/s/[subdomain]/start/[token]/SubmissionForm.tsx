@@ -538,8 +538,8 @@ function RepeaterField({
                   ))}
                   <td className="px-4 py-3 text-right">
                     <button type="button" onClick={() => openEdit(ei)} className="text-xs text-primary hover:underline mr-2">Edit</button>
-                    <button type="button" onClick={() => removeEntry(ei)} className="text-xs text-on-surface-variant/40 hover:text-error">
-                      <i className="fa-solid fa-trash text-[10px]" />
+                    <button type="button" onClick={() => removeEntry(ei)} className="text-xs text-on-surface-variant/40 hover:text-error" aria-label="Delete entry">
+                      <i className="fa-solid fa-trash text-[10px]" aria-hidden="true" />
                     </button>
                   </td>
                 </tr>
@@ -561,8 +561,8 @@ function RepeaterField({
               <h4 className="text-xs font-bold text-on-surface uppercase tracking-widest">
                 {editingIdx === -1 ? `New ${cfg.entryLabel || "Entry"}` : `Edit ${cfg.entryLabel || "Entry"} ${editingIdx + 1}`}
               </h4>
-              <button type="button" onClick={closeEditor} className="text-on-surface-variant/40 hover:text-on-surface p-1">
-                <i className="fa-solid fa-xmark text-xs" />
+              <button type="button" onClick={closeEditor} className="text-on-surface-variant/40 hover:text-on-surface p-1" aria-label="Close editor">
+                <i className="fa-solid fa-xmark text-xs" aria-hidden="true" />
               </button>
             </div>
 
