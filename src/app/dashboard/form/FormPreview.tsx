@@ -379,26 +379,44 @@ function PreviewField({ field, primaryColor, isPhone }: { field: FieldDef; prima
 
         {/* Horizontal */}
         {layout === "horizontal" && (
-          <div className="space-y-3">
+          <div className="space-y-4">
             {cfg.packages.map((pkg) => {
               const isSelected = selectedPkg === pkg.id;
               const isRecommended = recommendedId === pkg.id;
               return (
                 <button key={pkg.id} type="button" onClick={() => setSelectedPkg(pkg.id)}
-                  className={`relative w-full text-left flex items-center gap-4 p-4 rounded-2xl border-2 transition-all duration-200 ${isSelected ? "shadow-lg" : "border-outline-variant/30 hover:border-primary/40 bg-surface-container-lowest"}`}
+                  className={`relative w-full text-left rounded-2xl border-2 transition-all duration-200 overflow-hidden ${isSelected ? "shadow-lg" : "border-outline-variant/30 hover:border-primary/40 bg-surface-container-lowest"}`}
                   style={isSelected ? { borderColor: primaryColor, backgroundColor: primaryColor + "08" } : undefined}>
-                  <div className="w-5 h-5 rounded-full border-2 shrink-0 flex items-center justify-center" style={isSelected ? { borderColor: primaryColor } : { borderColor: "var(--color-outline-variant)" }}>
-                    {isSelected && <div className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: primaryColor }} />}
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2 flex-wrap">
-                      <h3 className="text-base font-bold text-on-surface font-headline">{pkg.name}</h3>
-                      {isRecommended && <span className="px-2 py-0.5 rounded-full text-[9px] font-bold uppercase" style={{ backgroundColor: primaryColor, color: lightBg ? "#1a1c25" : "#ffffff" }}>Recommended</span>}
-                      {pkg.badge && !isRecommended && <span className="px-2 py-0.5 rounded-full text-[9px] font-bold uppercase bg-surface-container-highest text-on-surface-variant border border-outline-variant/20">{pkg.badge}</span>}
+                  {/* Top section */}
+                  <div className="flex items-center gap-4 p-4">
+                    <div className="w-5 h-5 rounded-full border-2 shrink-0 flex items-center justify-center" style={isSelected ? { borderColor: primaryColor } : { borderColor: "var(--color-outline-variant)" }}>
+                      {isSelected && <div className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: primaryColor }} />}
                     </div>
-                    {pkg.description && <p className="text-xs text-on-surface-variant/60 mt-0.5">{pkg.description}</p>}
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <h3 className="text-base font-bold text-on-surface font-headline">{pkg.name}</h3>
+                        {isRecommended && <span className="px-2 py-0.5 rounded-full text-[9px] font-bold uppercase" style={{ backgroundColor: primaryColor, color: lightBg ? "#1a1c25" : "#ffffff" }}>Recommended</span>}
+                        {pkg.badge && !isRecommended && <span className="px-2 py-0.5 rounded-full text-[9px] font-bold uppercase bg-surface-container-highest text-on-surface-variant border border-outline-variant/20">{pkg.badge}</span>}
+                      </div>
+                      {pkg.description && <p className="text-xs text-on-surface-variant/60 mt-0.5">{pkg.description}</p>}
+                    </div>
+                    <div className="shrink-0">{renderPriceP(pkg, "sm")}</div>
                   </div>
-                  <div className="shrink-0">{renderPriceP(pkg, "sm")}</div>
+                  {pkg.longDescription && <div className="px-4 pb-3 -mt-1 pl-[3.25rem]"><p className="text-sm text-on-surface-variant leading-relaxed">{pkg.longDescription}</p></div>}
+                  {pkg.featureList && pkg.featureList.length > 0 && (
+                    <div className="border-t border-outline-variant/15 mx-4 py-3">
+                      <div className="grid grid-cols-2 gap-x-4 gap-y-1.5 pl-[2rem]">
+                        {pkg.featureList.map((f, fi) => <div key={fi} className="flex items-start gap-2 text-xs"><i className="fa-solid fa-check w-4 text-center mt-0.5 shrink-0" style={{ color: primaryColor }} /><span className="text-on-surface">{f}</span></div>)}
+                      </div>
+                    </div>
+                  )}
+                  {cfg.features.length > 0 && !cfg.showFeaturesTable && (
+                    <div className="border-t border-outline-variant/15 mx-4 py-3">
+                      <div className="grid grid-cols-2 gap-x-4 gap-y-1.5 pl-[2rem]">
+                        {cfg.features.map((feat, fi) => { const val = feat.values[pkg.id]; const inc = val === true || (typeof val === "string" && val !== ""); return <div key={fi} className="flex items-center gap-2 text-xs">{val === false ? <i className="fa-solid fa-xmark text-on-surface-variant/30 w-4 text-center" /> : <i className="fa-solid fa-check w-4 text-center" style={{ color: primaryColor }} />}<span className={inc ? "text-on-surface" : "text-on-surface-variant/40 line-through"}>{feat.label}{typeof val === "string" && val && <span className="ml-1 font-semibold" style={{ color: primaryColor }}>({val})</span>}</span></div>; })}
+                      </div>
+                    </div>
+                  )}
                 </button>
               );
             })}
@@ -407,25 +425,27 @@ function PreviewField({ field, primaryColor, isPhone }: { field: FieldDef; prima
 
         {/* Compact */}
         {layout === "compact" && (
-          <div className={`grid gap-3 ${colsClass}`}>
+          <div className={`grid gap-4 ${colsClass}`}>
             {cfg.packages.map((pkg) => {
               const isSelected = selectedPkg === pkg.id;
               const isRecommended = recommendedId === pkg.id;
               return (
                 <button key={pkg.id} type="button" onClick={() => setSelectedPkg(pkg.id)}
-                  className={`relative text-left p-4 rounded-xl border-2 transition-all duration-200 ${isSelected ? "shadow-md" : "border-outline-variant/30 hover:border-primary/40 bg-surface-container-lowest"}`}
+                  className={`relative text-left p-5 rounded-2xl border-2 transition-all duration-200 ${isSelected ? "shadow-md" : "border-outline-variant/30 hover:border-primary/40 bg-surface-container-lowest"}`}
                   style={isSelected ? { borderColor: primaryColor, backgroundColor: primaryColor + "08" } : undefined}>
-                  <div className="flex items-start justify-between gap-3">
-                    <div className="min-w-0">
-                      <div className="flex items-center gap-2">
-                        <h3 className="text-sm font-bold text-on-surface font-headline">{pkg.name}</h3>
-                        {isRecommended && <span className="px-1.5 py-0.5 rounded-full text-[8px] font-bold uppercase" style={{ backgroundColor: primaryColor, color: lightBg ? "#1a1c25" : "#ffffff" }}><i className="fa-solid fa-star text-[7px]" /></span>}
-                      </div>
-                      {pkg.description && <p className="text-[11px] text-on-surface-variant/60 mt-0.5">{pkg.description}</p>}
-                    </div>
-                    <div className="shrink-0">{renderPriceP(pkg, "sm")}</div>
+                  <div className="flex items-center gap-2 mb-1">
+                    <h3 className="text-base font-bold text-on-surface font-headline">{pkg.name}</h3>
+                    {isRecommended && <span className="px-2 py-0.5 rounded-full text-[8px] font-bold uppercase" style={{ backgroundColor: primaryColor, color: lightBg ? "#1a1c25" : "#ffffff" }}><i className="fa-solid fa-star text-[7px] mr-0.5" />Best</span>}
+                    {pkg.badge && !isRecommended && <span className="px-2 py-0.5 rounded-full text-[8px] font-bold uppercase bg-surface-container-highest text-on-surface-variant border border-outline-variant/15">{pkg.badge}</span>}
                   </div>
-                  <div className={`mt-3 flex items-center justify-center py-1.5 rounded-lg text-[10px] font-bold uppercase tracking-widest transition-all`}
+                  <div className="mb-2">{renderPriceP(pkg, "sm")}</div>
+                  {pkg.description && <p className="text-xs text-on-surface-variant/60 mb-3">{pkg.description}</p>}
+                  {pkg.featureList && pkg.featureList.length > 0 && (
+                    <div className="flex flex-wrap gap-1.5 mb-3">
+                      {pkg.featureList.map((f, fi) => <span key={fi} className="text-[10px] px-2.5 py-1 rounded-full bg-surface-container-high text-on-surface-variant"><i className="fa-solid fa-check text-[8px] mr-1" style={{ color: primaryColor }} />{f}</span>)}
+                    </div>
+                  )}
+                  <div className="flex items-center justify-center py-2 rounded-xl text-[10px] font-bold uppercase tracking-widest transition-all"
                     style={isSelected ? { backgroundColor: primaryColor, color: lightBg ? "#1a1c25" : "#ffffff" } : { border: "1px solid var(--color-outline-variant)", color: "var(--color-on-surface-variant)" }}>
                     {isSelected ? <><i className="fa-solid fa-check text-[9px] mr-1" /> Selected</> : "Select"}
                   </div>

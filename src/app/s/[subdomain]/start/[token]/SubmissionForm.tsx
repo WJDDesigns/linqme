@@ -836,7 +836,7 @@ function CelestialField({
 
         {/* ─── Horizontal layout ─── */}
         {layout === "horizontal" && (
-          <div className="space-y-3">
+          <div className="space-y-4">
             {cfg.packages.map((pkg) => {
               const isSelected = selectedPkgId === pkg.id;
               const isRecommended = recommendedId === pkg.id;
@@ -845,43 +845,78 @@ function CelestialField({
                   key={pkg.id}
                   type="button"
                   onClick={() => onChange(pkg.id)}
-                  className={`relative w-full text-left flex items-center gap-5 p-4 sm:p-5 rounded-2xl border-2 transition-all duration-200 ${
+                  className={`relative w-full text-left rounded-2xl border-2 transition-all duration-200 overflow-hidden ${
                     isSelected ? "shadow-lg" : "border-outline-variant/30 hover:border-primary/40 bg-surface-container-lowest"
                   }`}
                   style={isSelected ? { borderColor: primaryColor, backgroundColor: primaryColor + "08", boxShadow: `0 8px 25px ${primaryColor}20` } : undefined}
                 >
-                  {/* Radio indicator */}
-                  <div className="w-5 h-5 rounded-full border-2 shrink-0 flex items-center justify-center" style={isSelected ? { borderColor: primaryColor } : { borderColor: "var(--color-outline-variant)" }}>
-                    {isSelected && <div className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: primaryColor }} />}
+                  {/* Top section: radio + name + price */}
+                  <div className="flex items-center gap-4 p-4 sm:p-5">
+                    {/* Radio indicator */}
+                    <div className="w-5 h-5 rounded-full border-2 shrink-0 flex items-center justify-center" style={isSelected ? { borderColor: primaryColor } : { borderColor: "var(--color-outline-variant)" }}>
+                      {isSelected && <div className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: primaryColor }} />}
+                    </div>
+
+                    {/* Info */}
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <h3 className="text-base font-bold text-on-surface font-headline">{pkg.name}</h3>
+                        {isRecommended && (
+                          <span className="px-2 py-0.5 rounded-full text-[9px] font-bold uppercase tracking-widest" style={{ backgroundColor: primaryColor, color: lightBg ? "#1a1c25" : "#ffffff" }}>
+                            Recommended
+                          </span>
+                        )}
+                        {pkg.badge && !isRecommended && (
+                          <span className="px-2 py-0.5 rounded-full text-[9px] font-bold uppercase tracking-widest bg-surface-container-highest text-on-surface-variant border border-outline-variant/20">{pkg.badge}</span>
+                        )}
+                      </div>
+                      {pkg.description && <p className="text-xs text-on-surface-variant/60 mt-0.5">{pkg.description}</p>}
+                    </div>
+
+                    {/* Price */}
+                    <div className="shrink-0 text-right">{renderPrice(pkg, "sm")}</div>
                   </div>
 
-                  {/* Info */}
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2 flex-wrap">
-                      <h3 className="text-base font-bold text-on-surface font-headline">{pkg.name}</h3>
-                      {isRecommended && (
-                        <span className="px-2 py-0.5 rounded-full text-[9px] font-bold uppercase tracking-widest" style={{ backgroundColor: primaryColor, color: lightBg ? "#1a1c25" : "#ffffff" }}>
-                          Recommended
-                        </span>
-                      )}
-                      {pkg.badge && !isRecommended && (
-                        <span className="px-2 py-0.5 rounded-full text-[9px] font-bold uppercase tracking-widest bg-surface-container-highest text-on-surface-variant border border-outline-variant/20">{pkg.badge}</span>
-                      )}
+                  {/* Long description */}
+                  {pkg.longDescription && (
+                    <div className="px-5 pb-3 -mt-1 pl-14 sm:pl-[3.75rem]">
+                      <p className="text-sm text-on-surface-variant leading-relaxed">{pkg.longDescription}</p>
                     </div>
-                    {pkg.description && <p className="text-xs text-on-surface-variant/60 mt-0.5">{pkg.description}</p>}
-                    {pkg.featureList && pkg.featureList.length > 0 && (
-                      <div className="flex flex-wrap gap-x-4 gap-y-1 mt-2">
+                  )}
+
+                  {/* Feature list */}
+                  {pkg.featureList && pkg.featureList.length > 0 && (
+                    <div className="border-t border-outline-variant/15 mx-4 sm:mx-5 py-3">
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-1.5 pl-10 sm:pl-[2.25rem]">
                         {pkg.featureList.map((f, fi) => (
-                          <span key={fi} className="text-xs text-on-surface-variant flex items-center gap-1">
-                            <i className="fa-solid fa-check text-[9px]" style={{ color: primaryColor }} />{f}
-                          </span>
+                          <div key={fi} className="flex items-start gap-2 text-xs">
+                            <i className="fa-solid fa-check w-4 text-center mt-0.5 shrink-0" style={{ color: primaryColor }} />
+                            <span className="text-on-surface">{f}</span>
+                          </div>
                         ))}
                       </div>
-                    )}
-                  </div>
+                    </div>
+                  )}
 
-                  {/* Price */}
-                  <div className="shrink-0 text-right">{renderPrice(pkg, "sm")}</div>
+                  {/* Comparison features */}
+                  {cfg.features.length > 0 && !cfg.showFeaturesTable && (
+                    <div className={`border-t border-outline-variant/15 mx-4 sm:mx-5 py-3 ${!(pkg.featureList && pkg.featureList.length > 0) ? "" : ""}`}>
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-1.5 pl-10 sm:pl-[2.25rem]">
+                        {cfg.features.map((feat, fi) => {
+                          const val = feat.values[pkg.id];
+                          const isIncluded = val === true || (typeof val === "string" && val !== "");
+                          return (
+                            <div key={fi} className="flex items-center gap-2 text-xs">
+                              {renderFeatureIcon(val)}
+                              <span className={isIncluded ? "text-on-surface" : "text-on-surface-variant/40 line-through"}>
+                                {feat.label}{typeof val === "string" && val && <span className="ml-1 font-semibold" style={{ color: primaryColor }}>({val})</span>}
+                              </span>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  )}
                 </button>
               );
             })}
@@ -890,7 +925,7 @@ function CelestialField({
 
         {/* ─── Compact layout ─── */}
         {layout === "compact" && (
-          <div className={`grid gap-3 ${colsClass}`}>
+          <div className={`grid gap-4 ${colsClass}`}>
             {cfg.packages.map((pkg) => {
               const isSelected = selectedPkgId === pkg.id;
               const isRecommended = recommendedId === pkg.id;
@@ -899,38 +934,39 @@ function CelestialField({
                   key={pkg.id}
                   type="button"
                   onClick={() => onChange(pkg.id)}
-                  className={`relative text-left p-4 rounded-xl border-2 transition-all duration-200 ${
+                  className={`relative text-left p-5 rounded-2xl border-2 transition-all duration-200 ${
                     isSelected ? "shadow-md" : "border-outline-variant/30 hover:border-primary/40 bg-surface-container-lowest"
                   }`}
                   style={isSelected ? { borderColor: primaryColor, backgroundColor: primaryColor + "08" } : undefined}
                 >
-                  <div className="flex items-start justify-between gap-3">
-                    <div className="min-w-0">
-                      <div className="flex items-center gap-2">
-                        <h3 className="text-sm font-bold text-on-surface font-headline">{pkg.name}</h3>
-                        {isRecommended && (
-                          <span className="px-1.5 py-0.5 rounded-full text-[8px] font-bold uppercase tracking-widest" style={{ backgroundColor: primaryColor, color: lightBg ? "#1a1c25" : "#ffffff" }}>
-                            <i className="fa-solid fa-star text-[7px]" />
-                          </span>
-                        )}
-                        {pkg.badge && !isRecommended && (
-                          <span className="px-1.5 py-0.5 rounded text-[8px] font-bold uppercase bg-surface-container-highest text-on-surface-variant">{pkg.badge}</span>
-                        )}
-                      </div>
-                      {pkg.description && <p className="text-[11px] text-on-surface-variant/60 mt-0.5">{pkg.description}</p>}
-                    </div>
-                    <div className="shrink-0">{renderPrice(pkg, "sm")}</div>
+                  {/* Header: name + badges */}
+                  <div className="flex items-center gap-2 mb-1">
+                    <h3 className="text-base font-bold text-on-surface font-headline">{pkg.name}</h3>
+                    {isRecommended && (
+                      <span className="px-2 py-0.5 rounded-full text-[8px] font-bold uppercase tracking-widest" style={{ backgroundColor: primaryColor, color: lightBg ? "#1a1c25" : "#ffffff" }}>
+                        <i className="fa-solid fa-star text-[7px] mr-0.5" />Best
+                      </span>
+                    )}
+                    {pkg.badge && !isRecommended && (
+                      <span className="px-2 py-0.5 rounded-full text-[8px] font-bold uppercase bg-surface-container-highest text-on-surface-variant border border-outline-variant/15">{pkg.badge}</span>
+                    )}
                   </div>
+                  {/* Price */}
+                  <div className="mb-2">{renderPrice(pkg, "sm")}</div>
+                  {/* Tagline */}
+                  {pkg.description && <p className="text-xs text-on-surface-variant/60 mb-3">{pkg.description}</p>}
+                  {/* Feature pills */}
                   {pkg.featureList && pkg.featureList.length > 0 && (
-                    <div className="flex flex-wrap gap-1.5 mt-2">
+                    <div className="flex flex-wrap gap-1.5 mb-3">
                       {pkg.featureList.map((f, fi) => (
-                        <span key={fi} className="text-[10px] px-2 py-0.5 rounded-full bg-surface-container-high text-on-surface-variant">
-                          <i className="fa-solid fa-check text-[8px] mr-0.5" style={{ color: primaryColor }} />{f}
+                        <span key={fi} className="text-[10px] px-2.5 py-1 rounded-full bg-surface-container-high text-on-surface-variant">
+                          <i className="fa-solid fa-check text-[8px] mr-1" style={{ color: primaryColor }} />{f}
                         </span>
                       ))}
                     </div>
                   )}
-                  <div className={`mt-3 flex items-center justify-center py-1.5 rounded-lg text-[10px] font-bold uppercase tracking-widest transition-all`}
+                  {/* Select button */}
+                  <div className="flex items-center justify-center py-2 rounded-xl text-[10px] font-bold uppercase tracking-widest transition-all"
                     style={isSelected ? { backgroundColor: primaryColor, color: lightBg ? "#1a1c25" : "#ffffff" } : { border: "1px solid var(--color-outline-variant)", color: "var(--color-on-surface-variant)" }}
                   >
                     {isSelected ? <><i className="fa-solid fa-check text-[9px] mr-1" /> Selected</> : "Select"}

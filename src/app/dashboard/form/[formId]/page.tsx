@@ -32,7 +32,7 @@ export default async function FormEditorPage({ params }: PageProps) {
   const { data: pf } = await supabase
     .from("partner_forms")
     .select(
-      `id, name, slug, template_id, is_default,
+      `id, name, slug, template_id, is_default, is_active,
        form_templates ( id, schema )`,
     )
     .eq("id", formId)
@@ -82,6 +82,7 @@ export default async function FormEditorPage({ params }: PageProps) {
         primaryColor={primaryColor}
         formId={formId}
         formName={pf.name}
+        isActive={pf.is_active ?? true}
         settingsSlot={
           <FormSettingsPanel
             formId={formId}

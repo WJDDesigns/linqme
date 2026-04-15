@@ -198,6 +198,43 @@ export async function renameFormAction(formId: string, name: string): Promise<Ac
 }
 
 /**
+ * Toggle a form's published (is_active) state.
+ */
+export async function toggleFormActiveAction(formId: string, isActive: boolean): Promise<ActionResult> {
+  const session = await requireSession();
+  const account = await getCurrentAccount(session.userId);
+  if (!account) return { ok: false, error: "No account found." };
+
+  const admin = createAdminClient();
+
+  // Verify ownership
+  const { data: form } = await admin
+    .from("partner_forms")
+    .select("id, is_default")
+    .eq("id", formId)
+    .eq("partner_id", account.id)
+    .maybeSingle();
+
+  if (!form) return { ok: false, error: "Form not found." };
+
+  // Don't allow unpublishing the default form
+  if (form.is_default && !isActive) {
+    return { ok: false, error: "Cannot unpublish the default form. Set another form as default first." };
+  }
+
+  const { error } = await admin
+    .from("partner_forms")
+    .update({ is_active: isActive })
+    .eq("id", formId);
+
+  if (error) return { ok: false, error: error.message };
+
+  revalidatePath("/dashboard/form");
+  revalidatePath(`/dashboard/form/${formId}`);
+  return { ok: true };
+}
+
+/**
  * Duplicate a form.
  */
 export async function duplicateFormAction(formId: string): Promise<ActionResult> {

@@ -1,9 +1,10 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import type { FormSchema } from "@/lib/forms";
+import { toggleFormActiveAction } from "./form-actions";
 import FormEditor from "./FormEditor";
 import FormPreview from "./FormPreview";
 import TemplatePicker from "./TemplatePicker";
@@ -15,6 +16,7 @@ export default function FormEditorShell({
   primaryColor,
   formId,
   formName,
+  isActive: initialIsActive,
   settingsSlot,
 }: {
   initialSchema: FormSchema | null;
@@ -23,6 +25,7 @@ export default function FormEditorShell({
   primaryColor: string;
   formId?: string;
   formName?: string;
+  isActive?: boolean;
   settingsSlot?: React.ReactNode;
 }) {
   const router = useRouter();
@@ -30,6 +33,9 @@ export default function FormEditorShell({
   const [mode, setMode] = useState<"editor" | "preview">("editor");
   const [liveSchema, setLiveSchema] = useState<FormSchema | null>(initialSchema);
   const [copied, setCopied] = useState(false);
+  const [isActive, setIsActive] = useState(initialIsActive ?? true);
+  const [publishing, startPublish] = useTransition();
+  const [publishMsg, setPublishMsg] = useState<string | null>(null);
 
   function handleTemplateDone() {
     setShowTemplates(false);
@@ -41,6 +47,21 @@ export default function FormEditorShell({
     navigator.clipboard.writeText(publicUrl);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
+  }
+
+  function handleTogglePublish() {
+    if (!formId) return;
+    setPublishMsg(null);
+    startPublish(async () => {
+      const result = await toggleFormActiveAction(formId, !isActive);
+      if (result.ok) {
+        setIsActive(!isActive);
+        router.refresh();
+      } else {
+        setPublishMsg(result.error ?? "Failed.");
+        setTimeout(() => setPublishMsg(null), 3000);
+      }
+    });
   }
 
   if (showTemplates) {
@@ -99,10 +120,38 @@ export default function FormEditorShell({
         </div>
         </div>
 
-        {/* Right: settings + public link */}
+        {/* Right: status badge + publish button + settings + public link */}
         <div className="flex items-center gap-2">
+          {/* Publish status + toggle */}
+          {formId && (
+            <div className="flex items-center gap-2">
+              {publishMsg && (
+                <span className="text-[10px] text-error font-medium hidden sm:inline">{publishMsg}</span>
+              )}
+              <span className={`hidden sm:inline text-[10px] font-bold uppercase tracking-widest px-2 py-0.5 rounded-full border ${
+                isActive
+                  ? "text-tertiary bg-tertiary/10 border-tertiary/20"
+                  : "text-on-surface-variant/60 bg-surface-container-high border-outline-variant/15"
+              }`}>
+                <i className={`fa-solid ${isActive ? "fa-circle-check" : "fa-circle-pause"} text-[8px] mr-1`} />
+                {isActive ? "Published" : "Draft"}
+              </span>
+              <button
+                onClick={handleTogglePublish}
+                disabled={publishing}
+                className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold rounded-lg transition-all whitespace-nowrap disabled:opacity-60 ${
+                  isActive
+                    ? "text-on-surface-variant border border-outline-variant/20 hover:border-error/30 hover:text-error"
+                    : "text-on-primary bg-tertiary hover:shadow-[0_0_12px_rgba(100,220,180,0.3)]"
+                }`}
+              >
+                <i className={`fa-solid ${isActive ? "fa-eye-slash" : "fa-rocket"} text-[10px]`} />
+                {publishing ? "..." : isActive ? "Unpublish" : "Publish"}
+              </button>
+            </div>
+          )}
           {settingsSlot}
-          {publicUrl && (
+          {publicUrl && isActive && (
             <>
               <span className="text-xs text-on-surface-variant/60 hidden md:inline truncate max-w-[200px] lg:max-w-xs">
                 {publicUrl.replace(/^https?:\/\//, "")}

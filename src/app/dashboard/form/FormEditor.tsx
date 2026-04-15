@@ -477,7 +477,7 @@ export default function FormEditor({ initialSchema, onOpenTemplates, formId }: {
             onClick={handleSave}
             className="px-5 py-2 bg-primary text-on-primary font-bold rounded-lg text-sm hover:shadow-[0_0_15px_rgba(192,193,255,0.4)] disabled:opacity-60 transition-all whitespace-nowrap"
           >
-            {saving ? "Saving..." : "Save Draft"}
+            {saving ? "Saving..." : "Save"}
           </button>
         </div>
       </div>
@@ -1007,119 +1007,158 @@ function PackageSettingsPanel({ config, onUpdate }: {
     { key: "rules" as const, label: "Rules", icon: "fa-wand-magic-sparkles" },
   ];
 
+  const [expandedPkg, setExpandedPkg] = useState<string | null>(config.packages[0]?.id ?? null);
+
   return (
     <section className="space-y-3">
       <div className="text-[10px] font-bold text-on-surface-variant uppercase tracking-widest">Package Configuration</div>
 
-      {/* Tabs */}
-      <div className="flex bg-surface-container rounded-lg p-0.5">
+      {/* Icon tabs — compact pill bar */}
+      <div className="flex bg-surface-container rounded-lg p-0.5 gap-0.5">
         {tabs.map((t) => (
           <button
             key={t.key}
             onClick={() => setActiveTab(t.key)}
-            className={`flex-1 flex items-center justify-center gap-1 px-2 py-1.5 rounded-md text-[10px] font-bold uppercase tracking-widest transition-all ${
+            title={t.label}
+            className={`flex-1 flex items-center justify-center gap-1.5 px-1 py-1.5 rounded-md text-[10px] font-bold transition-all ${
               activeTab === t.key
                 ? "bg-primary text-on-primary shadow-sm"
                 : "text-on-surface-variant/50 hover:text-on-surface-variant"
             }`}
           >
-            <i className={`fa-solid ${t.icon} text-[9px]`} />
-            {t.label}
+            <i className={`fa-solid ${t.icon} text-[10px]`} />
+            <span className="hidden min-[320px]:inline truncate">{t.label}</span>
           </button>
         ))}
       </div>
 
-      {/* Packages tab */}
+      {/* ── Packages tab ── */}
       {activeTab === "packages" && (
-        <div className="space-y-3">
-          {config.packages.map((pkg) => (
-            <div key={pkg.id} className="bg-surface-container rounded-xl p-3 space-y-2 border border-outline-variant/10">
-              <div className="flex items-center justify-between gap-2">
-                <input
-                  value={pkg.name}
-                  onChange={(e) => updatePackage(pkg.id, { name: e.target.value })}
-                  className={`${INPUT_CLS} text-xs font-bold`}
-                  placeholder="Package name"
-                />
+        <div className="space-y-1.5">
+          {config.packages.map((pkg) => {
+            const isOpen = expandedPkg === pkg.id;
+            const priceLabel = pkg.hidePrice
+              ? (pkg.priceLabel || "Custom")
+              : pkg.price === 0 ? "Free" : `$${pkg.price}/mo`;
+            return (
+              <div key={pkg.id} className="bg-surface-container rounded-xl border border-outline-variant/10 overflow-hidden">
+                {/* Accordion header */}
                 <button
-                  onClick={() => removePackage(pkg.id)}
-                  disabled={config.packages.length <= 1}
-                  className="p-1 text-on-surface-variant/40 hover:text-error disabled:opacity-30 shrink-0"
+                  type="button"
+                  onClick={() => setExpandedPkg(isOpen ? null : pkg.id)}
+                  className="w-full flex items-center gap-2 px-3 py-2.5 text-left hover:bg-surface-container-highest/20 transition-colors"
                 >
-                  <i className="fa-solid fa-trash text-[10px]" />
+                  <i className={`fa-solid fa-chevron-right text-[8px] text-on-surface-variant/40 transition-transform ${isOpen ? "rotate-90" : ""}`} />
+                  <span className="text-xs font-bold text-on-surface flex-1 truncate">{pkg.name || "Untitled"}</span>
+                  <span className="text-[10px] text-on-surface-variant/60 shrink-0">{priceLabel}</span>
+                  {pkg.badge && (
+                    <span className="text-[8px] bg-primary/10 text-primary px-1.5 py-0.5 rounded-full font-bold shrink-0">{pkg.badge}</span>
+                  )}
                 </button>
+
+                {/* Accordion body */}
+                {isOpen && (
+                  <div className="px-3 pb-3 space-y-2 border-t border-outline-variant/10">
+                    <div className="pt-2 flex items-center gap-2">
+                      <input
+                        value={pkg.name}
+                        onChange={(e) => updatePackage(pkg.id, { name: e.target.value })}
+                        className={`${INPUT_CLS} text-xs font-bold flex-1`}
+                        placeholder="Package name"
+                      />
+                      <button
+                        onClick={() => removePackage(pkg.id)}
+                        disabled={config.packages.length <= 1}
+                        className="p-1.5 text-on-surface-variant/40 hover:text-error disabled:opacity-30 shrink-0"
+                        title="Delete package"
+                      >
+                        <i className="fa-solid fa-trash text-[10px]" />
+                      </button>
+                    </div>
+
+                    {/* Price row */}
+                    <div className="flex items-center gap-2">
+                      {pkg.hidePrice ? (
+                        <label className="flex-1">
+                          <span className="text-[10px] text-on-surface-variant mb-0.5 block">Price label</span>
+                          <input
+                            value={pkg.priceLabel ?? ""}
+                            onChange={(e) => updatePackage(pkg.id, { priceLabel: e.target.value || undefined })}
+                            placeholder="e.g. Custom"
+                            className={`${INPUT_CLS} text-xs`}
+                          />
+                        </label>
+                      ) : (
+                        <label className="flex-1">
+                          <span className="text-[10px] text-on-surface-variant mb-0.5 block">Price/mo ($)</span>
+                          <input
+                            type="number"
+                            min={0}
+                            value={pkg.price}
+                            onChange={(e) => updatePackage(pkg.id, { price: Number(e.target.value) || 0 })}
+                            className={`${INPUT_CLS} text-xs`}
+                          />
+                        </label>
+                      )}
+                      <label className="flex items-center gap-1.5 pt-3 shrink-0 cursor-pointer" title="Hide price on card">
+                        <input type="checkbox" checked={!!pkg.hidePrice} onChange={(e) => updatePackage(pkg.id, { hidePrice: e.target.checked })} className="sr-only peer" />
+                        <div className="relative w-7 h-3.5 bg-surface-container-highest rounded-full peer-checked:bg-primary transition-colors">
+                          <div className="absolute left-0.5 top-0.5 w-2.5 h-2.5 bg-on-surface-variant rounded-full peer-checked:translate-x-3.5 peer-checked:bg-on-primary transition-all" />
+                        </div>
+                        <span className="text-[9px] text-on-surface-variant/60">Hide</span>
+                      </label>
+                    </div>
+
+                    {/* Badge + Tagline in one row */}
+                    <div className="flex gap-2">
+                      <label className="flex-1 min-w-0">
+                        <span className="text-[10px] text-on-surface-variant mb-0.5 block">Badge</span>
+                        <input
+                          value={pkg.badge ?? ""}
+                          onChange={(e) => updatePackage(pkg.id, { badge: e.target.value || undefined })}
+                          placeholder="Popular"
+                          className={`${INPUT_CLS} text-xs`}
+                        />
+                      </label>
+                      <label className="flex-[2] min-w-0">
+                        <span className="text-[10px] text-on-surface-variant mb-0.5 block">Tagline</span>
+                        <input
+                          value={pkg.description ?? ""}
+                          onChange={(e) => updatePackage(pkg.id, { description: e.target.value || undefined })}
+                          placeholder="Best for small teams"
+                          className={`${INPUT_CLS} text-xs`}
+                        />
+                      </label>
+                    </div>
+
+                    {/* Description */}
+                    <label className="block">
+                      <span className="text-[10px] text-on-surface-variant mb-0.5 block">Description</span>
+                      <textarea
+                        value={pkg.longDescription ?? ""}
+                        onChange={(e) => updatePackage(pkg.id, { longDescription: e.target.value || undefined })}
+                        placeholder="Detailed description..."
+                        rows={2}
+                        className={`${INPUT_CLS} text-xs`}
+                      />
+                    </label>
+
+                    {/* Feature list */}
+                    <label className="block">
+                      <span className="text-[10px] text-on-surface-variant mb-0.5 block">Features (one per line)</span>
+                      <textarea
+                        value={(pkg.featureList ?? []).join("\n")}
+                        onChange={(e) => updatePackage(pkg.id, { featureList: e.target.value.split("\n").filter((l) => l.trim()) })}
+                        placeholder={"5 pages\nCustom domain\n24/7 support"}
+                        rows={3}
+                        className={`${INPUT_CLS} text-xs font-mono`}
+                      />
+                    </label>
+                  </div>
+                )}
               </div>
-              <div className="flex items-center justify-between p-2 bg-surface-container-highest/30 rounded-lg">
-                <span className="text-[10px] font-medium text-on-surface-variant">Hide price</span>
-                <label className="relative cursor-pointer">
-                  <input type="checkbox" checked={!!pkg.hidePrice} onChange={(e) => updatePackage(pkg.id, { hidePrice: e.target.checked })} className="sr-only peer" />
-                  <div className="w-8 h-4 bg-surface-container-highest rounded-full peer-checked:bg-primary transition-colors" />
-                  <div className="absolute left-0.5 top-0.5 w-3 h-3 bg-on-surface-variant rounded-full peer-checked:translate-x-4 peer-checked:bg-on-primary transition-all" />
-                </label>
-              </div>
-              {pkg.hidePrice ? (
-                <label className="block">
-                  <span className="text-[10px] text-on-surface-variant mb-0.5 block">Price label</span>
-                  <input
-                    value={pkg.priceLabel ?? ""}
-                    onChange={(e) => updatePackage(pkg.id, { priceLabel: e.target.value || undefined })}
-                    placeholder="e.g. Custom, Contact Us"
-                    className={`${INPUT_CLS} text-xs`}
-                  />
-                </label>
-              ) : (
-                <label className="block">
-                  <span className="text-[10px] text-on-surface-variant mb-0.5 block">Price/mo ($)</span>
-                  <input
-                    type="number"
-                    min={0}
-                    value={pkg.price}
-                    onChange={(e) => updatePackage(pkg.id, { price: Number(e.target.value) || 0 })}
-                    className={`${INPUT_CLS} text-xs`}
-                  />
-                </label>
-              )}
-              <label className="block">
-                <span className="text-[10px] text-on-surface-variant mb-0.5 block">Badge</span>
-                <input
-                  value={pkg.badge ?? ""}
-                  onChange={(e) => updatePackage(pkg.id, { badge: e.target.value || undefined })}
-                  placeholder="e.g. Popular"
-                  className={`${INPUT_CLS} text-xs`}
-                />
-              </label>
-              <label className="block">
-                <span className="text-[10px] text-on-surface-variant mb-0.5 block">Short tagline</span>
-                <input
-                  value={pkg.description ?? ""}
-                  onChange={(e) => updatePackage(pkg.id, { description: e.target.value || undefined })}
-                  placeholder="e.g. Best for small teams"
-                  className={`${INPUT_CLS} text-xs`}
-                />
-              </label>
-              <label className="block">
-                <span className="text-[10px] text-on-surface-variant mb-0.5 block">Description paragraph</span>
-                <textarea
-                  value={pkg.longDescription ?? ""}
-                  onChange={(e) => updatePackage(pkg.id, { longDescription: e.target.value || undefined })}
-                  placeholder="Detailed description of what this package includes..."
-                  rows={3}
-                  className={`${INPUT_CLS} text-xs`}
-                />
-              </label>
-              <label className="block">
-                <span className="text-[10px] text-on-surface-variant mb-0.5 block">Features (one per line)</span>
-                <textarea
-                  value={(pkg.featureList ?? []).join("\n")}
-                  onChange={(e) => updatePackage(pkg.id, { featureList: e.target.value.split("\n").filter((l) => l.trim()) })}
-                  placeholder={"5 pages included\nCustom domain\n24/7 support"}
-                  rows={4}
-                  className={`${INPUT_CLS} text-xs font-mono`}
-                />
-                <span className="text-[9px] text-on-surface-variant/50 mt-0.5 block">Displayed as a checkmark list on the package card.</span>
-              </label>
-            </div>
-          ))}
+            );
+          })}
           <button
             onClick={addPackage}
             className="w-full py-2 border border-dashed border-outline-variant/20 rounded-xl text-xs font-bold text-on-surface-variant hover:border-primary/40 hover:text-primary transition-all"
@@ -1129,65 +1168,101 @@ function PackageSettingsPanel({ config, onUpdate }: {
         </div>
       )}
 
-      {/* Features tab */}
+      {/* ── Features tab — compact grid ── */}
       {activeTab === "features" && (
         <div className="space-y-3">
-          <p className="text-[10px] text-on-surface-variant/60">Define features that differ across packages. Use text for custom values or toggle for checkmarks.</p>
-          {config.features.map((feature, fi) => (
-            <div key={fi} className="bg-surface-container rounded-xl p-3 space-y-2 border border-outline-variant/10">
-              <div className="flex items-center gap-2">
-                <input
-                  value={feature.label}
-                  onChange={(e) => updateFeatureLabel(fi, e.target.value)}
-                  className={`${INPUT_CLS} text-xs font-bold flex-1`}
-                  placeholder="Feature name"
-                />
-                <button onClick={() => removeFeature(fi)} className="p-1 text-on-surface-variant/40 hover:text-error shrink-0">
-                  <i className="fa-solid fa-trash text-[10px]" />
-                </button>
-              </div>
-              {config.packages.map((pkg) => {
-                const val = feature.values[pkg.id];
-                const isText = typeof val === "string";
-                return (
-                  <div key={pkg.id} className="flex items-center gap-2">
-                    <span className="text-[10px] text-on-surface-variant/60 w-16 truncate shrink-0">{pkg.name}</span>
-                    <select
-                      value={isText ? "text" : val ? "yes" : "no"}
-                      onChange={(e) => {
-                        const v = e.target.value;
-                        if (v === "text") updateFeatureValue(fi, pkg.id, "");
-                        else updateFeatureValue(fi, pkg.id, v === "yes");
-                      }}
-                      className="text-[10px] bg-surface-container-highest/50 border-0 rounded px-1.5 py-1 text-on-surface outline-none"
-                    >
-                      <option value="yes">✓ Yes</option>
-                      <option value="no">✗ No</option>
-                      <option value="text">Custom</option>
-                    </select>
-                    {isText && (
-                      <input
-                        value={val}
-                        onChange={(e) => updateFeatureValue(fi, pkg.id, e.target.value)}
-                        placeholder="e.g. Up to 10"
-                        className="flex-1 text-[10px] bg-surface-container-highest/50 border-0 rounded px-2 py-1 text-on-surface outline-none"
-                      />
-                    )}
+          <p className="text-[10px] text-on-surface-variant/60">Toggle or set custom values per package.</p>
+
+          {/* Grid table */}
+          {config.features.length > 0 && (
+            <div className="bg-surface-container rounded-xl border border-outline-variant/10 overflow-hidden">
+              {/* Header row with package names */}
+              <div className="flex items-center border-b border-outline-variant/10 bg-surface-container-highest/20">
+                <div className="flex-1 px-2.5 py-1.5 text-[9px] font-bold text-on-surface-variant uppercase tracking-widest">Feature</div>
+                {config.packages.map((pkg) => (
+                  <div key={pkg.id} className="w-14 shrink-0 text-center px-1 py-1.5 text-[9px] font-bold text-on-surface-variant truncate" title={pkg.name}>
+                    {pkg.name.length > 6 ? pkg.name.slice(0, 6) + "…" : pkg.name}
                   </div>
-                );
-              })}
+                ))}
+                <div className="w-7 shrink-0" />
+              </div>
+
+              {/* Feature rows */}
+              {config.features.map((feature, fi) => (
+                <div key={fi} className={`flex items-center ${fi < config.features.length - 1 ? "border-b border-outline-variant/5" : ""} group hover:bg-surface-container-highest/10`}>
+                  <div className="flex-1 min-w-0 px-2.5 py-1.5">
+                    <input
+                      value={feature.label}
+                      onChange={(e) => updateFeatureLabel(fi, e.target.value)}
+                      className="w-full bg-transparent text-[11px] text-on-surface outline-none placeholder:text-on-surface-variant/30"
+                      placeholder="Feature name"
+                    />
+                  </div>
+                  {config.packages.map((pkg) => {
+                    const val = feature.values[pkg.id];
+                    const isText = typeof val === "string";
+                    return (
+                      <div key={pkg.id} className="w-14 shrink-0 flex items-center justify-center px-0.5">
+                        {isText ? (
+                          <input
+                            value={val}
+                            onChange={(e) => updateFeatureValue(fi, pkg.id, e.target.value)}
+                            onContextMenu={(e) => { e.preventDefault(); updateFeatureValue(fi, pkg.id, true); }}
+                            placeholder="—"
+                            className="w-full text-center text-[9px] bg-transparent border-b border-outline-variant/20 text-on-surface outline-none py-0.5 focus:border-primary"
+                            title="Right-click to switch to checkmark"
+                          />
+                        ) : (
+                          <button
+                            type="button"
+                            onClick={() => updateFeatureValue(fi, pkg.id, !val)}
+                            onContextMenu={(e) => { e.preventDefault(); updateFeatureValue(fi, pkg.id, ""); }}
+                            className={`w-5 h-5 rounded flex items-center justify-center transition-colors ${
+                              val ? "bg-primary/15 text-primary" : "bg-surface-container-highest/30 text-on-surface-variant/20"
+                            }`}
+                            title={val ? "Included — right-click for custom text" : "Not included — right-click for custom text"}
+                          >
+                            <i className={`fa-solid ${val ? "fa-check" : "fa-minus"} text-[8px]`} />
+                          </button>
+                        )}
+                      </div>
+                    );
+                  })}
+                  <div className="w-7 shrink-0 flex items-center justify-center">
+                    <button
+                      onClick={() => removeFeature(fi)}
+                      className="p-0.5 text-on-surface-variant/0 group-hover:text-on-surface-variant/40 hover:!text-error transition-colors"
+                      title="Remove feature"
+                    >
+                      <i className="fa-solid fa-xmark text-[9px]" />
+                    </button>
+                  </div>
+                </div>
+              ))}
             </div>
-          ))}
-          <button
-            onClick={addFeature}
-            className="w-full py-2 border border-dashed border-outline-variant/20 rounded-xl text-xs font-bold text-on-surface-variant hover:border-primary/40 hover:text-primary transition-all"
-          >
-            <i className="fa-solid fa-plus text-[10px] mr-1" /> Add Feature
-          </button>
+          )}
+
+          {/* Tip for switching to custom text */}
+          {config.features.length > 0 && (
+            <p className="text-[9px] text-on-surface-variant/40 leading-snug">
+              <i className="fa-solid fa-circle-info text-[8px] mr-1" />
+              Right-click a checkmark to switch to custom text. Click again to toggle back.
+            </p>
+          )}
+
+          <div className="flex gap-2">
+            <button
+              onClick={addFeature}
+              className="flex-1 py-2 border border-dashed border-outline-variant/20 rounded-xl text-xs font-bold text-on-surface-variant hover:border-primary/40 hover:text-primary transition-all"
+            >
+              <i className="fa-solid fa-plus text-[10px] mr-1" /> Add Feature
+            </button>
+          </div>
+
         </div>
       )}
 
-      {/* Layout tab */}
+      {/* ── Layout tab ── */}
       {activeTab === "layout" && (
         <div className="space-y-4">
           <p className="text-[10px] text-on-surface-variant/60">Control how package cards are displayed to your clients.</p>
@@ -1269,15 +1344,15 @@ function PackageSettingsPanel({ config, onUpdate }: {
         </div>
       )}
 
-      {/* Rules tab */}
+      {/* ── Rules tab ── */}
       {activeTab === "rules" && (
         <div className="space-y-3">
           <p className="text-[10px] text-on-surface-variant/60">
-            Recommend a package based on answers from previous steps. Rules are evaluated top to bottom — first match wins.
+            Recommend a package based on answers from previous steps. First match wins.
           </p>
 
           <label className="block">
-            <span className="text-[10px] text-on-surface-variant mb-0.5 block">Default recommendation (if no rules match)</span>
+            <span className="text-[10px] text-on-surface-variant mb-0.5 block">Default recommendation</span>
             <select
               value={config.defaultPackageId ?? ""}
               onChange={(e) => onUpdate({ ...config, defaultPackageId: e.target.value || undefined })}
@@ -1291,57 +1366,46 @@ function PackageSettingsPanel({ config, onUpdate }: {
           </label>
 
           {config.rules.map((rule, ri) => (
-            <div key={ri} className="bg-surface-container rounded-xl p-3 space-y-2 border border-outline-variant/10">
+            <div key={ri} className="bg-surface-container rounded-xl p-2.5 space-y-1.5 border border-outline-variant/10">
               <div className="flex items-center justify-between">
                 <span className="text-[10px] font-bold text-on-surface-variant uppercase tracking-widest">Rule {ri + 1}</span>
                 <button onClick={() => removeRule(ri)} className="p-1 text-on-surface-variant/40 hover:text-error">
                   <i className="fa-solid fa-trash text-[10px]" />
                 </button>
               </div>
-              <label className="block">
-                <span className="text-[10px] text-on-surface-variant mb-0.5 block">Field ID to check</span>
-                <input
-                  value={rule.fieldId}
-                  onChange={(e) => updateRule(ri, { fieldId: e.target.value })}
-                  placeholder="e.g. field_abc123"
-                  className={`${INPUT_CLS} text-xs font-mono`}
-                />
-              </label>
-              <div className="flex gap-2">
-                <label className="flex-1">
-                  <span className="text-[10px] text-on-surface-variant mb-0.5 block">Operator</span>
-                  <select
-                    value={rule.operator}
-                    onChange={(e) => updateRule(ri, { operator: e.target.value as PackageRule["operator"] })}
-                    className={`${INPUT_CLS} text-xs`}
-                  >
-                    <option value="equals">Equals</option>
-                    <option value="contains">Contains</option>
-                    <option value="greater_than">Greater than</option>
-                    <option value="less_than">Less than</option>
-                  </select>
-                </label>
-                <label className="flex-1">
-                  <span className="text-[10px] text-on-surface-variant mb-0.5 block">Value</span>
-                  <input
-                    value={rule.value}
-                    onChange={(e) => updateRule(ri, { value: e.target.value })}
-                    className={`${INPUT_CLS} text-xs`}
-                  />
-                </label>
-              </div>
-              <label className="block">
-                <span className="text-[10px] text-on-surface-variant mb-0.5 block">Recommend package</span>
+              <input
+                value={rule.fieldId}
+                onChange={(e) => updateRule(ri, { fieldId: e.target.value })}
+                placeholder="Field ID"
+                className={`${INPUT_CLS} text-xs font-mono`}
+              />
+              <div className="flex gap-1.5">
                 <select
-                  value={rule.recommendedPackageId}
-                  onChange={(e) => updateRule(ri, { recommendedPackageId: e.target.value })}
-                  className={`${INPUT_CLS} text-xs`}
+                  value={rule.operator}
+                  onChange={(e) => updateRule(ri, { operator: e.target.value as PackageRule["operator"] })}
+                  className={`${INPUT_CLS} text-xs flex-1`}
                 >
-                  {config.packages.map((p) => (
-                    <option key={p.id} value={p.id}>{p.name}</option>
-                  ))}
+                  <option value="equals">Equals</option>
+                  <option value="contains">Contains</option>
+                  <option value="greater_than">&gt;</option>
+                  <option value="less_than">&lt;</option>
                 </select>
-              </label>
+                <input
+                  value={rule.value}
+                  onChange={(e) => updateRule(ri, { value: e.target.value })}
+                  placeholder="Value"
+                  className={`${INPUT_CLS} text-xs flex-1`}
+                />
+              </div>
+              <select
+                value={rule.recommendedPackageId}
+                onChange={(e) => updateRule(ri, { recommendedPackageId: e.target.value })}
+                className={`${INPUT_CLS} text-xs`}
+              >
+                {config.packages.map((p) => (
+                  <option key={p.id} value={p.id}>{p.name}</option>
+                ))}
+              </select>
             </div>
           ))}
           <button
