@@ -12,6 +12,59 @@ export interface CheckoutResult {
 }
 
 /**
+ * Save or update the business profile fields on the partner record.
+ */
+export async function saveBusinessDetailsAction(
+  partnerId: string,
+  details: {
+    phone: string;
+    website: string;
+    industry: string;
+    billing_address_line1: string;
+    billing_address_line2: string;
+    billing_city: string;
+    billing_state: string;
+    billing_zip: string;
+    billing_country: string;
+    team_size: string;
+    expected_monthly_clients: string;
+    referral_source: string;
+    tax_id: string;
+  },
+): Promise<{ ok: boolean; error?: string }> {
+  const session = await requireSession();
+  const account = await getCurrentAccount(session.userId);
+
+  // Ensure user owns this partner
+  if (!account || account.id !== partnerId) {
+    return { ok: false, error: "Unauthorized." };
+  }
+
+  const admin = createAdminClient();
+  const { error } = await admin
+    .from("partners")
+    .update({
+      phone: details.phone || null,
+      website: details.website || null,
+      industry: details.industry || null,
+      billing_address_line1: details.billing_address_line1 || null,
+      billing_address_line2: details.billing_address_line2 || null,
+      billing_city: details.billing_city || null,
+      billing_state: details.billing_state || null,
+      billing_zip: details.billing_zip || null,
+      billing_country: details.billing_country || "US",
+      team_size: details.team_size || null,
+      expected_monthly_clients: details.expected_monthly_clients || null,
+      referral_source: details.referral_source || null,
+      tax_id: details.tax_id || null,
+    })
+    .eq("id", partnerId);
+
+  if (error) return { ok: false, error: error.message };
+  return { ok: true };
+}
+
+/**
  * Validate a coupon code for the checkout page.
  */
 export async function validateCouponAction(

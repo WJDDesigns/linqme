@@ -1,18 +1,66 @@
 import { getPlans } from "@/lib/plans";
-import { requireSession } from "@/lib/auth";
+import { requireSession, getCurrentAccount } from "@/lib/auth";
+import { createClient } from "@/lib/supabase/server";
 import CheckoutForm from "./CheckoutForm";
 import Link from "next/link";
 import SiteLaunchLogo from "@/components/SiteLaunchLogo";
+
+export interface PartnerProfile {
+  phone: string;
+  website: string;
+  industry: string;
+  billing_address_line1: string;
+  billing_address_line2: string;
+  billing_city: string;
+  billing_state: string;
+  billing_zip: string;
+  billing_country: string;
+  team_size: string;
+  expected_monthly_clients: string;
+  referral_source: string;
+  tax_id: string;
+}
 
 interface Props {
   searchParams: Promise<{ plan?: string }>;
 }
 
 export default async function CheckoutPage({ searchParams }: Props) {
-  await requireSession(); // Redirect to /login if unauthenticated
+  const session = await requireSession();
   const { plan: selectedPlan } = await searchParams;
   const plans = await getPlans();
   const paidPlans = plans.filter((p) => p.priceMonthly > 0);
+
+  // Fetch existing partner profile data to pre-fill or detect missing fields
+  const account = await getCurrentAccount(session.userId);
+  let partnerProfile: PartnerProfile | null = null;
+
+  if (account) {
+    const supabase = await createClient();
+    const { data } = await supabase
+      .from("partners")
+      .select("phone, website, industry, billing_address_line1, billing_address_line2, billing_city, billing_state, billing_zip, billing_country, team_size, expected_monthly_clients, referral_source, tax_id")
+      .eq("id", account.id)
+      .maybeSingle();
+
+    if (data) {
+      partnerProfile = {
+        phone: data.phone ?? "",
+        website: data.website ?? "",
+        industry: data.industry ?? "",
+        billing_address_line1: data.billing_address_line1 ?? "",
+        billing_address_line2: data.billing_address_line2 ?? "",
+        billing_city: data.billing_city ?? "",
+        billing_state: data.billing_state ?? "",
+        billing_zip: data.billing_zip ?? "",
+        billing_country: data.billing_country ?? "US",
+        team_size: data.team_size ?? "",
+        expected_monthly_clients: data.expected_monthly_clients ?? "",
+        referral_source: data.referral_source ?? "",
+        tax_id: data.tax_id ?? "",
+      };
+    }
+  }
 
   return (
     <div className="min-h-screen relative overflow-hidden">
@@ -43,11 +91,16 @@ export default async function CheckoutPage({ searchParams }: Props) {
             Complete Your Upgrade
           </h1>
           <p className="text-sm text-on-surface-variant/60 mt-2">
-            Choose your plan and apply a coupon if you have one.
+            Fill in your business details, choose your plan, and apply a coupon if you have one.
           </p>
         </header>
 
-        <CheckoutForm plans={paidPlans} defaultPlan={selectedPlan} />
+        <CheckoutForm
+          plans={paidPlans}
+          defaultPlan={selectedPlan}
+          partnerProfile={partnerProfile}
+          partnerId={account?.id ?? null}
+        />
       </main>
     </div>
   );
