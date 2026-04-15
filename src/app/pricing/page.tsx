@@ -142,7 +142,7 @@ export default function PricingPage() {
       </section>
 
       {/* Pricing Cards */}
-      <section className="px-6 pt-4 pb-24 md:pb-32 relative overflow-hidden">
+      <section className="px-6 pt-12 md:pt-16 pb-24 md:pb-32 relative overflow-hidden">
         <div className="absolute inset-0 bg-crosshatch pointer-events-none" />
         <div className="absolute inset-0 bg-aurora pointer-events-none" />
         <div className="max-w-5xl mx-auto relative z-10">
