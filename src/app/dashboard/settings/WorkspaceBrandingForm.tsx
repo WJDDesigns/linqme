@@ -16,12 +16,13 @@ interface WorkspaceData {
 interface Props {
   workspace: WorkspaceData;
   rootHost: string;
+  isSuperadmin?: boolean;
 }
 
 const INPUT_CLS =
   "block w-full px-4 py-3 text-sm bg-surface-container-lowest border-0 rounded-xl text-on-surface placeholder:text-on-surface-variant/40 focus:ring-1 focus:ring-primary/40 outline-none transition-all duration-200";
 
-export default function WorkspaceBrandingForm({ workspace, rootHost }: Props) {
+export default function WorkspaceBrandingForm({ workspace, rootHost, isSuperadmin }: Props) {
   const [pending, startTransition] = useTransition();
   const [msg, setMsg] = useState<string | null>(null);
   const [slugValue, setSlugValue] = useState(workspace.slug);
@@ -64,15 +65,17 @@ export default function WorkspaceBrandingForm({ workspace, rootHost }: Props) {
 
       <Field
         label="Subdomain"
-        hint="This is the subdomain clients visit for your onboarding forms."
+        hint={isSuperadmin ? "Only admins can change the subdomain." : "Your subdomain is set during signup and cannot be changed. Contact support if needed."}
       >
         <div className="flex items-center">
           <input
             name="slug"
             required
             value={slugValue}
-            onChange={(e) => setSlugValue(e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, ""))}
-            className={`${INPUT_CLS} rounded-r-none`}
+            onChange={isSuperadmin ? (e) => setSlugValue(e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, "")) : undefined}
+            readOnly={!isSuperadmin}
+            disabled={!isSuperadmin}
+            className={`${INPUT_CLS} rounded-r-none ${!isSuperadmin ? "opacity-60 cursor-not-allowed" : ""}`}
             placeholder="your-company"
           />
           <span className="px-3 py-3 text-sm text-on-surface-variant bg-surface-container-high border-0 rounded-r-xl whitespace-nowrap">
