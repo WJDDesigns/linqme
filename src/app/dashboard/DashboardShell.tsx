@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
 import SidebarNav from "./SidebarNav";
 import ThemeToggle from "@/components/ThemeToggle";
@@ -65,6 +65,21 @@ export default function DashboardShell({
       const stored = localStorage.getItem(STORAGE_KEY);
       if (stored === "true") setCollapsed(true);
     } catch { /* SSR / privacy mode */ }
+  }, []);
+
+  const handleSignOut = useCallback(async () => {
+    try {
+      const res = await fetch("/auth/signout", { method: "POST", redirect: "follow" });
+      // The route returns a redirect — follow it manually
+      if (res.redirected) {
+        window.location.href = res.url;
+      } else {
+        // Fallback: just go to login
+        window.location.href = "/login";
+      }
+    } catch {
+      window.location.href = "/login";
+    }
   }, []);
 
   function toggle() {
@@ -158,11 +173,9 @@ export default function DashboardShell({
               <div className="w-8 h-8 rounded-full bg-gradient-to-br from-primary/20 to-tertiary/10 flex items-center justify-center text-[10px] font-bold text-primary ring-1 ring-primary/10">
                 {(userName || userEmail).slice(0, 1).toUpperCase()}
               </div>
-              <form action="/auth/signout" method="post">
-                <button className="text-on-surface-variant/40 hover:text-primary transition-colors" title="Sign out">
-                  <i className="fa-solid fa-right-from-bracket text-xs" />
-                </button>
-              </form>
+              <button onClick={handleSignOut} className="text-on-surface-variant/40 hover:text-primary transition-colors" title="Sign out">
+                <i className="fa-solid fa-right-from-bracket text-xs" />
+              </button>
             </div>
           ) : (
             <>
@@ -175,11 +188,11 @@ export default function DashboardShell({
                   <p className="text-[10px] text-on-surface-variant/50 truncate">{userEmail}</p>
                 </div>
               </div>
-              <form action="/auth/signout" method="post" className="px-3 mt-1">
-                <button className="text-xs text-on-surface-variant/40 hover:text-primary transition-colors duration-300 uppercase tracking-widest">
+              <div className="px-3 mt-1">
+                <button onClick={handleSignOut} className="text-xs text-on-surface-variant/40 hover:text-primary transition-colors duration-300 uppercase tracking-widest">
                   Sign out
                 </button>
-              </form>
+              </div>
             </>
           )}
         </div>
