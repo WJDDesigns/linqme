@@ -770,7 +770,11 @@ function CelestialField({
                 </div>
 
                 <div className="mb-4">
-                  {pkg.price === 0 ? (
+                  {pkg.hidePrice ? (
+                    <span className="text-2xl font-extrabold font-headline" style={{ color: primaryColor }}>
+                      {pkg.priceLabel || "Custom"}
+                    </span>
+                  ) : pkg.price === 0 ? (
                     <span className="text-2xl font-extrabold text-on-surface font-headline">Free</span>
                   ) : (
                     <div className="flex items-baseline gap-1">

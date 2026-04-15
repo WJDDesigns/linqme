@@ -41,6 +41,10 @@ export interface PackageOption {
   badge?: string;
   /** Feature bullet points shown as a checkmark list */
   featureList?: string[];
+  /** Hide the price on this package (e.g. for "Custom" packages) */
+  hidePrice?: boolean;
+  /** Custom label shown instead of price when hidePrice is true, e.g. "Custom" or "Contact Us" */
+  priceLabel?: string;
 }
 
 /** A rule that recommends a package based on a prior answer */

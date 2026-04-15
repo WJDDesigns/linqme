@@ -964,8 +964,26 @@ function PackageSettingsPanel({ config, onUpdate }: {
                   <i className="fa-solid fa-trash text-[10px]" />
                 </button>
               </div>
-              <div className="flex gap-2">
-                <label className="flex-1">
+              <div className="flex items-center justify-between p-2 bg-surface-container-highest/30 rounded-lg">
+                <span className="text-[10px] font-medium text-on-surface-variant">Hide price</span>
+                <label className="relative cursor-pointer">
+                  <input type="checkbox" checked={!!pkg.hidePrice} onChange={(e) => updatePackage(pkg.id, { hidePrice: e.target.checked })} className="sr-only peer" />
+                  <div className="w-8 h-4 bg-surface-container-highest rounded-full peer-checked:bg-primary transition-colors" />
+                  <div className="absolute left-0.5 top-0.5 w-3 h-3 bg-on-surface-variant rounded-full peer-checked:translate-x-4 peer-checked:bg-on-primary transition-all" />
+                </label>
+              </div>
+              {pkg.hidePrice ? (
+                <label className="block">
+                  <span className="text-[10px] text-on-surface-variant mb-0.5 block">Price label</span>
+                  <input
+                    value={pkg.priceLabel ?? ""}
+                    onChange={(e) => updatePackage(pkg.id, { priceLabel: e.target.value || undefined })}
+                    placeholder="e.g. Custom, Contact Us"
+                    className={`${INPUT_CLS} text-xs`}
+                  />
+                </label>
+              ) : (
+                <label className="block">
                   <span className="text-[10px] text-on-surface-variant mb-0.5 block">Price/mo ($)</span>
                   <input
                     type="number"
@@ -975,16 +993,16 @@ function PackageSettingsPanel({ config, onUpdate }: {
                     className={`${INPUT_CLS} text-xs`}
                   />
                 </label>
-                <label className="flex-1">
-                  <span className="text-[10px] text-on-surface-variant mb-0.5 block">Badge</span>
-                  <input
-                    value={pkg.badge ?? ""}
-                    onChange={(e) => updatePackage(pkg.id, { badge: e.target.value || undefined })}
-                    placeholder="e.g. Popular"
-                    className={`${INPUT_CLS} text-xs`}
-                  />
-                </label>
-              </div>
+              )}
+              <label className="block">
+                <span className="text-[10px] text-on-surface-variant mb-0.5 block">Badge</span>
+                <input
+                  value={pkg.badge ?? ""}
+                  onChange={(e) => updatePackage(pkg.id, { badge: e.target.value || undefined })}
+                  placeholder="e.g. Popular"
+                  className={`${INPUT_CLS} text-xs`}
+                />
+              </label>
               <label className="block">
                 <span className="text-[10px] text-on-surface-variant mb-0.5 block">Short tagline</span>
                 <input
