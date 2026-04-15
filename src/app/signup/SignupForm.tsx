@@ -5,7 +5,7 @@ import Link from "next/link";
 import { signupAction } from "./actions";
 
 const INPUT_CLS =
-  "block w-full px-4 py-3 text-sm bg-surface-container-lowest border-0 rounded-xl text-on-surface placeholder:text-on-surface-variant/40 focus:ring-1 focus:ring-primary/40 outline-none transition-all duration-200";
+  "block w-full px-4 py-3 text-sm bg-surface-container-lowest/80 border border-outline-variant/10 rounded-xl text-on-surface placeholder:text-on-surface-variant/40 focus:ring-2 focus:ring-primary/30 focus:border-primary/30 outline-none transition-all duration-300";
 
 export default function SignupForm({ rootHost }: { rootHost: string }) {
   const [error, setError] = useState<string | null>(null);
@@ -31,7 +31,10 @@ export default function SignupForm({ rootHost }: { rootHost: string }) {
   return (
     <form
       onSubmit={handleSubmit}
-      className="glass-panel rounded-2xl border border-outline-variant/15 p-6 space-y-5"
+      className="gradient-border rounded-2xl"
+    >
+    <div
+      className="glass-panel-strong noise-overlay rounded-2xl p-6 space-y-5"
     >
       <Field label="Your work email">
         <input
@@ -111,17 +114,18 @@ export default function SignupForm({ rootHost }: { rootHost: string }) {
       <button
         type="submit"
         disabled={submitting}
-        className="w-full rounded-xl bg-primary text-on-primary px-4 py-3 text-sm font-bold hover:shadow-[0_0_20px_rgba(192,193,255,0.3)] disabled:opacity-60 transition-all duration-300"
+        className="w-full rounded-xl bg-primary text-on-primary px-4 py-3 text-sm font-bold hover:shadow-[0_0_30px_rgba(var(--color-primary),0.35)] disabled:opacity-60 transition-all duration-500"
       >
         {submitting ? "Creating workspace..." : "Create workspace"}
       </button>
 
-      <p className="text-xs text-on-surface-variant/60 text-center">
+      <p className="text-xs text-on-surface-variant/50 text-center">
         Already have an account?{" "}
         <Link href="/login" className="font-medium text-primary hover:underline">
           Sign in
         </Link>
       </p>
+    </div>
     </form>
   );
 }

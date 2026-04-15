@@ -35,10 +35,17 @@ export default async function PartnerHomePage({ params }: Props) {
   const isFullWidth = partner.logo_size === "full-width";
 
   return (
-    <main className="min-h-screen bg-background flex flex-col">
-      {/* Header — hidden in full-width layout (logo is in the hero instead) */}
+    <main className="min-h-screen bg-background flex flex-col relative overflow-hidden">
+      {/* Ambient glows using partner color */}
+      <div className="fixed inset-0 pointer-events-none -z-10 overflow-hidden" aria-hidden="true">
+        <div className="absolute top-[-10%] right-[-5%] w-[45%] h-[45%] rounded-full blur-[140px] animate-glow-breathe" style={{ backgroundColor: `${primary}0A` }} />
+        <div className="absolute bottom-[5%] left-[15%] w-[30%] h-[30%] bg-tertiary/[0.04] rounded-full blur-[120px] animate-glow-breathe" style={{ animationDelay: "-2s" }} />
+        <div className="absolute top-[50%] left-[60%] w-[20%] h-[20%] rounded-full blur-[100px] animate-glow-breathe" style={{ backgroundColor: `${primary}06`, animationDelay: "-4s" }} />
+      </div>
+
+      {/* Header — hidden in full-width layout */}
       {!isFullWidth && (
-        <header className="fixed top-0 w-full z-50 flex justify-between items-center px-8 py-6 bg-background/60 backdrop-blur-xl">
+        <header className="fixed top-0 w-full z-50 flex justify-between items-center px-6 md:px-8 py-5 bg-background/70 backdrop-blur-2xl border-b border-on-surface/[0.04]">
           <div className="flex items-center gap-3">
             {partner.logo_url ? (
               <div className={`${dims.wrapper} flex items-center justify-center`}>
@@ -46,8 +53,8 @@ export default async function PartnerHomePage({ params }: Props) {
                 <img src={partner.logo_url} alt={partner.name} className={`${dims.img} object-contain`} />
               </div>
             ) : (
-              <div className={`${dims.fallback} flex items-center justify-center`} style={{ backgroundColor: primary }}>
-                <span className="text-on-primary font-bold text-lg">{partner.name.slice(0, 1).toUpperCase()}</span>
+              <div className={`${dims.fallback} flex items-center justify-center shadow-lg`} style={{ backgroundColor: primary, boxShadow: `0 8px 24px ${primary}30` }}>
+                <span className="text-on-primary font-bold text-lg" style={{ color: contrastText(primary) }}>{partner.name.slice(0, 1).toUpperCase()}</span>
               </div>
             )}
             <div className="flex flex-col">
@@ -59,8 +66,8 @@ export default async function PartnerHomePage({ params }: Props) {
       )}
 
       {/* Content */}
-      <section className={`flex-1 flex flex-col items-center justify-center px-6 ${isFullWidth ? "pt-16 pb-20" : "pt-32 pb-20"} max-w-4xl mx-auto text-center relative`}>
-        <div className="space-y-6">
+      <section className={`flex-1 flex flex-col items-center justify-center px-6 ${isFullWidth ? "pt-16 pb-20" : "pt-36 pb-20"} max-w-4xl mx-auto text-center relative`}>
+        <div className="space-y-6 animate-fade-up">
           {/* Full-width layout: large centered logo + name */}
           {isFullWidth && (
             <div className="flex flex-col items-center gap-4 mb-4">
@@ -68,8 +75,8 @@ export default async function PartnerHomePage({ params }: Props) {
                 // eslint-disable-next-line @next/next/no-img-element
                 <img src={partner.logo_url} alt={partner.name} className="h-24 md:h-32 w-auto object-contain" />
               ) : (
-                <div className="w-24 h-24 md:w-32 md:h-32 rounded-3xl flex items-center justify-center" style={{ backgroundColor: primary }}>
-                  <span className="text-on-primary font-bold text-5xl md:text-6xl">{partner.name.slice(0, 1).toUpperCase()}</span>
+                <div className="w-24 h-24 md:w-32 md:h-32 rounded-3xl flex items-center justify-center shadow-2xl" style={{ backgroundColor: primary, boxShadow: `0 20px 60px ${primary}30` }}>
+                  <span style={{ color: contrastText(primary) }} className="font-bold text-5xl md:text-6xl">{partner.name.slice(0, 1).toUpperCase()}</span>
                 </div>
               )}
               <div className="text-center">
@@ -82,7 +89,7 @@ export default async function PartnerHomePage({ params }: Props) {
           <h1 className="text-4xl md:text-5xl font-headline font-extrabold tracking-tight text-on-surface max-w-2xl leading-tight">
             {isFullWidth ? "Let\u2019s get started" : `Welcome to ${partner.name} onboarding`}
           </h1>
-          <p className="text-lg text-on-surface-variant font-body leading-relaxed max-w-xl mx-auto">
+          <p className="text-lg text-on-surface-variant/70 font-body leading-relaxed max-w-xl mx-auto">
             {isFullWidth
               ? "This onboarding form takes about 10 minutes. You can come back to it anytime with your unique link."
               : "Let\u2019s get your project started. This form takes about 10 minutes and you can come back to it anytime with your unique link."}
@@ -92,27 +99,27 @@ export default async function PartnerHomePage({ params }: Props) {
             <input type="hidden" name="subdomain" value={identifier} />
             <button
               type="submit"
-              className="px-10 py-4 font-headline font-bold rounded-xl shadow-[0_10px_30px_rgba(192,193,255,0.2)] hover:shadow-[0_15px_40px_rgba(192,193,255,0.35)] hover:-translate-y-1 transition-all flex items-center gap-3 mx-auto"
-              style={{ backgroundColor: primary, color: contrastText(primary) }}
+              className="group px-10 py-4 font-headline font-bold rounded-xl shadow-xl hover:-translate-y-1 transition-all duration-500 flex items-center gap-3 mx-auto"
+              style={{
+                backgroundColor: primary,
+                color: contrastText(primary),
+                boxShadow: `0 10px 40px ${primary}30`,
+              }}
             >
               Start onboarding
-              <i className="fa-solid fa-arrow-right text-sm ml-1" />
+              <i className="fa-solid fa-arrow-right text-sm group-hover:translate-x-1 transition-transform" />
             </button>
           </form>
           {partner.support_email && (
-            <p className="text-xs text-on-surface-variant/60 pt-4">
-              Questions? <a href={`mailto:${partner.support_email}`} className="text-primary hover:underline">{partner.support_email}</a>
+            <p className="text-xs text-on-surface-variant/50 pt-4">
+              Questions? <a href={`mailto:${partner.support_email}`} style={{ color: primary }} className="hover:underline">{partner.support_email}</a>
             </p>
           )}
         </div>
-
-        {/* Background glows */}
-        <div className="fixed -bottom-40 -right-40 w-96 h-96 rounded-full blur-[100px] pointer-events-none" style={{ backgroundColor: `${primary}08` }} />
-        <div className="fixed top-1/4 -left-20 w-64 h-64 bg-tertiary/5 rounded-full blur-[80px] pointer-events-none" />
       </section>
 
       {/* Footer */}
-      <footer className="w-full py-12 px-8 flex flex-col items-center gap-4 border-t border-on-surface/10">
+      <footer className="w-full py-12 px-8 flex flex-col items-center gap-4 border-t border-on-surface/[0.06]">
         {hideBranding ? (
           footerText ? (
             <p className="text-xs text-on-surface/40">{footerText}</p>
@@ -122,8 +129,13 @@ export default async function PartnerHomePage({ params }: Props) {
             {footerText ? (
               <p className="text-xs text-on-surface/60">{footerText}</p>
             ) : null}
-            <span className="text-sm font-bold text-on-surface font-headline">SiteLaunch</span>
-            <p className="text-[10px] uppercase tracking-[0.3em] text-on-surface/40">
+            <div className="flex items-center gap-2">
+              <div className="w-5 h-5 rounded-md bg-gradient-to-br from-primary to-tertiary flex items-center justify-center">
+                <span className="text-white text-[8px] font-bold">S</span>
+              </div>
+              <span className="text-sm font-bold text-on-surface font-headline">SiteLaunch</span>
+            </div>
+            <p className="text-[10px] uppercase tracking-[0.3em] text-on-surface/30">
               &copy; {new Date().getFullYear()} SiteLaunch &middot; WJD Designs
             </p>
           </>

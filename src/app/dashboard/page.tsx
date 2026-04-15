@@ -12,9 +12,9 @@ export default async function DashboardOverview() {
     .select("id", { count: "exact", head: true });
 
   return (
-    <div className="max-w-5xl mx-auto px-6 md:px-10 py-8 space-y-10">
+    <div className="max-w-5xl mx-auto px-6 md:px-10 py-8 space-y-8">
       {/* Header */}
-      <header>
+      <header className="animate-fade-up">
         <h1 className="text-3xl font-extrabold font-headline tracking-tight text-on-surface">
           {session.role === "superadmin" ? "Overview" : "Your dashboard"}
         </h1>
@@ -25,68 +25,92 @@ export default async function DashboardOverview() {
         </p>
       </header>
 
-      {/* Stat cards — Bento style */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
+      {/* Stat cards */}
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-5 animate-fade-up delay-1">
         <StatCard
           label="Partners"
           value={partners.length.toString()}
-          color="primary"
+          icon="fa-users"
+          gradient="from-primary/15 to-primary/5"
+          iconColor="text-primary"
+          valueColor="text-primary"
         />
         <StatCard
           label="Submissions"
           value={(submissionCount ?? 0).toString()}
-          color="on-surface"
+          icon="fa-inbox"
+          gradient="from-tertiary/15 to-tertiary/5"
+          iconColor="text-tertiary"
+          valueColor="text-tertiary"
         />
         <StatCard
           label="Role"
-          value={session.role}
-          color="tertiary"
+          value={session.role === "superadmin" ? "Admin" : session.role}
+          icon="fa-shield-halved"
+          gradient="from-inverse-primary/10 to-inverse-primary/5"
+          iconColor="text-inverse-primary"
+          valueColor="text-on-surface"
         />
       </div>
 
+      {/* Quick actions */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3 animate-fade-up delay-2">
+        <QuickAction href="/dashboard/form" icon="fa-pen-ruler" label="Form Builder" />
+        <QuickAction href="/dashboard/submissions" icon="fa-inbox" label="Submissions" />
+        <QuickAction href="/dashboard/settings" icon="fa-gear" label="Settings" />
+        {session.role === "superadmin" && (
+          <QuickAction href="/dashboard/partners/new" icon="fa-plus" label="New Partner" />
+        )}
+      </div>
+
       {/* Recent partners */}
-      <section className="bg-surface-container rounded-2xl overflow-hidden shadow-2xl shadow-black/20">
-        <div className="flex items-center justify-between px-8 py-5">
+      <section className="animate-fade-up delay-3 rounded-2xl overflow-hidden border border-outline-variant/[0.08] bg-surface-container/50 shadow-xl shadow-black/10">
+        <div className="flex items-center justify-between px-6 md:px-8 py-5 border-b border-outline-variant/[0.06]">
           <h2 className="text-lg font-bold font-headline text-on-surface tracking-tight">Partners</h2>
           {session.role === "superadmin" && (
             <Link
               href="/dashboard/partners/new"
-              className="px-4 py-2 bg-primary text-on-primary font-semibold rounded-lg text-xs hover:shadow-[0_0_20px_rgba(192,193,255,0.3)] transition-all"
+              className="px-4 py-2 bg-primary text-on-primary font-semibold rounded-xl text-xs hover:shadow-[0_0_24px_rgba(var(--color-primary),0.3)] transition-all duration-300"
             >
-              + New partner
+              <i className="fa-solid fa-plus text-[10px] mr-1.5" />
+              New partner
             </Link>
           )}
         </div>
 
         {partners.length === 0 ? (
-          <div className="px-8 pb-8 text-sm text-on-surface-variant">
+          <div className="px-8 py-12 text-sm text-on-surface-variant text-center">
+            <i className="fa-solid fa-users text-2xl text-on-surface-variant/20 mb-3 block" />
             No partners yet. {session.role === "superadmin" && "Create one to get started."}
           </div>
         ) : (
-          <div className="divide-y divide-outline-variant/5">
+          <div className="divide-y divide-outline-variant/[0.05]">
             {partners.slice(0, 5).map((p) => (
-              <div key={p.id} className="grid grid-cols-12 px-8 py-5 items-center hover:bg-white/[0.02] transition-colors group">
+              <div key={p.id} className="grid grid-cols-12 px-6 md:px-8 py-4 items-center hover:bg-primary/[0.02] transition-colors duration-300 group">
                 <div className="col-span-6 flex items-center gap-4">
                   <div
-                    className="w-10 h-10 rounded-lg bg-surface-container-high flex items-center justify-center text-primary text-xs font-bold"
-                    style={{ backgroundColor: p.primary_color ? `${p.primary_color}20` : undefined }}
+                    className="w-10 h-10 rounded-xl flex items-center justify-center text-xs font-bold shrink-0 ring-1 ring-outline-variant/10"
+                    style={{
+                      backgroundColor: p.primary_color ? `${p.primary_color}15` : undefined,
+                      color: p.primary_color || undefined,
+                    }}
                   >
                     {p.name.slice(0, 1).toUpperCase()}
                   </div>
-                  <div>
-                    <p className="font-semibold text-on-surface group-hover:text-primary transition-colors">{p.name}</p>
-                    <p className="text-xs text-on-surface-variant/60">
+                  <div className="min-w-0">
+                    <p className="font-semibold text-on-surface group-hover:text-primary transition-colors duration-300 truncate">{p.name}</p>
+                    <p className="text-xs text-on-surface-variant/50 truncate">
                       {p.custom_domain || `${p.slug}.${process.env.NEXT_PUBLIC_ROOT_DOMAIN}`}
                     </p>
                   </div>
                 </div>
-                <div className="col-span-3">
-                  <span className="text-xs text-on-surface-variant font-mono">{p.slug}</span>
+                <div className="col-span-3 hidden md:block">
+                  <span className="text-xs text-on-surface-variant/50 font-mono bg-surface-container-high/40 px-2 py-0.5 rounded">{p.slug}</span>
                 </div>
-                <div className="col-span-3 text-right">
+                <div className="col-span-6 md:col-span-3 text-right">
                   <Link
                     href={`/dashboard/partners/${p.id}`}
-                    className="text-xs font-bold text-primary hover:underline transition-all"
+                    className="text-xs font-bold text-primary hover:underline transition-all group-hover:translate-x-0.5 inline-block"
                   >
                     Manage <i className="fa-solid fa-arrow-right text-[10px] ml-1" />
                   </Link>
@@ -100,18 +124,44 @@ export default async function DashboardOverview() {
   );
 }
 
-function StatCard({ label, value, color }: { label: string; value: string; color: string }) {
-  const colorMap: Record<string, string> = {
-    primary: "text-primary",
-    "on-surface": "text-on-surface",
-    tertiary: "text-tertiary",
-  };
+function StatCard({
+  label,
+  value,
+  icon,
+  gradient,
+  iconColor,
+  valueColor,
+}: {
+  label: string;
+  value: string;
+  icon: string;
+  gradient: string;
+  iconColor: string;
+  valueColor: string;
+}) {
   return (
-    <div className="bg-surface-container-low p-8 rounded-xl relative overflow-hidden group">
-      <p className="text-xs font-label uppercase tracking-widest text-on-surface-variant/60 mb-2">{label}</p>
-      <h3 className={`text-4xl font-extrabold font-headline ${colorMap[color] ?? "text-on-surface"}`}>
+    <div className={`relative overflow-hidden rounded-2xl bg-gradient-to-br ${gradient} border border-outline-variant/[0.06] p-6 group glow-card`}>
+      <div className="flex items-start justify-between mb-4">
+        <p className="text-[10px] font-label uppercase tracking-widest text-on-surface-variant/60">{label}</p>
+        <div className={`w-8 h-8 rounded-lg bg-background/40 flex items-center justify-center ${iconColor} group-hover:scale-110 transition-transform duration-500`}>
+          <i className={`fa-solid ${icon} text-sm`} />
+        </div>
+      </div>
+      <h3 className={`text-4xl font-extrabold font-headline ${valueColor}`}>
         {value}
       </h3>
     </div>
+  );
+}
+
+function QuickAction({ href, icon, label }: { href: string; icon: string; label: string }) {
+  return (
+    <Link
+      href={href}
+      className="flex items-center gap-3 px-4 py-3.5 rounded-xl border border-outline-variant/[0.08] bg-surface-container/30 hover:border-primary/20 hover:bg-primary/[0.03] transition-all duration-300 group"
+    >
+      <i className={`fa-solid ${icon} text-xs text-on-surface-variant/40 group-hover:text-primary transition-colors`} />
+      <span className="text-sm font-medium text-on-surface-variant group-hover:text-on-surface transition-colors">{label}</span>
+    </Link>
   );
 }

@@ -47,10 +47,11 @@ export default async function RootLayout({ children }: { children: React.ReactNo
         <ThemeProvider defaultMode={savedTheme}>
           {children}
         </ThemeProvider>
-        {/* Ambient background glows */}
+        {/* Ambient background glows — multi-layered aurora */}
         <div className="fixed inset-0 pointer-events-none -z-10 overflow-hidden" aria-hidden="true">
-          <div className="absolute top-[-10%] right-[-5%] w-[40%] h-[40%] bg-primary/5 blur-[120px] rounded-full" />
-          <div className="absolute bottom-[10%] left-[20%] w-[30%] h-[30%] bg-tertiary/5 blur-[100px] rounded-full" />
+          <div className="absolute top-[-15%] right-[-10%] w-[50%] h-[50%] bg-primary/[0.07] blur-[140px] rounded-full animate-glow-breathe" />
+          <div className="absolute bottom-[5%] left-[15%] w-[35%] h-[35%] bg-tertiary/[0.05] blur-[120px] rounded-full animate-glow-breathe" style={{ animationDelay: "-2s" }} />
+          <div className="absolute top-[40%] left-[60%] w-[25%] h-[25%] bg-inverse-primary/[0.04] blur-[100px] rounded-full animate-glow-breathe" style={{ animationDelay: "-4s" }} />
         </div>
       </body>
     </html>

@@ -85,13 +85,13 @@ export default function SidebarNav({
             <Link
               key={item.href}
               href={item.href}
-              className={`flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-all duration-200 ${
+              className={`flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-medium transition-all duration-300 ${
                 active
-                  ? "bg-primary/10 text-primary"
-                  : "text-on-surface/60 hover:bg-on-surface/5 hover:text-on-surface"
+                  ? "bg-primary/10 text-primary shadow-sm shadow-primary/5"
+                  : "text-on-surface-variant/60 hover:bg-on-surface/[0.04] hover:text-on-surface"
               }`}
             >
-              <i className={`fa-solid ${item.icon} w-5 text-center`} />
+              <i className={`fa-solid ${item.icon} w-5 text-center text-[13px]`} />
               {item.label}
             </Link>
           );
@@ -101,13 +101,13 @@ export default function SidebarNav({
         {mode === "workspace" && showPartners && (
           <Link
             href="/dashboard/partners"
-            className={`flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-all duration-200 ${
+            className={`flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-medium transition-all duration-300 ${
               pathname.startsWith("/dashboard/partners")
-                ? "bg-primary/10 text-primary"
-                : "text-on-surface/60 hover:bg-on-surface/5 hover:text-on-surface"
+                ? "bg-primary/10 text-primary shadow-sm shadow-primary/5"
+                : "text-on-surface-variant/60 hover:bg-on-surface/[0.04] hover:text-on-surface"
             }`}
           >
-            <i className="fa-solid fa-users w-5 text-center" />
+            <i className="fa-solid fa-users w-5 text-center text-[13px]" />
             {isAdmin ? "My Customers" : "Partners"}
           </Link>
         )}
