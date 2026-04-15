@@ -109,8 +109,8 @@ export default function SidebarNav({
                 : "text-on-surface-variant/60 hover:bg-on-surface/[0.04] hover:text-on-surface"
             }`}
           >
-            <i className="fa-solid fa-users w-5 text-center text-[13px]" />
-            {isAdmin ? "My Customers" : "Partners"}
+            <i className="fa-solid fa-handshake w-5 text-center text-[13px]" />
+            Partners
           </Link>
         )}
       </div>

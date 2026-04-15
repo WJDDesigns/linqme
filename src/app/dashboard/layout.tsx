@@ -16,7 +16,8 @@ const TIER_LABELS: Record<string, string> = {
 const WORKSPACE_NAV = [
   { href: "/dashboard", label: "Dashboard", icon: "fa-table-cells" },
   { href: "/dashboard/form", label: "Form Builder", icon: "fa-pen-ruler" },
-  { href: "/dashboard/submissions", label: "Submissions", icon: "fa-inbox" },
+  { href: "/dashboard/submissions", label: "My Customers", icon: "fa-users" },
+  { href: "/dashboard/billing", label: "Billing", icon: "fa-credit-card" },
   { href: "/dashboard/settings", label: "Settings", icon: "fa-gear" },
 ];
 
@@ -24,7 +25,7 @@ const ADMIN_NAV = [
   { href: "/dashboard/admin", label: "Platform", icon: "fa-chart-line" },
   { href: "/dashboard/admin/billing", label: "Billing", icon: "fa-credit-card" },
   { href: "/dashboard/admin/team", label: "Team", icon: "fa-user-shield" },
-  { href: "/dashboard/admin/partners", label: "Customers", icon: "fa-sitemap" },
+  { href: "/dashboard/admin/partners", label: "Accounts", icon: "fa-sitemap" },
   { href: "/dashboard/admin/activity", label: "Activity Log", icon: "fa-timeline" },
 ];
 
@@ -47,7 +48,8 @@ export default async function DashboardLayout({ children }: { children: React.Re
   const isAdmin = session.role === "superadmin";
   const isPartnerMember = session.role === "partner_member";
   const account = await getCurrentAccount(session.userId);
-  const showPartners = isAdmin || account?.planType === "agency_plus_partners";
+  const isPaid = account?.planTier !== "free";
+  const showPartners = isAdmin || isPaid;
 
   // Partner member scoped context
   const partnerCtx = isPartnerMember ? await getPartnerMemberContext(session.userId) : null;

@@ -17,14 +17,22 @@ interface SubmissionRow {
   client_email: string | null;
   submitted_at: string | null;
   created_at: string;
+  partner_id: string | null;
   partner_name: string | null;
   partner_color: string | null;
   partner_logo: string | null;
 }
 
+interface PartnerOption {
+  id: string;
+  name: string;
+  color: string | null;
+}
+
 interface Props {
   submissions: SubmissionRow[];
   isSuperadmin: boolean;
+  partners?: PartnerOption[];
 }
 
 const STATUS_STYLES: Record<string, string> = {
@@ -37,11 +45,12 @@ const STATUS_STYLES: Record<string, string> = {
 
 const STATUSES = ["draft", "submitted", "in_review", "complete", "archived"] as const;
 
-export default function SubmissionsList({ submissions, isSuperadmin }: Props) {
+export default function SubmissionsList({ submissions, isSuperadmin, partners }: Props) {
   const router = useRouter();
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("all");
+  const [partnerFilter, setPartnerFilter] = useState<string>("all");
   const [pending, startTransition] = useTransition();
   const [actionMsg, setActionMsg] = useState<string | null>(null);
   const [confirmDelete, setConfirmDelete] = useState<string | null>(null);
@@ -50,6 +59,7 @@ export default function SubmissionsList({ submissions, isSuperadmin }: Props) {
   const filtered = useMemo(() => {
     return submissions.filter((s) => {
       if (statusFilter !== "all" && s.status !== statusFilter) return false;
+      if (partnerFilter !== "all" && s.partner_id !== partnerFilter) return false;
       if (search) {
         const q = search.toLowerCase();
         const matches =
@@ -61,7 +71,7 @@ export default function SubmissionsList({ submissions, isSuperadmin }: Props) {
       }
       return true;
     });
-  }, [submissions, search, statusFilter]);
+  }, [submissions, search, statusFilter, partnerFilter]);
 
   const allSelected = filtered.length > 0 && filtered.every((s) => selected.has(s.id));
   const someSelected = selected.size > 0;
@@ -153,6 +163,22 @@ export default function SubmissionsList({ submissions, isSuperadmin }: Props) {
             </option>
           ))}
         </select>
+
+        {/* Partner filter */}
+        {partners && partners.length > 1 && (
+          <select
+            value={partnerFilter}
+            onChange={(e) => setPartnerFilter(e.target.value)}
+            className="px-4 py-2.5 text-xs font-bold uppercase tracking-widest bg-surface-container-lowest border-0 rounded-xl text-on-surface focus:ring-1 focus:ring-primary/40 outline-none cursor-pointer"
+          >
+            <option value="all">All partners</option>
+            {partners.map((p) => (
+              <option key={p.id} value={p.id}>
+                {p.name}
+              </option>
+            ))}
+          </select>
+        )}
 
         {/* CSV Export */}
         <a
