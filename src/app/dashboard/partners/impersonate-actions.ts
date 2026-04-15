@@ -23,7 +23,7 @@ export async function startImpersonation(partnerId: string) {
     path: "/",
     httpOnly: true,
     secure: process.env.NODE_ENV === "production",
-    sameSite: "lax",
+    sameSite: "strict",
     maxAge: 60 * 60 * 4, // 4 hours max
   });
 

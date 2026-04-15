@@ -12,7 +12,7 @@ async function loadSubmissionByToken(token: string) {
   const { data: sub, error } = await admin
     .from("submissions")
     .select(
-      `id, status, data, partner_id, partner_form_id,
+      `id, status, data, partner_id, partner_form_id, form_slug,
        partner_forms ( id, template_id, overrides,
          form_templates ( id, schema )
        )`,
@@ -96,6 +96,14 @@ export async function submitSubmissionAction(token: string) {
     })
     .eq("id", sub.id);
   if (error) throw new Error(error.message);
+
+  // Record form completion event for analytics (fire-and-forget)
+  admin.from("form_events").insert({
+    partner_id: sub.partner_id,
+    form_slug: sub.form_slug ?? undefined,
+    submission_id: sub.id,
+    event_type: "complete",
+  }).then(() => {}, () => {});
 
   // Fire-and-log notifications. We never throw from here — a failed email
   // shouldn't block the client's happy-path.

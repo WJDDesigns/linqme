@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 import { requireSession, getVisiblePartners, getCurrentAccount } from "@/lib/auth";
 import { createAdminClient } from "@/lib/supabase/admin";
 import ImpersonateButton from "./ImpersonateButton";
@@ -144,9 +145,8 @@ export default async function PartnersPage() {
                     {/* Partner info */}
                     <div className="flex items-center gap-4">
                       {p.logo_url ? (
-                        <div className="w-12 h-12 rounded-xl overflow-hidden flex items-center justify-center shrink-0">
-                          {/* eslint-disable-next-line @next/next/no-img-element */}
-                          <img src={p.logo_url} alt="" className="w-full h-full object-contain" />
+                        <div className="relative w-12 h-12 rounded-xl overflow-hidden shrink-0">
+                          <Image src={p.logo_url} alt="" fill className="object-contain" sizes="48px" />
                         </div>
                       ) : (
                         <div

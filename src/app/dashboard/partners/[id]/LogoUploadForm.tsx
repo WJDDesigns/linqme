@@ -1,6 +1,7 @@
 "use client";
 
 import { useRef, useState, useTransition } from "react";
+import Image from "next/image";
 
 interface Props {
   currentLogoUrl: string | null;
@@ -30,12 +31,11 @@ export default function LogoUploadForm({ currentLogoUrl, uploadAction }: Props) 
         });
       }}
     >
-      <div className="w-20 h-20 rounded-xl bg-surface-container-high flex items-center justify-center overflow-hidden shrink-0">
+      <div className="relative w-20 h-20 rounded-xl bg-surface-container-high overflow-hidden shrink-0">
         {currentLogoUrl ? (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img src={currentLogoUrl} alt="Logo" className="w-full h-full object-contain" />
+          <Image src={currentLogoUrl} alt="Logo" fill className="object-contain" sizes="80px" />
         ) : (
-          <span className="text-xs text-on-surface-variant/40">No logo</span>
+          <span className="absolute inset-0 flex items-center justify-center text-xs text-on-surface-variant/40">No logo</span>
         )}
       </div>
       <div className="flex-1 space-y-2">

@@ -1,6 +1,7 @@
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { notFound } from "next/navigation";
+import Image from "next/image";
 import { contrastText } from "@/lib/color-utils";
 import { startSubmissionAction } from "./actions";
 import SiteLaunchLogo from "@/components/SiteLaunchLogo";
@@ -71,8 +72,7 @@ export default async function PartnerHomePage({ params }: Props) {
         <div className="flex items-center gap-3">
           {partner.logo_url ? (
             <div className={`${dims.wrapper} flex items-center justify-center`}>
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src={partner.logo_url} alt={partner.name} className={`${dims.img} object-contain`} />
+              <Image src={partner.logo_url} alt={partner.name} width={200} height={80} className={`${dims.img} object-contain`} />
             </div>
           ) : (
             <div className={`${dims.fallback} flex items-center justify-center shadow-lg`} style={{ backgroundColor: primary, boxShadow: `0 8px 24px ${primary}30` }}>
@@ -93,8 +93,7 @@ export default async function PartnerHomePage({ params }: Props) {
         <section className="flex-1 flex flex-col items-center px-6 pt-32 pb-20 max-w-5xl mx-auto w-full relative">
           <div className="text-center mb-10 animate-fade-up">
             {isFullWidth && partner.logo_url && (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img src={partner.logo_url} alt={partner.name} className="h-20 md:h-28 w-auto object-contain mx-auto mb-6" />
+              <Image src={partner.logo_url} alt={partner.name} width={300} height={120} className="h-20 md:h-28 w-auto object-contain mx-auto mb-6" />
             )}
             <h1 className="text-3xl md:text-4xl font-headline font-extrabold tracking-tight text-on-surface">
               Welcome to {partner.name}
@@ -120,8 +119,7 @@ export default async function PartnerHomePage({ params }: Props) {
             {isFullWidth && (
               <div className="flex flex-col items-center gap-4 mb-4">
                 {partner.logo_url ? (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img src={partner.logo_url} alt={partner.name} className="h-24 md:h-32 w-auto object-contain" />
+                  <Image src={partner.logo_url} alt={partner.name} width={300} height={140} className="h-24 md:h-32 w-auto object-contain" />
                 ) : (
                   <div className="w-24 h-24 md:w-32 md:h-32 rounded-3xl flex items-center justify-center shadow-2xl" style={{ backgroundColor: primary, boxShadow: `0 20px 60px ${primary}30` }}>
                     <span style={{ color: contrastText(primary) }} className="font-bold text-5xl md:text-6xl">{partner.name.slice(0, 1).toUpperCase()}</span>

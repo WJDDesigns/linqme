@@ -1,6 +1,7 @@
 import { requireSuperadmin } from "@/lib/auth";
 import { createAdminClient } from "@/lib/supabase/admin";
 import Link from "next/link";
+import Image from "next/image";
 
 interface PageProps {
   searchParams: Promise<{ q?: string; tier?: string; page?: string }>;
@@ -142,9 +143,8 @@ export default async function AdminPartnersPage({ searchParams }: PageProps) {
                 className="flex items-center gap-4 px-6 py-4 hover:bg-on-surface/[0.02] transition-colors"
               >
                 {p.logo_url ? (
-                  <div className="w-10 h-10 rounded-lg overflow-hidden flex items-center justify-center shrink-0">
-                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img src={p.logo_url} alt="" className="w-full h-full object-contain" />
+                  <div className="relative w-10 h-10 rounded-lg overflow-hidden shrink-0">
+                    <Image src={p.logo_url} alt="" fill className="object-contain" sizes="40px" />
                   </div>
                 ) : (
                   <div

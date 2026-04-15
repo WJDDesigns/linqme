@@ -1,18 +1,24 @@
 import { NextRequest, NextResponse } from "next/server";
 import { stripe, tierToDbEnum } from "@/lib/stripe";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { logRequest } from "@/lib/request-logger";
+import { captureError } from "@/lib/error-tracking";
 import type Stripe from "stripe";
 
 const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET;
 
 export async function POST(req: NextRequest) {
+  const log = logRequest(req);
+
   if (!webhookSecret) {
+    log.finish(500);
     return NextResponse.json({ error: "Webhook secret not configured" }, { status: 500 });
   }
 
   const body = await req.text();
   const sig = req.headers.get("stripe-signature");
   if (!sig) {
+    log.finish(400);
     return NextResponse.json({ error: "Missing signature" }, { status: 400 });
   }
 
@@ -20,7 +26,8 @@ export async function POST(req: NextRequest) {
   try {
     event = stripe.webhooks.constructEvent(body, sig, webhookSecret);
   } catch (err) {
-    console.error("Stripe webhook signature verification failed:", err);
+    captureError(err, { path: "/api/stripe/webhook", metadata: { source: "stripe-sig" } });
+    log.finish(400);
     return NextResponse.json({ error: "Invalid signature" }, { status: 400 });
   }
 
@@ -57,10 +64,12 @@ export async function POST(req: NextRequest) {
         break;
     }
   } catch (err) {
-    console.error(`Error processing ${event.type}:`, err);
+    captureError(err, { path: "/api/stripe/webhook", metadata: { source: "stripe-webhook", eventType: event.type } });
+    log.finish(500);
     return NextResponse.json({ error: "Processing failed" }, { status: 500 });
   }
 
+  log.finish(200);
   return NextResponse.json({ received: true });
 }
 

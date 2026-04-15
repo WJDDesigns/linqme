@@ -2,6 +2,7 @@ import { getInviteByToken } from "@/lib/partner-invites";
 import { createAdminClient } from "@/lib/supabase/admin";
 import AcceptInviteForm from "./AcceptInviteForm";
 import SiteLaunchLogo from "@/components/SiteLaunchLogo";
+import Image from "next/image";
 import Link from "next/link";
 
 interface Props {
@@ -85,9 +86,8 @@ export default async function InvitePage({ params }: Props) {
           </h1>
           <div className="flex items-center justify-center gap-3 mt-3">
             {partner?.logo_url ? (
-              <div className="w-10 h-10 rounded-lg overflow-hidden flex items-center justify-center">
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src={partner.logo_url} alt="" className="w-full h-full object-contain" />
+              <div className="relative w-10 h-10 rounded-lg overflow-hidden">
+                <Image src={partner.logo_url} alt="" fill className="object-contain" sizes="40px" />
               </div>
             ) : (
               <div

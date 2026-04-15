@@ -1,4 +1,5 @@
 import { notFound } from "next/navigation";
+import Image from "next/image";
 import { createAdminClient } from "@/lib/supabase/admin";
 
 interface Props {
@@ -44,8 +45,7 @@ export default async function ThanksPage({ params }: Props) {
         {isFullWidth ? (
           <div className="flex flex-col items-center gap-1">
             {partner.logo_url ? (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img src={partner.logo_url} alt={partner.name} className="h-12 w-auto object-contain" />
+              <Image src={partner.logo_url} alt={partner.name} width={200} height={48} className="h-12 w-auto object-contain" />
             ) : (
               <div className="w-12 h-12 rounded-xl flex items-center justify-center" style={{ backgroundColor: primary }}>
                 <span className="text-on-primary font-bold text-xl">{partner.name.slice(0, 1).toUpperCase()}</span>
@@ -57,8 +57,7 @@ export default async function ThanksPage({ params }: Props) {
           <div className="flex items-center gap-3">
             {partner.logo_url ? (
               <div className={`${dims.wrapper} flex items-center justify-center`}>
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src={partner.logo_url} alt={partner.name} className={`${dims.img} object-contain`} />
+                <Image src={partner.logo_url} alt={partner.name} width={200} height={80} className={`${dims.img} object-contain`} />
               </div>
             ) : (
               <div className={`${dims.fallback} flex items-center justify-center`} style={{ backgroundColor: primary }}>

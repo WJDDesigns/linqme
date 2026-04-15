@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 import { notFound } from "next/navigation";
 import { requireSession } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
@@ -95,9 +96,8 @@ export default async function PartnerDetailPage({ params }: PageProps) {
         <div className="mt-2 flex items-center justify-between gap-4">
           <div className="flex items-center gap-3">
             {partner.logo_url ? (
-              <div className="w-10 h-10 rounded-lg overflow-hidden flex items-center justify-center">
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src={partner.logo_url} alt="" className="w-full h-full object-contain" />
+              <div className="relative w-10 h-10 rounded-lg overflow-hidden">
+                <Image src={partner.logo_url} alt="" fill className="object-contain" sizes="40px" />
               </div>
             ) : (
               <div
@@ -137,12 +137,11 @@ export default async function PartnerDetailPage({ params }: PageProps) {
             uploadAction={boundUpload}
           />
         ) : (
-          <div className="w-20 h-20 rounded-xl bg-surface-container-high flex items-center justify-center overflow-hidden">
+          <div className="relative w-20 h-20 rounded-xl bg-surface-container-high overflow-hidden">
             {partner.logo_url ? (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img src={partner.logo_url} alt="Logo" className="w-full h-full object-contain" />
+              <Image src={partner.logo_url} alt="Logo" fill className="object-contain" sizes="80px" />
             ) : (
-              <span className="text-xs text-on-surface-variant/40">No logo</span>
+              <span className="absolute inset-0 flex items-center justify-center text-xs text-on-surface-variant/40">No logo</span>
             )}
           </div>
         )}

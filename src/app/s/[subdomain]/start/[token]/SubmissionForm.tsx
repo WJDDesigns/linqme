@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useTransition, useEffect, useRef, useCallback } from "react";
+import Image from "next/image";
 import type { FormSchema, FieldDef, UploadedFile, PackageRule, RepeaterSubField } from "@/lib/forms";
 import { isLightColor } from "@/lib/color-utils";
 import FileField from "./FileField";
@@ -173,8 +174,7 @@ export default function SubmissionForm({
           <div className="flex items-center gap-3 cursor-default select-none" onClick={handleLogoClick}>
             {partnerLogoUrl ? (
               <div className="h-10 rounded-xl flex items-center justify-center">
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src={partnerLogoUrl} alt={partnerName} className="h-8 w-auto object-contain" draggable={false} />
+                <Image src={partnerLogoUrl} alt={partnerName} width={160} height={40} className="h-8 w-auto object-contain" draggable={false} />
               </div>
             ) : (
               <div
@@ -299,8 +299,7 @@ export default function SubmissionForm({
           <div className="flex items-center gap-2.5 min-w-0 cursor-default select-none" onClick={handleLogoClick}>
             {partnerLogoUrl ? (
               <div className="h-8 flex items-center justify-center shrink-0">
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src={partnerLogoUrl} alt={partnerName} className="h-6 w-auto object-contain" draggable={false} />
+                <Image src={partnerLogoUrl} alt={partnerName} width={120} height={32} className="h-6 w-auto object-contain" draggable={false} />
               </div>
             ) : (
               <div

@@ -3,13 +3,23 @@
 import { useEffect } from "react";
 import { reportErrorFromClient } from "@/lib/error-tracking";
 
-export default function Error({
-  error,
-  reset,
-}: {
+interface Props {
   error: Error & { digest?: string };
   reset: () => void;
-}) {
+  title?: string;
+  message?: string;
+  backHref?: string;
+  backLabel?: string;
+}
+
+export default function ErrorBoundaryUI({
+  error,
+  reset,
+  title = "Something went wrong",
+  message = "An unexpected error occurred. Please try again or contact support if the problem persists.",
+  backHref = "/",
+  backLabel = "Go Home",
+}: Props) {
   useEffect(() => {
     reportErrorFromClient({
       message: error.message,
@@ -19,15 +29,13 @@ export default function Error({
   }, [error]);
 
   return (
-    <main className="min-h-screen flex flex-col items-center justify-center px-6 text-center">
+    <div className="min-h-[60vh] flex flex-col items-center justify-center px-6 text-center">
       <div className="max-w-md">
         <div className="w-16 h-16 rounded-2xl bg-error-container/20 flex items-center justify-center mx-auto mb-6">
           <i className="fa-solid fa-triangle-exclamation text-2xl text-error" />
         </div>
-        <h1 className="text-2xl font-headline font-bold text-on-surface mb-3">Something went wrong</h1>
-        <p className="text-on-surface-variant/60 mb-8">
-          An unexpected error occurred. Please try again or contact support if the problem persists.
-        </p>
+        <h1 className="text-2xl font-headline font-bold text-on-surface mb-3">{title}</h1>
+        <p className="text-on-surface-variant/60 mb-8">{message}</p>
         <div className="flex items-center justify-center gap-4">
           <button
             onClick={reset}
@@ -36,13 +44,13 @@ export default function Error({
             Try Again
           </button>
           <a
-            href="/"
+            href={backHref}
             className="px-6 py-3 border border-outline-variant/20 rounded-xl text-sm font-medium hover:border-primary/30 hover:bg-primary/5 transition-all duration-300"
           >
-            Go Home
+            {backLabel}
           </a>
         </div>
       </div>
-    </main>
+    </div>
   );
 }

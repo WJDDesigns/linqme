@@ -1,6 +1,7 @@
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { notFound } from "next/navigation";
+import Image from "next/image";
 import { contrastText } from "@/lib/color-utils";
 import { startSubmissionAction } from "../../actions";
 import SiteLaunchLogo from "@/components/SiteLaunchLogo";
@@ -77,8 +78,7 @@ export default async function FormSlugPage({ params }: Props) {
         <div className="flex items-center gap-3">
           {partner.logo_url ? (
             <div className="h-10 rounded-xl flex items-center justify-center">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src={partner.logo_url} alt={partner.name} className="h-8 w-auto object-contain" />
+              <Image src={partner.logo_url} alt={partner.name} width={160} height={40} className="h-8 w-auto object-contain" />
             </div>
           ) : (
             <div className="w-10 h-10 rounded-xl flex items-center justify-center shadow-lg" style={{ backgroundColor: primary, boxShadow: `0 8px 24px ${primary}30` }}>
