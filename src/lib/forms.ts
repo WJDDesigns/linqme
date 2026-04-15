@@ -60,12 +60,21 @@ export interface PackageRule {
   recommendedPackageId: string;
 }
 
+/** Display style for the package selector */
+export type PackageLayout = "cards" | "horizontal" | "compact" | "list";
+
 export interface PackageConfig {
   packages: PackageOption[];
   features: PackageFeature[];
   rules: PackageRule[];
   /** Default package ID to recommend if no rules match */
   defaultPackageId?: string;
+  /** Display layout style (default "cards") */
+  layout?: PackageLayout;
+  /** Number of grid columns: 1-4, or "auto" to fit based on count (default "auto") */
+  columns?: 1 | 2 | 3 | 4 | "auto";
+  /** Show the comparison features table below the cards */
+  showFeaturesTable?: boolean;
 }
 
 /* ── Repeater (nested entries) types ────────────────────── */

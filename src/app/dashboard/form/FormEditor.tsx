@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useCallback, useRef, useEffect } from "react";
-import type { FormSchema, StepDef, FieldDef, FieldType, PackageConfig, PackageOption, PackageFeature, PackageRule, RepeaterConfig, RepeaterSubField, ShowCondition } from "@/lib/forms";
+import type { FormSchema, StepDef, FieldDef, FieldType, PackageConfig, PackageOption, PackageFeature, PackageRule, PackageLayout, RepeaterConfig, RepeaterSubField, ShowCondition } from "@/lib/forms";
 import { saveFormSchemaAction } from "./actions";
 
 /* ── Field type catalogue ──────────────────────────────────── */
@@ -923,7 +923,7 @@ function PackageSettingsPanel({ config, onUpdate }: {
   config: PackageConfig;
   onUpdate: (cfg: PackageConfig) => void;
 }) {
-  const [activeTab, setActiveTab] = useState<"packages" | "features" | "rules">("packages");
+  const [activeTab, setActiveTab] = useState<"packages" | "features" | "rules" | "layout">("packages");
 
   function updatePackage(pkgId: string, patch: Partial<PackageOption>) {
     onUpdate({
@@ -1003,6 +1003,7 @@ function PackageSettingsPanel({ config, onUpdate }: {
   const tabs = [
     { key: "packages" as const, label: "Packages", icon: "fa-box-open" },
     { key: "features" as const, label: "Features", icon: "fa-list-check" },
+    { key: "layout" as const, label: "Layout", icon: "fa-table-columns" },
     { key: "rules" as const, label: "Rules", icon: "fa-wand-magic-sparkles" },
   ];
 
@@ -1183,6 +1184,88 @@ function PackageSettingsPanel({ config, onUpdate }: {
           >
             <i className="fa-solid fa-plus text-[10px] mr-1" /> Add Feature
           </button>
+        </div>
+      )}
+
+      {/* Layout tab */}
+      {activeTab === "layout" && (
+        <div className="space-y-4">
+          <p className="text-[10px] text-on-surface-variant/60">Control how package cards are displayed to your clients.</p>
+
+          {/* Display style */}
+          <div>
+            <span className="text-[10px] font-bold text-on-surface-variant uppercase tracking-widest block mb-2">Display Style</span>
+            <div className="grid grid-cols-2 gap-2">
+              {([
+                { value: "cards" as PackageLayout, label: "Cards", icon: "fa-table-cells-large", desc: "Vertical cards in a grid" },
+                { value: "horizontal" as PackageLayout, label: "Horizontal", icon: "fa-grip-lines", desc: "Side-by-side comparison rows" },
+                { value: "compact" as PackageLayout, label: "Compact", icon: "fa-table-list", desc: "Slim cards, less detail" },
+                { value: "list" as PackageLayout, label: "List", icon: "fa-list", desc: "Single-column list" },
+              ]).map((opt) => {
+                const active = (config.layout ?? "cards") === opt.value;
+                return (
+                  <button
+                    key={opt.value}
+                    type="button"
+                    onClick={() => onUpdate({ ...config, layout: opt.value })}
+                    className={`flex flex-col items-center gap-1 p-3 rounded-xl border-2 transition-all text-center ${
+                      active
+                        ? "border-primary bg-primary/5"
+                        : "border-outline-variant/15 hover:border-primary/30"
+                    }`}
+                  >
+                    <i className={`fa-solid ${opt.icon} text-sm ${active ? "text-primary" : "text-on-surface-variant/50"}`} />
+                    <span className={`text-[10px] font-bold ${active ? "text-primary" : "text-on-surface-variant"}`}>{opt.label}</span>
+                    <span className="text-[8px] text-on-surface-variant/50 leading-tight">{opt.desc}</span>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* Columns */}
+          <div>
+            <span className="text-[10px] font-bold text-on-surface-variant uppercase tracking-widest block mb-2">Columns</span>
+            <div className="flex gap-1.5">
+              {([
+                { value: "auto" as const, label: "Auto" },
+                { value: 1 as const, label: "1" },
+                { value: 2 as const, label: "2" },
+                { value: 3 as const, label: "3" },
+                { value: 4 as const, label: "4" },
+              ]).map((opt) => {
+                const active = (config.columns ?? "auto") === opt.value;
+                return (
+                  <button
+                    key={String(opt.value)}
+                    type="button"
+                    onClick={() => onUpdate({ ...config, columns: opt.value })}
+                    className={`flex-1 py-2 rounded-lg text-[10px] font-bold uppercase tracking-widest transition-all ${
+                      active
+                        ? "bg-primary text-on-primary"
+                        : "bg-surface-container text-on-surface-variant/50 hover:text-on-surface-variant"
+                    }`}
+                  >
+                    {opt.label}
+                  </button>
+                );
+              })}
+            </div>
+            <p className="text-[9px] text-on-surface-variant/50 mt-1">Auto fits columns based on the number of packages.</p>
+          </div>
+
+          {/* Show features table toggle */}
+          <div className="flex items-center justify-between p-3 bg-surface-container rounded-lg">
+            <div>
+              <span className="text-xs font-medium text-on-surface block">Features comparison table</span>
+              <span className="text-[9px] text-on-surface-variant/50">Show a full comparison grid below the cards</span>
+            </div>
+            <label className="relative cursor-pointer">
+              <input type="checkbox" checked={!!config.showFeaturesTable} onChange={(e) => onUpdate({ ...config, showFeaturesTable: e.target.checked })} className="sr-only peer" />
+              <div className="w-8 h-4 bg-surface-container-highest rounded-full peer-checked:bg-primary transition-colors" />
+              <div className="absolute left-0.5 top-0.5 w-3 h-3 bg-on-surface-variant rounded-full peer-checked:translate-x-4 peer-checked:bg-on-primary transition-all" />
+            </label>
+          </div>
         </div>
       )}
 
