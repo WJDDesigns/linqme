@@ -2,18 +2,19 @@
 
 import { useTheme, type ThemeMode } from "./ThemeProvider";
 
-const MODES: { value: ThemeMode; icon: string; label: string }[] = [
+const ALL_MODES: { value: ThemeMode; icon: string; label: string }[] = [
   { value: "light", icon: "fa-sun", label: "Light" },
   { value: "dark", icon: "fa-moon", label: "Dark" },
   { value: "auto", icon: "fa-circle-half-stroke", label: "Auto" },
 ];
 
-export default function ThemeToggle() {
+export default function ThemeToggle({ showAuto = true }: { showAuto?: boolean }) {
   const { mode, setMode } = useTheme();
+  const modes = showAuto ? ALL_MODES : ALL_MODES.filter((m) => m.value !== "auto");
 
   return (
     <div className="flex bg-surface-container rounded-lg p-0.5">
-      {MODES.map((m) => (
+      {modes.map((m) => (
         <button
           key={m.value}
           onClick={() => setMode(m.value)}

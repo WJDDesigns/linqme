@@ -19,7 +19,7 @@ export default function LandingPage() {
           <Link className="text-sm text-on-surface-variant hover:text-on-surface transition-colors duration-300" href="/pricing">Pricing</Link>
         </div>
         <div className="flex items-center gap-3">
-          <ThemeToggle />
+          <ThemeToggle showAuto={false} />
           <Link href="/login" className="hidden sm:inline-flex text-sm text-on-surface-variant hover:text-on-surface transition-colors">
             Sign in
           </Link>
