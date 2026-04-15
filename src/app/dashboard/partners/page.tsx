@@ -2,6 +2,8 @@ import Link from "next/link";
 import { requireSession, getVisiblePartners, getCurrentAccount } from "@/lib/auth";
 import { createAdminClient } from "@/lib/supabase/admin";
 import ImpersonateButton from "./ImpersonateButton";
+import InvitePartnerForm from "./InvitePartnerForm";
+import { inviteNewPartnerAction } from "./invite-action";
 
 export default async function PartnersPage() {
   const session = await requireSession();
@@ -63,23 +65,30 @@ export default async function PartnersPage() {
 
   return (
     <div className="max-w-5xl mx-auto px-6 md:px-10 py-8 space-y-8">
-      <header className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-extrabold font-headline tracking-tight text-on-surface">Partners</h1>
-          <p className="text-on-surface-variant mt-1">
-            Invite partners to manage their own branded onboarding page and form.
-          </p>
-        </div>
-        <div className="flex items-center gap-3">
+      <header>
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-3xl font-extrabold font-headline tracking-tight text-on-surface">Partners</h1>
+            <p className="text-on-surface-variant mt-1">
+              Invite partners to manage their own branded onboarding page and form.
+            </p>
+          </div>
           {isSuperadmin && (
             <Link
               href="/dashboard/partners/new"
-              className="px-5 py-2.5 bg-surface-container text-on-surface font-bold rounded-lg text-sm border border-outline-variant/20 hover:border-primary/30 hover:text-primary transition-all"
+              className="text-xs text-on-surface-variant/40 hover:text-primary transition-colors"
             >
-              + Create manually
+              <i className="fa-solid fa-plus text-[10px] mr-1" /> Create manually
             </Link>
           )}
         </div>
+
+        {/* Invite form */}
+        {isPaid && (
+          <div className="mt-6">
+            <InvitePartnerForm inviteAction={inviteNewPartnerAction} />
+          </div>
+        )}
       </header>
 
       {!isPaid && (
