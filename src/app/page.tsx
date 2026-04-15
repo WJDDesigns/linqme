@@ -59,10 +59,10 @@ export default function LandingPage() {
             <span className="text-xs font-semibold text-on-surface-variant tracking-wide">Now in Public Beta</span>
           </div>
 
-          <h1 className="animate-fade-up delay-1 text-5xl md:text-7xl lg:text-[5.5rem] font-headline font-extrabold tracking-tight mb-8 leading-[1.05]">
-            The <span className="gradient-text-hero italic">&ldquo;Send Me Your Content&rdquo;</span>
-            <br className="hidden md:block" />
-            <span className="text-on-surface">Phase, Solved.</span>
+          <h1 className="animate-fade-up delay-1 text-4xl md:text-5xl lg:text-6xl font-headline font-extrabold tracking-tight mb-8 leading-[1.1]">
+            Client Onboarding,
+            <br />
+            <span className="gradient-text-hero">Simplified.</span>
           </h1>
 
           <p className="animate-fade-up delay-2 max-w-2xl mx-auto text-lg md:text-xl text-on-surface-variant/80 font-body mb-12 leading-relaxed">
@@ -91,10 +91,12 @@ export default function LandingPage() {
           </p>
         </div>
 
-        {/* Hero UI mockup */}
-        <div className="animate-slide-up delay-5 max-w-4xl mx-auto mt-16 md:mt-20 relative">
+        {/* Hero dashboard composition */}
+        <div className="animate-slide-up delay-5 max-w-5xl mx-auto mt-16 md:mt-20 relative">
+          {/* Main dashboard window */}
           <div className="gradient-border rounded-2xl">
             <div className="relative rounded-2xl overflow-hidden bg-surface-container border border-outline-variant/10 shadow-[0_32px_80px_rgba(0,0,0,0.3)]">
+              {/* Browser chrome */}
               <div className="flex items-center gap-2 px-5 py-3 bg-surface-container-high/50 border-b border-outline-variant/10">
                 <div className="flex gap-1.5">
                   <div className="w-2.5 h-2.5 rounded-full bg-error/40" />
@@ -108,34 +110,87 @@ export default function LandingPage() {
                   </div>
                 </div>
               </div>
-              <div className="p-6 md:p-8 space-y-4">
-                <div className="flex gap-4">
-                  <div className="w-32 h-full rounded-xl bg-surface-container-low p-4 hidden md:block space-y-3">
-                    <div className="h-6 w-20 bg-primary/10 rounded-lg" />
-                    <div className="h-3 w-16 bg-on-surface/5 rounded" />
-                    <div className="h-3 w-24 bg-on-surface/5 rounded" />
-                    <div className="h-3 w-14 bg-on-surface/5 rounded" />
-                    <div className="h-3 w-20 bg-primary/10 rounded" />
-                  </div>
-                  <div className="flex-1 space-y-4">
-                    <div className="flex items-center justify-between">
-                      <div className="h-6 w-32 bg-on-surface/10 rounded-lg" />
-                      <div className="h-8 w-28 bg-primary/15 rounded-lg" />
+              {/* Dashboard content */}
+              <div className="p-5 md:p-8">
+                <div className="flex gap-5">
+                  {/* Sidebar */}
+                  <div className="w-44 shrink-0 hidden md:block space-y-5">
+                    <div className="flex items-center gap-2 mb-6">
+                      <div className="w-7 h-7 rounded-lg bg-primary/15 flex items-center justify-center">
+                        <i className="fa-solid fa-rocket text-[10px] text-primary" />
+                      </div>
+                      <span className="text-xs font-bold text-on-surface">Acme Creative</span>
                     </div>
-                    <div className="grid grid-cols-3 gap-3">
-                      {[["primary", 12, 8], ["tertiary", 14, 6], ["on-surface", 10, 12]].map(([c, w1, w2], i) => (
-                        <div key={i} className="h-20 rounded-xl bg-surface-container-low p-3 space-y-2">
-                          <div className={`h-2 w-${w1} bg-on-surface-variant/10 rounded`} />
-                          <div className={`h-5 w-${w2} bg-${c}/20 rounded`} />
+                    <div className="space-y-1">
+                      {[
+                        { icon: "fa-gauge-high", label: "Dashboard", active: true },
+                        { icon: "fa-users", label: "Clients", active: false },
+                        { icon: "fa-inbox", label: "Submissions", active: false },
+                        { icon: "fa-file-lines", label: "Forms", active: false },
+                        { icon: "fa-gear", label: "Settings", active: false },
+                      ].map((item) => (
+                        <div key={item.label} className={`flex items-center gap-2.5 px-3 py-2 rounded-lg text-[11px] ${item.active ? "bg-primary/10 text-primary font-semibold" : "text-on-surface-variant/50"}`}>
+                          <i className={`fa-solid ${item.icon} text-[10px]`} />
+                          {item.label}
                         </div>
                       ))}
                     </div>
+                  </div>
+
+                  {/* Main content */}
+                  <div className="flex-1 space-y-5">
+                    {/* Header row */}
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <div className="text-sm font-bold text-on-surface">Welcome back, Sarah</div>
+                        <div className="text-[11px] text-on-surface-variant/50">3 submissions awaiting review</div>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <div className="h-8 px-3 bg-primary/15 rounded-lg flex items-center gap-1.5 text-[11px] text-primary font-semibold">
+                          <i className="fa-solid fa-plus text-[9px]" /> New Client
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Stats row */}
+                    <div className="grid grid-cols-3 gap-3">
+                      <div className="rounded-xl bg-surface-container-low/80 border border-outline-variant/[0.06] p-3.5">
+                        <div className="text-[10px] text-on-surface-variant/50 mb-1">Active Clients</div>
+                        <div className="text-xl font-bold text-on-surface">24</div>
+                        <div className="text-[10px] text-tertiary mt-0.5"><i className="fa-solid fa-arrow-up text-[8px]" /> 12% this month</div>
+                      </div>
+                      <div className="rounded-xl bg-surface-container-low/80 border border-outline-variant/[0.06] p-3.5">
+                        <div className="text-[10px] text-on-surface-variant/50 mb-1">Submissions</div>
+                        <div className="text-xl font-bold text-on-surface">18</div>
+                        <div className="text-[10px] text-tertiary mt-0.5"><i className="fa-solid fa-arrow-up text-[8px]" /> 8 this week</div>
+                      </div>
+                      <div className="rounded-xl bg-surface-container-low/80 border border-outline-variant/[0.06] p-3.5">
+                        <div className="text-[10px] text-on-surface-variant/50 mb-1">Completion Rate</div>
+                        <div className="text-xl font-bold text-on-surface">92%</div>
+                        <div className="text-[10px] text-primary mt-0.5"><i className="fa-solid fa-check text-[8px]" /> Above average</div>
+                      </div>
+                    </div>
+
+                    {/* Recent submissions list */}
                     <div className="space-y-2">
-                      {[1, 2, 3].map((i) => (
-                        <div key={i} className="h-12 rounded-xl bg-surface-container-low flex items-center px-4 gap-3">
-                          <div className="w-7 h-7 rounded-lg bg-primary/10 shrink-0" />
-                          <div className="h-2.5 flex-1 bg-on-surface/5 rounded max-w-[200px]" />
-                          <div className="h-5 w-16 bg-tertiary/10 rounded-full ml-auto" />
+                      <div className="text-[11px] font-semibold text-on-surface-variant/60 uppercase tracking-wider mb-2">Recent Submissions</div>
+                      {[
+                        { name: "Pop Marketing", status: "Complete", statusColor: "tertiary", time: "2h ago", progress: 100 },
+                        { name: "Horizon Digital", status: "In Progress", statusColor: "primary", time: "5h ago", progress: 65 },
+                        { name: "Bloom Studio", status: "Pending Review", statusColor: "warning", time: "1d ago", progress: 100 },
+                      ].map((item) => (
+                        <div key={item.name} className="flex items-center gap-3 px-4 py-3 rounded-xl bg-surface-container-low/60 border border-outline-variant/[0.05]">
+                          <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
+                            <span className="text-[10px] font-bold text-primary">{item.name[0]}</span>
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <div className="text-xs font-medium text-on-surface">{item.name}</div>
+                            <div className="w-full h-1 bg-surface-container-high rounded-full mt-1.5">
+                              <div className={`h-1 rounded-full bg-${item.statusColor}/40`} style={{ width: `${item.progress}%` }} />
+                            </div>
+                          </div>
+                          <div className={`text-[10px] font-semibold px-2 py-0.5 rounded-full bg-${item.statusColor}/10 text-${item.statusColor}`}>{item.status}</div>
+                          <div className="text-[10px] text-on-surface-variant/40 hidden sm:block">{item.time}</div>
                         </div>
                       ))}
                     </div>
@@ -144,6 +199,63 @@ export default function LandingPage() {
               </div>
             </div>
           </div>
+
+          {/* ── Floating UI cards overlaying the dashboard ── */}
+
+          {/* Floating notification card — top right */}
+          <div className="absolute -top-6 -right-4 md:-right-12 z-20 animate-fade-up delay-6 hidden md:block">
+            <div className="glass-panel-strong rounded-xl border border-outline-variant/15 p-3.5 shadow-[0_16px_48px_rgba(0,0,0,0.3)] w-56">
+              <div className="flex items-center gap-2.5 mb-2">
+                <div className="w-7 h-7 rounded-full bg-tertiary/15 flex items-center justify-center shrink-0">
+                  <i className="fa-solid fa-bell text-[10px] text-tertiary" />
+                </div>
+                <div>
+                  <div className="text-[11px] font-semibold text-on-surface">New Submission</div>
+                  <div className="text-[9px] text-on-surface-variant/50">Just now</div>
+                </div>
+              </div>
+              <div className="text-[10px] text-on-surface-variant/70 leading-relaxed">
+                Pop Marketing completed their onboarding form with 12 uploaded files.
+              </div>
+            </div>
+          </div>
+
+          {/* Floating stats card — bottom left */}
+          <div className="absolute -bottom-8 -left-4 md:-left-10 z-20 animate-fade-up delay-7 hidden md:block">
+            <div className="glass-panel-strong rounded-xl border border-outline-variant/15 p-4 shadow-[0_16px_48px_rgba(0,0,0,0.3)] w-52">
+              <div className="text-[10px] text-on-surface-variant/50 uppercase tracking-wider font-semibold mb-2">This Month</div>
+              <div className="flex items-baseline gap-1.5">
+                <span className="text-2xl font-headline font-bold gradient-text">18</span>
+                <span className="text-[11px] text-on-surface-variant/60">submissions</span>
+              </div>
+              <div className="flex items-center gap-1 mt-1.5">
+                <i className="fa-solid fa-arrow-trend-up text-[10px] text-tertiary" />
+                <span className="text-[10px] text-tertiary font-medium">+23% vs last month</span>
+              </div>
+            </div>
+          </div>
+
+          {/* Floating file upload card — mid right */}
+          <div className="absolute top-1/2 -right-6 md:-right-16 -translate-y-1/4 z-20 animate-fade-up delay-8 hidden lg:block">
+            <div className="glass-panel-strong rounded-xl border border-outline-variant/15 p-3.5 shadow-[0_16px_48px_rgba(0,0,0,0.3)] w-48">
+              <div className="text-[10px] font-semibold text-on-surface mb-2">Files Uploaded</div>
+              <div className="space-y-1.5">
+                {[
+                  { name: "logo-final.svg", icon: "fa-file-image", color: "primary" },
+                  { name: "brand-guide.pdf", icon: "fa-file-pdf", color: "error" },
+                  { name: "copy-deck.docx", icon: "fa-file-word", color: "tertiary" },
+                ].map((f) => (
+                  <div key={f.name} className="flex items-center gap-2 text-[10px]">
+                    <i className={`fa-solid ${f.icon} text-${f.color}/60`} />
+                    <span className="text-on-surface-variant/70 truncate">{f.name}</span>
+                    <i className="fa-solid fa-check text-[8px] text-tertiary ml-auto" />
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+
+          {/* Glow under dashboard */}
           <div className="absolute -bottom-10 left-1/2 -translate-x-1/2 w-3/4 h-20 bg-primary/15 blur-[80px] rounded-full" />
         </div>
       </section>
