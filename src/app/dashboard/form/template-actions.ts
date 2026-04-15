@@ -51,7 +51,7 @@ export async function listTemplatesAction(): Promise<TemplateInfo[]> {
 
 /* ── Apply a template to the current partner's form ────────── */
 
-export async function applyTemplateAction(templateId: string): Promise<TemplateResult> {
+export async function applyTemplateAction(templateId: string, formId?: string): Promise<TemplateResult> {
   const session = await requireSession();
   const account = await getCurrentAccount(session.userId);
   if (!account) return { ok: false, error: "No account found." };
@@ -67,14 +67,26 @@ export async function applyTemplateAction(templateId: string): Promise<TemplateR
 
   if (tplErr || !tpl) return { ok: false, error: "Template not found." };
 
-  // Find the partner's active form
-  const { data: pf } = await supabase
-    .from("partner_forms")
-    .select("id, template_id")
-    .eq("partner_id", account.id)
-    .eq("is_active", true)
-    .limit(1)
-    .maybeSingle();
+  // Find the specific form or the partner's active form
+  let pf;
+  if (formId) {
+    const { data } = await supabase
+      .from("partner_forms")
+      .select("id, template_id")
+      .eq("id", formId)
+      .eq("partner_id", account.id)
+      .maybeSingle();
+    pf = data;
+  } else {
+    const { data } = await supabase
+      .from("partner_forms")
+      .select("id, template_id")
+      .eq("partner_id", account.id)
+      .eq("is_active", true)
+      .limit(1)
+      .maybeSingle();
+    pf = data;
+  }
 
   if (!pf) {
     // No active form yet — create a new template + partner_form
@@ -94,7 +106,7 @@ export async function applyTemplateAction(templateId: string): Promise<TemplateR
 
     const { error: pfErr } = await supabase
       .from("partner_forms")
-      .insert({ partner_id: account.id, template_id: newTpl.id, is_active: true });
+      .insert({ partner_id: account.id, template_id: newTpl.id, is_active: true, name: `${account.name} Form`, slug: `default`, is_default: true });
 
     if (pfErr) return { ok: false, error: pfErr.message };
   } else {
@@ -151,7 +163,7 @@ export async function startBlankFormAction(): Promise<TemplateResult> {
 
     await supabase
       .from("partner_forms")
-      .insert({ partner_id: account.id, template_id: newTpl.id, is_active: true });
+      .insert({ partner_id: account.id, template_id: newTpl.id, is_active: true, name: `${account.name} Form`, slug: `default`, is_default: true });
   } else {
     await supabase
       .from("form_templates")

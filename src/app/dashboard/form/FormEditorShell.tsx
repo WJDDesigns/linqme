@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import type { FormSchema } from "@/lib/forms";
 import FormEditor from "./FormEditor";
 import FormPreview from "./FormPreview";
@@ -12,11 +13,17 @@ export default function FormEditorShell({
   hasForm,
   publicUrl,
   primaryColor,
+  formId,
+  formName,
+  settingsSlot,
 }: {
   initialSchema: FormSchema | null;
   hasForm: boolean;
   publicUrl: string | null;
   primaryColor: string;
+  formId?: string;
+  formName?: string;
+  settingsSlot?: React.ReactNode;
 }) {
   const router = useRouter();
   const [showTemplates, setShowTemplates] = useState(!hasForm);
@@ -55,7 +62,14 @@ export default function FormEditorShell({
     <div className="flex flex-col h-screen">
       {/* Top toolbar with preview toggle + public link */}
       <div className="shrink-0 px-4 sm:px-6 py-2.5 border-b border-outline-variant/10 bg-surface-container-low/30 flex items-center justify-between gap-3">
-        {/* Left: mode toggle */}
+        {/* Left: back link + mode toggle */}
+        <div className="flex items-center gap-3">
+          {formId && (
+            <Link href="/dashboard/form" className="text-xs text-on-surface-variant/60 hover:text-primary transition-colors">
+              <i className="fa-solid fa-arrow-left text-[10px] mr-1" />
+              {formName || "Forms"}
+            </Link>
+          )}
         <div className="flex items-center gap-1 bg-surface-container rounded-lg p-0.5">
           <button
             onClick={() => setMode("editor")}
@@ -83,31 +97,35 @@ export default function FormEditorShell({
             Preview
           </button>
         </div>
+        </div>
 
-        {/* Right: public link */}
-        {publicUrl && (
-          <div className="flex items-center gap-2">
-            <span className="text-xs text-on-surface-variant/60 hidden md:inline truncate max-w-[200px] lg:max-w-xs">
-              {publicUrl.replace(/^https?:\/\//, "")}
-            </span>
-            <button
-              onClick={handleCopyLink}
-              className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold text-primary border border-primary/20 rounded-lg hover:bg-primary/10 transition-all whitespace-nowrap"
-            >
-              <i className={`fa-solid ${copied ? "fa-check" : "fa-link"} text-[10px]`} />
-              {copied ? "Copied!" : "Copy Link"}
-            </button>
-            <a
-              href={publicUrl}
-              target="_blank"
-              rel="noreferrer"
-              className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold text-on-surface-variant border border-outline-variant/20 rounded-lg hover:border-primary/30 hover:text-primary transition-all whitespace-nowrap"
-            >
-              <i className="fa-solid fa-arrow-up-right-from-square text-[10px]" />
-              <span className="hidden sm:inline">Open</span>
-            </a>
-          </div>
-        )}
+        {/* Right: settings + public link */}
+        <div className="flex items-center gap-2">
+          {settingsSlot}
+          {publicUrl && (
+            <>
+              <span className="text-xs text-on-surface-variant/60 hidden md:inline truncate max-w-[200px] lg:max-w-xs">
+                {publicUrl.replace(/^https?:\/\//, "")}
+              </span>
+              <button
+                onClick={handleCopyLink}
+                className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold text-primary border border-primary/20 rounded-lg hover:bg-primary/10 transition-all whitespace-nowrap"
+              >
+                <i className={`fa-solid ${copied ? "fa-check" : "fa-link"} text-[10px]`} />
+                {copied ? "Copied!" : "Copy Link"}
+              </button>
+              <a
+                href={publicUrl}
+                target="_blank"
+                rel="noreferrer"
+                className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold text-on-surface-variant border border-outline-variant/20 rounded-lg hover:border-primary/30 hover:text-primary transition-all whitespace-nowrap"
+              >
+                <i className="fa-solid fa-arrow-up-right-from-square text-[10px]" />
+                <span className="hidden sm:inline">Open</span>
+              </a>
+            </>
+          )}
+        </div>
       </div>
 
       {/* Content area */}
@@ -116,6 +134,7 @@ export default function FormEditorShell({
           <FormEditor
             initialSchema={initialSchema}
             onOpenTemplates={() => setShowTemplates(true)}
+            formId={formId}
           />
         ) : (
           <div className="h-full overflow-y-auto">

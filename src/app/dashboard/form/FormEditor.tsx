@@ -110,7 +110,7 @@ const INPUT_CLS =
 
 /* ── Main editor ───────────────────────────────────────────── */
 
-export default function FormEditor({ initialSchema, onOpenTemplates }: { initialSchema: FormSchema; onOpenTemplates?: () => void }) {
+export default function FormEditor({ initialSchema, onOpenTemplates, formId }: { initialSchema: FormSchema; onOpenTemplates?: () => void; formId?: string }) {
   const [schema, setSchemaRaw] = useState<FormSchema>(initialSchema);
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState<{ kind: "ok" | "err"; text: string } | null>(null);
@@ -372,7 +372,7 @@ export default function FormEditor({ initialSchema, onOpenTemplates }: { initial
   async function handleSave() {
     setSaving(true);
     setMessage(null);
-    const result = await saveFormSchemaAction(JSON.stringify(schema));
+    const result = await saveFormSchemaAction(JSON.stringify(schema), formId);
     setSaving(false);
     setMessage(result.ok ? { kind: "ok", text: "Form saved!" } : { kind: "err", text: result.error ?? "Save failed." });
   }

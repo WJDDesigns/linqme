@@ -21,6 +21,8 @@ interface SubmissionRow {
   partner_name: string | null;
   partner_color: string | null;
   partner_logo: string | null;
+  form_slug: string | null;
+  form_name: string | null;
 }
 
 interface PartnerOption {
@@ -29,10 +31,16 @@ interface PartnerOption {
   color: string | null;
 }
 
+interface FormOption {
+  slug: string;
+  name: string;
+}
+
 interface Props {
   submissions: SubmissionRow[];
   isSuperadmin: boolean;
   partners?: PartnerOption[];
+  forms?: FormOption[];
 }
 
 const STATUS_STYLES: Record<string, string> = {
@@ -45,12 +53,13 @@ const STATUS_STYLES: Record<string, string> = {
 
 const STATUSES = ["draft", "submitted", "in_review", "complete", "archived"] as const;
 
-export default function SubmissionsList({ submissions, isSuperadmin, partners }: Props) {
+export default function SubmissionsList({ submissions, isSuperadmin, partners, forms }: Props) {
   const router = useRouter();
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [partnerFilter, setPartnerFilter] = useState<string>("all");
+  const [formFilter, setFormFilter] = useState<string>("all");
   const [pending, startTransition] = useTransition();
   const [actionMsg, setActionMsg] = useState<string | null>(null);
   const [confirmDelete, setConfirmDelete] = useState<string | null>(null);
@@ -60,6 +69,7 @@ export default function SubmissionsList({ submissions, isSuperadmin, partners }:
     return submissions.filter((s) => {
       if (statusFilter !== "all" && s.status !== statusFilter) return false;
       if (partnerFilter !== "all" && s.partner_id !== partnerFilter) return false;
+      if (formFilter !== "all" && (s.form_slug ?? "") !== formFilter) return false;
       if (search) {
         const q = search.toLowerCase();
         const matches =
@@ -71,7 +81,7 @@ export default function SubmissionsList({ submissions, isSuperadmin, partners }:
       }
       return true;
     });
-  }, [submissions, search, statusFilter, partnerFilter]);
+  }, [submissions, search, statusFilter, partnerFilter, formFilter]);
 
   const allSelected = filtered.length > 0 && filtered.every((s) => selected.has(s.id));
   const someSelected = selected.size > 0;
@@ -175,6 +185,22 @@ export default function SubmissionsList({ submissions, isSuperadmin, partners }:
             {partners.map((p) => (
               <option key={p.id} value={p.id}>
                 {p.name}
+              </option>
+            ))}
+          </select>
+        )}
+
+        {/* Form filter */}
+        {forms && forms.length > 1 && (
+          <select
+            value={formFilter}
+            onChange={(e) => setFormFilter(e.target.value)}
+            className="px-4 py-2.5 text-xs font-bold uppercase tracking-widest bg-surface-container-lowest border-0 rounded-xl text-on-surface focus:ring-1 focus:ring-primary/40 outline-none cursor-pointer"
+          >
+            <option value="all">All forms</option>
+            {forms.map((f) => (
+              <option key={f.slug} value={f.slug}>
+                {f.name}
               </option>
             ))}
           </select>

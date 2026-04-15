@@ -6,6 +6,7 @@ export interface Plan {
   name: string;
   priceMonthly: number;
   submissionsMonthlyLimit: number | null;
+  formsLimit: number | null;
   features: string[];
   stripeProductId: string | null;
   stripePriceId: string | null;
@@ -80,6 +81,7 @@ function mapDbPlan(row: Record<string, unknown>): Plan {
     name: row.name as string,
     priceMonthly: row.price_monthly as number,
     submissionsMonthlyLimit: row.submissions_monthly_limit as number | null,
+    formsLimit: (row.forms_limit as number | null) ?? null,
     features: (row.features as string[]) ?? [],
     stripeProductId: row.stripe_product_id as string | null,
     stripePriceId: row.stripe_price_id as string | null,
@@ -87,6 +89,19 @@ function mapDbPlan(row: Record<string, unknown>): Plan {
     highlight: row.highlight as boolean,
     sortOrder: row.sort_order as number,
   };
+}
+
+/**
+ * Get the form limit for a given plan tier.
+ * Returns null for unlimited.
+ */
+export function getFormsLimitForTier(tier: string): number | null {
+  switch (tier) {
+    case "free": return 1;
+    case "pro": return 10;
+    case "enterprise": return null;
+    default: return 1;
+  }
 }
 
 function getDefaultPlans(): Plan[] {
@@ -97,7 +112,8 @@ function getDefaultPlans(): Plan[] {
       name: "Comet",
       priceMonthly: 0,
       submissionsMonthlyLimit: 1,
-      features: ["Your own branded workspace", "Unlimited form fields", "File uploads", "1 GB storage", "1 submission / month"],
+      features: ["Your own branded workspace", "1 form", "Unlimited form fields", "File uploads", "1 GB storage", "1 submission / month"],
+      formsLimit: 1,
       stripeProductId: null,
       stripePriceId: null,
       isActive: true,
@@ -110,7 +126,8 @@ function getDefaultPlans(): Plan[] {
       name: "Nova",
       priceMonthly: 9900,
       submissionsMonthlyLimit: 25,
-      features: ["Everything in Comet", "25 submissions / month", "50 GB storage", "Full white-labeling", "Custom domain", "CSV & PDF exports"],
+      formsLimit: 10,
+      features: ["Everything in Comet", "Up to 10 forms", "25 submissions / month", "50 GB storage", "Full white-labeling", "Custom domain", "CSV & PDF exports"],
       stripeProductId: null,
       stripePriceId: process.env.STRIPE_PRICE_PRO ?? null,
       isActive: true,
@@ -123,7 +140,8 @@ function getDefaultPlans(): Plan[] {
       name: "Supernova",
       priceMonthly: 24900,
       submissionsMonthlyLimit: null,
-      features: ["Everything in Nova", "Unlimited submissions", "500 GB storage", "Priority 24/7 support", "Dedicated account manager"],
+      formsLimit: null,
+      features: ["Everything in Nova", "Unlimited forms", "Unlimited submissions", "500 GB storage", "Priority 24/7 support", "Dedicated account manager"],
       stripeProductId: null,
       stripePriceId: process.env.STRIPE_PRICE_ENTERPRISE ?? null,
       isActive: true,

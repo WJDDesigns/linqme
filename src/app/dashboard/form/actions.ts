@@ -12,6 +12,7 @@ export interface SaveFormResult {
 
 export async function saveFormSchemaAction(
   schemaJson: string,
+  formId?: string,
 ): Promise<SaveFormResult> {
   const session = await requireSession();
   const account = await getCurrentAccount(session.userId);
@@ -47,17 +48,29 @@ export async function saveFormSchemaAction(
 
   const supabase = await createClient();
 
-  // Get the partner's active form → its template
-  const { data: pf } = await supabase
-    .from("partner_forms")
-    .select("id, template_id")
-    .eq("partner_id", account.id)
-    .eq("is_active", true)
-    .limit(1)
-    .maybeSingle();
+  // Get the specific form or the partner's active form → its template
+  let pf;
+  if (formId) {
+    const { data } = await supabase
+      .from("partner_forms")
+      .select("id, template_id")
+      .eq("id", formId)
+      .eq("partner_id", account.id)
+      .maybeSingle();
+    pf = data;
+  } else {
+    const { data } = await supabase
+      .from("partner_forms")
+      .select("id, template_id")
+      .eq("partner_id", account.id)
+      .eq("is_active", true)
+      .limit(1)
+      .maybeSingle();
+    pf = data;
+  }
 
   if (!pf) {
-    return { ok: false, error: "No active form found for your account." };
+    return { ok: false, error: "No form found for your account." };
   }
 
   // Update the template schema
@@ -69,5 +82,6 @@ export async function saveFormSchemaAction(
   if (error) return { ok: false, error: error.message };
 
   revalidatePath("/dashboard/form");
+  if (formId) revalidatePath(`/dashboard/form/${formId}`);
   return { ok: true };
 }
