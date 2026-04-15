@@ -5,6 +5,8 @@ import { contrastText } from "@/lib/color-utils";
 import { startSubmissionAction } from "./actions";
 import SiteLaunchLogo from "@/components/SiteLaunchLogo";
 import FormGrid from "./FormGrid";
+import StorefrontThemeToggle from "./StorefrontThemeToggle";
+import AnalyticsTracker from "./AnalyticsTracker";
 import Link from "next/link";
 
 interface Props {
@@ -56,6 +58,7 @@ export default async function PartnerHomePage({ params }: Props) {
 
   return (
     <main className="min-h-screen bg-background flex flex-col relative overflow-hidden">
+      <AnalyticsTracker partnerId={partner.id} path={showGrid ? "/__all_forms" : "/"} />
       {/* Ambient glows using partner color */}
       <div className="fixed inset-0 pointer-events-none -z-10 overflow-hidden" aria-hidden="true">
         <div className="absolute top-[-10%] right-[-5%] w-[45%] h-[45%] rounded-full blur-[140px] animate-glow-breathe" style={{ backgroundColor: `${primary}0A` }} />
@@ -81,6 +84,7 @@ export default async function PartnerHomePage({ params }: Props) {
             <span className="text-[10px] uppercase tracking-[0.2em] font-medium" style={{ color: `${primary}99` }}>Client Onboarding Portal</span>
           </div>
         </div>
+        <StorefrontThemeToggle partnerDefault={partner.theme_mode || "dark"} />
       </header>
 
       {/* Content */}

@@ -89,5 +89,13 @@ export async function startSubmissionAction(formData: FormData) {
     .single();
   if (subErr) throw new Error(subErr.message);
 
+  // Record form start event for analytics
+  await admin.from("form_events").insert({
+    partner_id: partnerId,
+    form_slug: pf.slug,
+    submission_id: sub.id,
+    event_type: "start",
+  }).then(() => {}, () => {}); // fire-and-forget, don't block on analytics
+
   redirect(await absoluteUrl(`/start/${sub.access_token}`));
 }

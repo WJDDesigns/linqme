@@ -17,12 +17,14 @@ const WORKSPACE_NAV = [
   { href: "/dashboard", label: "Dashboard", icon: "fa-table-cells" },
   { href: "/dashboard/form", label: "Form Builder", icon: "fa-pen-ruler" },
   { href: "/dashboard/submissions", label: "My Customers", icon: "fa-users" },
+  { href: "/dashboard/analytics", label: "Analytics", icon: "fa-chart-mixed" },
   { href: "/dashboard/billing", label: "Billing", icon: "fa-credit-card" },
   { href: "/dashboard/settings", label: "Settings", icon: "fa-gear" },
 ];
 
 const ADMIN_NAV = [
   { href: "/dashboard/admin", label: "Platform", icon: "fa-chart-line" },
+  { href: "/dashboard/admin/analytics", label: "Analytics", icon: "fa-chart-mixed" },
   { href: "/dashboard/admin/billing", label: "Billing", icon: "fa-credit-card" },
   { href: "/dashboard/admin/team", label: "Team", icon: "fa-user-shield" },
   { href: "/dashboard/admin/partners", label: "Accounts", icon: "fa-sitemap" },
