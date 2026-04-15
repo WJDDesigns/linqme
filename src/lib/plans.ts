@@ -53,16 +53,24 @@ export async function getAllPlans(): Promise<Plan[]> {
 
 /**
  * Get a single plan by slug.
+ * Falls back to hardcoded defaults if the plans table is empty or missing.
  */
 export async function getPlanBySlug(slug: string): Promise<Plan | null> {
-  const admin = createAdminClient();
-  const { data } = await admin
-    .from("plans")
-    .select("*")
-    .eq("slug", slug)
-    .maybeSingle();
+  try {
+    const admin = createAdminClient();
+    const { data } = await admin
+      .from("plans")
+      .select("*")
+      .eq("slug", slug)
+      .maybeSingle();
 
-  return data ? mapDbPlan(data) : null;
+    if (data) return mapDbPlan(data);
+  } catch {
+    // DB unavailable — fall through to defaults
+  }
+
+  // Fallback: search hardcoded defaults
+  return getDefaultPlans().find((p) => p.slug === slug) ?? null;
 }
 
 function mapDbPlan(row: Record<string, unknown>): Plan {
