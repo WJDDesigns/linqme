@@ -31,24 +31,27 @@ export default function LandingPage() {
       </nav>
 
       {/* ═══════════════════════════════════════════════
-          HERO — gradient mesh + floating orbs + spotlight
+          HERO — gradient mesh + dot grid + big glows
          ═══════════════════════════════════════════════ */}
       <section className="relative pt-36 md:pt-44 pb-24 md:pb-32 px-6 overflow-hidden">
-        {/* Layered background */}
         <div className="absolute inset-0 gradient-mesh pointer-events-none" />
-        <div className="absolute inset-0 bg-dot-grid pointer-events-none opacity-60" />
-        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[900px] h-[700px] bg-gradient-radial from-primary/[0.10] via-primary/[0.03] to-transparent rounded-full blur-3xl pointer-events-none" />
+        <div className="absolute inset-0 bg-dot-grid pointer-events-none" />
+        {/* Big radial spotlight */}
+        <div className="absolute top-[-20%] left-1/2 -translate-x-1/2 w-[1000px] h-[800px] bg-primary/[0.15] rounded-full blur-[150px] pointer-events-none" />
+        {/* Secondary glow */}
+        <div className="absolute bottom-[-10%] right-[-5%] w-[600px] h-[500px] bg-tertiary/[0.10] rounded-full blur-[120px] pointer-events-none" />
 
-        {/* Floating orbs */}
-        <div className="absolute top-32 left-[8%] w-4 h-4 rounded-full bg-primary/25 blur-[2px] float hidden md:block" />
-        <div className="absolute top-48 right-[12%] w-2.5 h-2.5 rounded-full bg-tertiary/35 blur-[1px] float-delayed hidden md:block" />
-        <div className="absolute bottom-28 left-[18%] w-3 h-3 rounded-full bg-inverse-primary/25 blur-[2px] float hidden md:block" />
-        <div className="absolute bottom-40 right-[22%] w-2 h-2 rounded-full bg-primary/20 float-delayed hidden md:block" />
-        <div className="absolute top-64 left-[45%] w-1.5 h-1.5 rounded-full bg-tertiary/30 float hidden md:block" />
+        {/* Floating orbs - bigger and brighter */}
+        <div className="absolute top-28 left-[8%] w-5 h-5 rounded-full bg-primary/40 blur-[3px] float hidden md:block" />
+        <div className="absolute top-44 right-[10%] w-3.5 h-3.5 rounded-full bg-tertiary/50 blur-[2px] float-delayed hidden md:block" />
+        <div className="absolute bottom-24 left-[15%] w-4 h-4 rounded-full bg-inverse-primary/35 blur-[3px] float hidden md:block" />
+        <div className="absolute bottom-36 right-[20%] w-3 h-3 rounded-full bg-primary/30 blur-[2px] float-delayed hidden md:block" />
+        <div className="absolute top-60 left-[42%] w-2 h-2 rounded-full bg-tertiary/40 float hidden md:block" />
+        <div className="absolute top-72 right-[35%] w-2.5 h-2.5 rounded-full bg-primary/25 float hidden md:block" />
 
-        {/* Animated gradient ring behind hero text */}
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] rounded-full border border-primary/[0.06] animate-glow-breathe pointer-events-none hidden md:block" />
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[700px] h-[700px] rounded-full border border-primary/[0.03] animate-glow-breathe pointer-events-none hidden md:block" style={{ animationDelay: "2s" }} />
+        {/* Breathing rings */}
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] rounded-full border border-primary/10 animate-glow-breathe pointer-events-none hidden md:block" />
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[750px] h-[750px] rounded-full border border-primary/[0.06] animate-glow-breathe pointer-events-none hidden md:block" style={{ animationDelay: "2s" }} />
 
         <div className="max-w-5xl mx-auto text-center relative z-10">
           <div className="animate-fade-up inline-flex items-center gap-2 px-4 py-1.5 rounded-full glass-panel border border-primary/15 mb-8">
@@ -88,7 +91,7 @@ export default function LandingPage() {
           </p>
         </div>
 
-        {/* Hero UI preview mockup */}
+        {/* Hero UI mockup */}
         <div className="animate-slide-up delay-5 max-w-4xl mx-auto mt-16 md:mt-20 relative">
           <div className="gradient-border rounded-2xl">
             <div className="relative rounded-2xl overflow-hidden bg-surface-container border border-outline-variant/10 shadow-[0_32px_80px_rgba(0,0,0,0.3)]">
@@ -120,18 +123,12 @@ export default function LandingPage() {
                       <div className="h-8 w-28 bg-primary/15 rounded-lg" />
                     </div>
                     <div className="grid grid-cols-3 gap-3">
-                      <div className="h-20 rounded-xl bg-surface-container-low p-3 space-y-2">
-                        <div className="h-2 w-12 bg-on-surface-variant/10 rounded" />
-                        <div className="h-5 w-8 bg-primary/20 rounded" />
-                      </div>
-                      <div className="h-20 rounded-xl bg-surface-container-low p-3 space-y-2">
-                        <div className="h-2 w-14 bg-on-surface-variant/10 rounded" />
-                        <div className="h-5 w-6 bg-tertiary/20 rounded" />
-                      </div>
-                      <div className="h-20 rounded-xl bg-surface-container-low p-3 space-y-2">
-                        <div className="h-2 w-10 bg-on-surface-variant/10 rounded" />
-                        <div className="h-5 w-12 bg-on-surface/10 rounded" />
-                      </div>
+                      {[["primary", 12, 8], ["tertiary", 14, 6], ["on-surface", 10, 12]].map(([c, w1, w2], i) => (
+                        <div key={i} className="h-20 rounded-xl bg-surface-container-low p-3 space-y-2">
+                          <div className={`h-2 w-${w1} bg-on-surface-variant/10 rounded`} />
+                          <div className={`h-5 w-${w2} bg-${c}/20 rounded`} />
+                        </div>
+                      ))}
                     </div>
                     <div className="space-y-2">
                       {[1, 2, 3].map((i) => (
@@ -147,16 +144,16 @@ export default function LandingPage() {
               </div>
             </div>
           </div>
-          <div className="absolute -bottom-8 left-1/2 -translate-x-1/2 w-3/4 h-16 bg-primary/10 blur-[60px] rounded-full" />
+          <div className="absolute -bottom-10 left-1/2 -translate-x-1/2 w-3/4 h-20 bg-primary/15 blur-[80px] rounded-full" />
         </div>
       </section>
 
       {/* ═══════════════════════════════════════════════
-          TRUST STRIP — scanlines + subtle glow
+          TRUST STRIP — scanlines + bright spotlight
          ═══════════════════════════════════════════════ */}
       <section className="relative py-14 border-y border-on-surface/[0.04] overflow-hidden">
         <div className="absolute inset-0 bg-scanlines pointer-events-none" />
-        <div className="absolute inset-0 bg-spotlight pointer-events-none opacity-50" />
+        <div className="absolute inset-0 bg-spotlight pointer-events-none" />
         <div className="max-w-5xl mx-auto px-6 text-center relative z-10">
           <p className="text-xs uppercase tracking-[0.25em] text-on-surface-variant/40 font-semibold mb-6">Trusted by agencies and creative teams worldwide</p>
           <div className="flex flex-wrap justify-center gap-x-12 gap-y-4 items-center text-on-surface-variant/20">
@@ -168,11 +165,13 @@ export default function LandingPage() {
       </section>
 
       {/* ═══════════════════════════════════════════════
-          STATS — ripple rings + corner glows
+          STATS — ripple rings + bold corner glows
          ═══════════════════════════════════════════════ */}
       <section className="relative py-24 md:py-32 px-6 overflow-hidden">
         <div className="absolute inset-0 bg-ripple pointer-events-none" />
         <div className="absolute inset-0 bg-corner-glow pointer-events-none" />
+        {/* Extra color wash */}
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[700px] h-[400px] bg-primary/[0.06] rounded-full blur-[100px] pointer-events-none" />
 
         <div className="max-w-5xl mx-auto relative z-10">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-6 md:gap-8">
@@ -185,14 +184,15 @@ export default function LandingPage() {
       </section>
 
       {/* ═══════════════════════════════════════════════
-          HOW IT WORKS — topographic contour lines
+          HOW IT WORKS — topo lines + big blobs
          ═══════════════════════════════════════════════ */}
-      <section id="how-it-works" className="relative py-24 md:py-32 overflow-hidden">
+      <section id="how-it-works" className="relative py-24 md:py-32 overflow-hidden bg-surface-container-low/30">
         <div className="absolute inset-0 bg-topo pointer-events-none" />
         <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-outline-variant/15 to-transparent" />
-        {/* Floating accent blobs */}
-        <div className="absolute top-20 right-[10%] w-[300px] h-[300px] bg-tertiary/[0.04] rounded-full blur-[100px] pointer-events-none animate-glow-breathe" />
-        <div className="absolute bottom-20 left-[5%] w-[250px] h-[250px] bg-primary/[0.04] rounded-full blur-[80px] pointer-events-none animate-glow-breathe" style={{ animationDelay: "3s" }} />
+        <div className="absolute bottom-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-outline-variant/15 to-transparent" />
+        {/* Vivid accent blobs */}
+        <div className="absolute top-10 right-[5%] w-[400px] h-[400px] bg-tertiary/[0.08] rounded-full blur-[120px] pointer-events-none animate-glow-breathe" />
+        <div className="absolute bottom-10 left-[0%] w-[350px] h-[350px] bg-primary/[0.08] rounded-full blur-[100px] pointer-events-none animate-glow-breathe" style={{ animationDelay: "3s" }} />
 
         <div className="max-w-6xl mx-auto px-6 relative z-10">
           <div className="text-center mb-16 md:mb-20">
@@ -202,48 +202,23 @@ export default function LandingPage() {
             </h2>
           </div>
 
-          {/* Connected timeline */}
-          <div className="relative">
-            {/* Vertical connector line (desktop) */}
-            <div className="hidden md:block absolute top-0 bottom-0 left-1/2 -translate-x-1/2 w-px bg-gradient-to-b from-primary/20 via-tertiary/15 to-primary/20" />
-
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-8">
-              <StepCard
-                num={1}
-                title="Deploy Your Portal"
-                desc="Send a personalized, white-labeled link to your client. No login required for them, full control for you."
-                icon="fa-rocket"
-                delay="delay-1"
-                accentColor="primary"
-              />
-              <StepCard
-                num={2}
-                title="Collect with Precision"
-                desc="Clients fill out a step-by-step onboarding form and drag-and-drop assets into pre-defined containers."
-                icon="fa-bullseye"
-                delay="delay-2"
-                accentColor="tertiary"
-              />
-              <StepCard
-                num={3}
-                title="Launch Faster"
-                desc="Get notified the moment everything is submitted. All files and data organized in one dashboard."
-                icon="fa-bolt"
-                delay="delay-3"
-                accentColor="primary"
-              />
-            </div>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-8">
+            <StepCard num={1} title="Deploy Your Portal" desc="Send a personalized, white-labeled link to your client. No login required for them, full control for you." icon="fa-rocket" delay="delay-1" accent="primary" />
+            <StepCard num={2} title="Collect with Precision" desc="Clients fill out a step-by-step onboarding form and drag-and-drop assets into pre-defined containers." icon="fa-bullseye" delay="delay-2" accent="tertiary" />
+            <StepCard num={3} title="Launch Faster" desc="Get notified the moment everything is submitted. All files and data organized in one dashboard." icon="fa-bolt" delay="delay-3" accent="primary" />
           </div>
         </div>
       </section>
 
       {/* ═══════════════════════════════════════════════
-          FEATURES BENTO — crosshatch grid + aurora
+          FEATURES — crosshatch + aurora wash
          ═══════════════════════════════════════════════ */}
       <section id="features" className="relative py-24 md:py-32 px-6 overflow-hidden">
         <div className="absolute inset-0 bg-crosshatch pointer-events-none" />
         <div className="absolute inset-0 bg-aurora pointer-events-none" />
         <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-primary/20 to-transparent" />
+        {/* Big tertiary blob */}
+        <div className="absolute bottom-[10%] left-[-5%] w-[500px] h-[400px] bg-tertiary/[0.07] rounded-full blur-[130px] pointer-events-none" />
 
         <div className="max-w-6xl mx-auto relative z-10">
           <div className="text-center mb-16 md:mb-20">
@@ -253,64 +228,51 @@ export default function LandingPage() {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
-            {/* Feature 1 — wide */}
             <div className="md:col-span-2 group relative rounded-2xl overflow-hidden glow-card">
               <div className="gradient-border rounded-2xl h-full">
                 <div className="relative glass-panel noise-overlay p-8 md:p-10 rounded-2xl min-h-[220px] flex flex-col justify-end">
-                  <div className="absolute top-6 right-6 w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center text-primary group-hover:scale-110 group-hover:bg-primary/15 transition-all duration-500">
+                  <div className="absolute top-6 right-6 w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center text-primary group-hover:scale-110 group-hover:bg-primary/20 transition-all duration-500">
                     <i className="fa-solid fa-wand-magic-sparkles text-lg" />
                   </div>
-                  <div className="relative z-10">
-                    <h3 className="text-2xl font-bold mb-2">Total White-Labeling</h3>
-                    <p className="text-on-surface-variant max-w-md">Your brand, your domain, your favicon. Your clients will never know SiteLaunch exists.</p>
-                  </div>
+                  <h3 className="text-2xl font-bold mb-2 relative z-10">Total White-Labeling</h3>
+                  <p className="text-on-surface-variant max-w-md relative z-10">Your brand, your domain, your favicon. Your clients will never know SiteLaunch exists.</p>
                 </div>
               </div>
             </div>
 
-            {/* Feature 2 */}
             <div className="group relative rounded-2xl overflow-hidden glow-card">
               <div className="relative bg-surface-container-high/60 noise-overlay p-8 rounded-2xl border border-outline-variant/10 min-h-[220px] flex flex-col justify-end">
-                <div className="absolute top-6 right-6 w-12 h-12 rounded-xl bg-tertiary/10 flex items-center justify-center text-tertiary group-hover:scale-110 group-hover:bg-tertiary/15 transition-all duration-500">
+                <div className="absolute top-6 right-6 w-12 h-12 rounded-xl bg-tertiary/10 flex items-center justify-center text-tertiary group-hover:scale-110 group-hover:bg-tertiary/20 transition-all duration-500">
                   <i className="fa-solid fa-sitemap text-lg" />
                 </div>
-                <div className="relative z-10">
-                  <h3 className="text-xl font-bold mb-2">Multi-tenant Control</h3>
-                  <p className="text-on-surface-variant text-sm">Manage many projects from a single unified workspace with team permissions.</p>
-                </div>
+                <h3 className="text-xl font-bold mb-2 relative z-10">Multi-tenant Control</h3>
+                <p className="text-on-surface-variant text-sm relative z-10">Manage many projects from a single unified workspace with team permissions.</p>
               </div>
             </div>
 
-            {/* Feature 3 */}
             <div className="group relative rounded-2xl overflow-hidden glow-card">
               <div className="relative bg-surface-container-high/60 noise-overlay p-8 rounded-2xl border border-outline-variant/10 min-h-[220px] flex flex-col justify-end">
-                <div className="absolute top-6 right-6 w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center text-primary group-hover:scale-110 group-hover:bg-primary/15 transition-all duration-500">
+                <div className="absolute top-6 right-6 w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center text-primary group-hover:scale-110 group-hover:bg-primary/20 transition-all duration-500">
                   <i className="fa-solid fa-pen-ruler text-lg" />
                 </div>
-                <div className="relative z-10">
-                  <h3 className="text-xl font-bold mb-2">Drag-and-Drop Builder</h3>
-                  <p className="text-on-surface-variant text-sm">Create custom onboarding flows in seconds. No code required.</p>
-                </div>
+                <h3 className="text-xl font-bold mb-2 relative z-10">Drag-and-Drop Builder</h3>
+                <p className="text-on-surface-variant text-sm relative z-10">Create custom onboarding flows in seconds. No code required.</p>
               </div>
             </div>
 
-            {/* Feature 4 — wide */}
             <div className="md:col-span-2 group relative rounded-2xl overflow-hidden glow-card">
               <div className="gradient-border rounded-2xl h-full">
                 <div className="relative glass-panel noise-overlay p-8 md:p-10 rounded-2xl min-h-[220px] flex flex-col justify-end">
-                  <div className="absolute top-6 right-6 w-12 h-12 rounded-xl bg-tertiary/10 flex items-center justify-center text-tertiary group-hover:scale-110 group-hover:bg-tertiary/15 transition-all duration-500">
+                  <div className="absolute top-6 right-6 w-12 h-12 rounded-xl bg-tertiary/10 flex items-center justify-center text-tertiary group-hover:scale-110 group-hover:bg-tertiary/20 transition-all duration-500">
                     <i className="fa-solid fa-shield-halved text-lg" />
                   </div>
-                  <div className="relative z-10">
-                    <h3 className="text-2xl font-bold mb-2">Encrypted Asset Storage</h3>
-                    <p className="text-on-surface-variant max-w-md">Secure file storage with signed URLs. Your client&apos;s data is safe and accessible only to authorized users.</p>
-                  </div>
+                  <h3 className="text-2xl font-bold mb-2 relative z-10">Encrypted Asset Storage</h3>
+                  <p className="text-on-surface-variant max-w-md relative z-10">Secure file storage with signed URLs. Your client&apos;s data is safe and accessible only to authorized users.</p>
                 </div>
               </div>
             </div>
           </div>
 
-          {/* Mini features — iso grid behind */}
           <div className="mt-12 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
             <MiniFeature icon="fa-file-csv" title="CSV & PDF Exports" desc="Download submissions as spreadsheets or branded PDFs." />
             <MiniFeature icon="fa-clock-rotate-left" title="Auto-save Drafts" desc="Clients can leave and come back. Nothing is ever lost." />
@@ -323,14 +285,15 @@ export default function LandingPage() {
       </section>
 
       {/* ═══════════════════════════════════════════════
-          TESTIMONIALS — diagonal lines + dual glows
+          TESTIMONIALS — diagonal lines + big dual glows
          ═══════════════════════════════════════════════ */}
-      <section className="relative py-24 md:py-32 px-6 overflow-hidden">
+      <section className="relative py-24 md:py-32 px-6 overflow-hidden bg-surface-container-low/20">
         <div className="absolute inset-0 bg-diagonal-lines pointer-events-none" />
         <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-outline-variant/15 to-transparent" />
-        {/* Dual ambient blobs */}
-        <div className="absolute top-1/4 left-[5%] w-[400px] h-[350px] bg-primary/[0.05] rounded-full blur-[120px] pointer-events-none animate-glow-breathe" />
-        <div className="absolute bottom-1/4 right-[5%] w-[350px] h-[300px] bg-tertiary/[0.04] rounded-full blur-[100px] pointer-events-none animate-glow-breathe" style={{ animationDelay: "2.5s" }} />
+        <div className="absolute bottom-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-outline-variant/15 to-transparent" />
+        {/* Bold dual blobs */}
+        <div className="absolute top-[15%] left-[0%] w-[500px] h-[450px] bg-primary/[0.10] rounded-full blur-[140px] pointer-events-none animate-glow-breathe" />
+        <div className="absolute bottom-[10%] right-[0%] w-[450px] h-[400px] bg-tertiary/[0.08] rounded-full blur-[120px] pointer-events-none animate-glow-breathe" style={{ animationDelay: "2.5s" }} />
 
         <div className="max-w-6xl mx-auto relative z-10">
           <div className="text-center mb-16 md:mb-20">
@@ -340,36 +303,25 @@ export default function LandingPage() {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <TestimonialCard
-              quote="SiteLaunch cut our client onboarding time from 2 weeks to 2 days. The white-labeling means clients think it's our own tool."
-              name="Sarah Chen"
-              role="Founder, PixelForge Studio"
-            />
-            <TestimonialCard
-              quote="We used to chase clients for assets across email, Slack, and Dropbox. Now everything lands in one place, organized and ready."
-              name="Marcus Reyes"
-              role="Creative Director, BrandHive"
-              featured
-            />
-            <TestimonialCard
-              quote="The form builder is incredibly flexible. We've built different onboarding flows for web design, branding, and SEO clients."
-              name="Emily Nakamura"
-              role="Operations Lead, CreativOps"
-            />
+            <TestimonialCard quote="SiteLaunch cut our client onboarding time from 2 weeks to 2 days. The white-labeling means clients think it's our own tool." name="Sarah Chen" role="Founder, PixelForge Studio" />
+            <TestimonialCard quote="We used to chase clients for assets across email, Slack, and Dropbox. Now everything lands in one place, organized and ready." name="Marcus Reyes" role="Creative Director, BrandHive" featured />
+            <TestimonialCard quote="The form builder is incredibly flexible. We've built different onboarding flows for web design, branding, and SEO clients." name="Emily Nakamura" role="Operations Lead, CreativOps" />
           </div>
         </div>
       </section>
 
       {/* ═══════════════════════════════════════════════
-          USE CASES — iso grid + spotlight
+          USE CASES — diamond grid + spotlight + streaks
          ═══════════════════════════════════════════════ */}
       <section className="relative py-24 md:py-32 px-6 overflow-hidden">
-        <div className="absolute inset-0 bg-iso-grid pointer-events-none" />
+        <div className="absolute inset-0 bg-diamond-grid pointer-events-none" />
         <div className="absolute inset-0 bg-spotlight pointer-events-none" />
         <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-primary/20 to-transparent" />
-        {/* Accent streak */}
-        <div className="absolute top-[30%] -left-[10%] w-[60%] h-px bg-gradient-to-r from-transparent via-primary/10 to-transparent rotate-[8deg] pointer-events-none" />
-        <div className="absolute bottom-[30%] -right-[10%] w-[60%] h-px bg-gradient-to-r from-transparent via-tertiary/10 to-transparent -rotate-[5deg] pointer-events-none" />
+        {/* Diagonal accent lines */}
+        <div className="absolute top-[25%] -left-[10%] w-[70%] h-[2px] bg-gradient-to-r from-transparent via-primary/15 to-transparent rotate-[6deg] pointer-events-none" />
+        <div className="absolute bottom-[25%] -right-[10%] w-[70%] h-[2px] bg-gradient-to-r from-transparent via-tertiary/12 to-transparent -rotate-[4deg] pointer-events-none" />
+        {/* Bottom glow */}
+        <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-[600px] h-[300px] bg-primary/[0.07] rounded-full blur-[100px] pointer-events-none" />
 
         <div className="max-w-6xl mx-auto relative z-10">
           <div className="text-center mb-16 md:mb-20">
@@ -379,43 +331,24 @@ export default function LandingPage() {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <UseCaseCard
-              icon="fa-laptop-code"
-              title="Web Design & Development"
-              desc="Collect copy, images, brand guidelines, and sitemap approvals before a single pixel is pushed. Stop waiting on clients to dig through their Google Drive."
-              accent="primary"
-            />
-            <UseCaseCard
-              icon="fa-bullhorn"
-              title="Marketing & Social Media"
-              desc="Gather brand voice guidelines, campaign briefs, target audience details, and creative assets in a structured, repeatable flow."
-              accent="tertiary"
-            />
-            <UseCaseCard
-              icon="fa-paintbrush"
-              title="Branding & Identity"
-              desc="Onboard new branding clients with questionnaires about their vision, competitors, color preferences, and inspiration boards."
-              accent="tertiary"
-            />
-            <UseCaseCard
-              icon="fa-handshake"
-              title="Consulting & Freelance"
-              desc="Standardize your intake process across clients. Collect project requirements, timelines, budgets, and stakeholder info upfront."
-              accent="primary"
-            />
+            <UseCaseCard icon="fa-laptop-code" title="Web Design & Development" desc="Collect copy, images, brand guidelines, and sitemap approvals before a single pixel is pushed. Stop waiting on clients to dig through their Google Drive." accent="primary" />
+            <UseCaseCard icon="fa-bullhorn" title="Marketing & Social Media" desc="Gather brand voice guidelines, campaign briefs, target audience details, and creative assets in a structured, repeatable flow." accent="tertiary" />
+            <UseCaseCard icon="fa-paintbrush" title="Branding & Identity" desc="Onboard new branding clients with questionnaires about their vision, competitors, color preferences, and inspiration boards." accent="tertiary" />
+            <UseCaseCard icon="fa-handshake" title="Consulting & Freelance" desc="Standardize your intake process across clients. Collect project requirements, timelines, budgets, and stakeholder info upfront." accent="primary" />
           </div>
         </div>
       </section>
 
       {/* ═══════════════════════════════════════════════
-          PRICING TEASER — dot grid + aurora
+          PRICING TEASER — honeycomb + aurora + glow
          ═══════════════════════════════════════════════ */}
-      <section className="relative py-24 md:py-32 px-6 overflow-hidden">
-        <div className="absolute inset-0 bg-dot-grid pointer-events-none opacity-40" />
-        <div className="absolute inset-0 bg-aurora pointer-events-none opacity-70" />
+      <section className="relative py-24 md:py-32 px-6 overflow-hidden bg-surface-container-low/20">
+        <div className="absolute inset-0 bg-honeycomb pointer-events-none" />
+        <div className="absolute inset-0 bg-aurora pointer-events-none" />
         <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-outline-variant/15 to-transparent" />
+        <div className="absolute bottom-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-outline-variant/15 to-transparent" />
         {/* Central glow */}
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[400px] bg-primary/[0.06] rounded-full blur-[120px] pointer-events-none" />
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[700px] h-[500px] bg-primary/[0.08] rounded-full blur-[140px] pointer-events-none" />
 
         <div className="max-w-4xl mx-auto relative z-10 text-center">
           <span className="inline-block text-xs font-bold text-primary uppercase tracking-[0.2em] mb-4">Pricing</span>
@@ -456,10 +389,10 @@ export default function LandingPage() {
       </section>
 
       {/* ═══════════════════════════════════════════════
-          FAQ — crosshatch + corner glow
+          FAQ — iso grid + corner glows
          ═══════════════════════════════════════════════ */}
       <section className="relative py-24 md:py-32 px-6 overflow-hidden">
-        <div className="absolute inset-0 bg-crosshatch pointer-events-none opacity-60" />
+        <div className="absolute inset-0 bg-iso-grid pointer-events-none" />
         <div className="absolute inset-0 bg-corner-glow pointer-events-none" />
         <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-primary/20 to-transparent" />
 
@@ -481,20 +414,20 @@ export default function LandingPage() {
       </section>
 
       {/* ═══════════════════════════════════════════════
-          CTA — full ripple + mesh + breathing glow
+          CTA — ripple + mesh + breathing blobs + rings
          ═══════════════════════════════════════════════ */}
-      <section className="relative py-24 md:py-32 px-6 text-center overflow-hidden">
+      <section className="relative py-24 md:py-32 px-6 text-center overflow-hidden bg-surface-container-low/20">
         <div className="absolute inset-0 bg-ripple pointer-events-none" />
-        <div className="absolute inset-0 gradient-mesh pointer-events-none opacity-60" />
+        <div className="absolute inset-0 gradient-mesh pointer-events-none" />
+        <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-outline-variant/15 to-transparent" />
 
         <div className="max-w-4xl mx-auto relative z-10">
           <div className="gradient-border rounded-3xl">
             <div className="relative glass-panel noise-overlay p-12 md:p-20 rounded-3xl overflow-hidden">
-              <div className="absolute top-0 left-1/4 w-1/2 h-1/2 bg-primary/[0.08] rounded-full blur-[80px] pointer-events-none animate-glow-breathe" />
-              <div className="absolute bottom-0 right-1/4 w-1/3 h-1/3 bg-tertiary/[0.06] rounded-full blur-[60px] pointer-events-none animate-glow-breathe" style={{ animationDelay: "2s" }} />
-              {/* Decorative rings */}
-              <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[400px] h-[400px] rounded-full border border-primary/[0.05] pointer-events-none" />
-              <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] rounded-full border border-primary/[0.03] pointer-events-none" />
+              <div className="absolute top-0 left-1/4 w-1/2 h-1/2 bg-primary/[0.12] rounded-full blur-[80px] pointer-events-none animate-glow-breathe" />
+              <div className="absolute bottom-0 right-1/4 w-1/3 h-1/3 bg-tertiary/[0.10] rounded-full blur-[60px] pointer-events-none animate-glow-breathe" style={{ animationDelay: "2s" }} />
+              <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[400px] h-[400px] rounded-full border border-primary/[0.08] pointer-events-none" />
+              <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] rounded-full border border-primary/[0.04] pointer-events-none" />
 
               <h2 className="text-4xl md:text-5xl font-headline font-bold mb-6 relative z-10">
                 Ready to stop chasing content?
@@ -543,8 +476,8 @@ export default function LandingPage() {
 function StatBlock({ value, label, icon }: { value: string; label: string; icon: string }) {
   return (
     <div className="text-center group">
-      <div className="inline-flex items-center justify-center w-12 h-12 rounded-xl bg-primary/10 mb-4 group-hover:bg-primary/15 group-hover:scale-110 transition-all duration-500">
-        <i className={`fa-solid ${icon} text-primary`} />
+      <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-primary/10 border border-primary/10 mb-4 group-hover:bg-primary/20 group-hover:scale-110 group-hover:shadow-[0_0_30px_rgba(var(--color-primary),0.15)] transition-all duration-500">
+        <i className={`fa-solid ${icon} text-primary text-lg`} />
       </div>
       <div className="text-4xl md:text-5xl font-headline font-extrabold gradient-text mb-2">{value}</div>
       <p className="text-sm text-on-surface-variant/60">{label}</p>
@@ -552,20 +485,16 @@ function StatBlock({ value, label, icon }: { value: string; label: string; icon:
   );
 }
 
-function StepCard({ num, title, desc, icon, delay, accentColor }: { num: number; title: string; desc: string; icon: string; delay: string; accentColor: string }) {
-  const colorClasses = accentColor === "tertiary"
-    ? { numBg: "bg-tertiary/10", numText: "text-tertiary", iconBg: "bg-tertiary/10 group-hover:bg-tertiary/15", iconText: "text-tertiary" }
-    : { numBg: "bg-primary/10", numText: "text-primary", iconBg: "bg-primary/10 group-hover:bg-primary/15", iconText: "text-primary" };
-
+function StepCard({ num, title, desc, icon, delay, accent }: { num: number; title: string; desc: string; icon: string; delay: string; accent: string }) {
+  const isPrimary = accent === "primary";
   return (
     <div className={`animate-fade-up ${delay} group relative`}>
       <div className="relative glass-panel noise-overlay rounded-2xl border border-outline-variant/10 p-8 h-full hover:border-primary/20 transition-all duration-500 glow-card">
-        {/* Step number glow ring */}
         <div className="flex items-center gap-4 mb-5">
-          <div className={`relative w-10 h-10 rounded-full ${colorClasses.numBg} flex items-center justify-center ${colorClasses.numText} text-sm font-bold font-headline group-hover:shadow-[0_0_20px_rgba(var(--color-${accentColor}),0.2)] transition-all duration-500`}>
+          <div className={`relative w-11 h-11 rounded-full ${isPrimary ? "bg-primary/15" : "bg-tertiary/15"} flex items-center justify-center ${isPrimary ? "text-primary" : "text-tertiary"} text-sm font-bold font-headline group-hover:shadow-[0_0_20px_rgba(var(--color-${accent}),0.25)] transition-all duration-500`}>
             {num}
           </div>
-          <div className={`w-10 h-10 rounded-xl ${colorClasses.iconBg} flex items-center justify-center ${colorClasses.iconText} transition-all duration-500`}>
+          <div className={`w-11 h-11 rounded-xl ${isPrimary ? "bg-primary/10 group-hover:bg-primary/20" : "bg-tertiary/10 group-hover:bg-tertiary/20"} flex items-center justify-center ${isPrimary ? "text-primary" : "text-tertiary"} transition-all duration-500`}>
             <i className={`fa-solid ${icon}`} />
           </div>
         </div>
@@ -578,8 +507,8 @@ function StepCard({ num, title, desc, icon, delay, accentColor }: { num: number;
 
 function MiniFeature({ icon, title, desc }: { icon: string; title: string; desc: string }) {
   return (
-    <div className="flex items-start gap-4 p-5 rounded-xl border border-outline-variant/[0.06] hover:border-primary/15 hover:bg-primary/[0.02] transition-all duration-300 group">
-      <div className="w-9 h-9 rounded-lg bg-primary/10 flex items-center justify-center text-primary shrink-0 group-hover:scale-110 group-hover:bg-primary/15 transition-all duration-500">
+    <div className="flex items-start gap-4 p-5 rounded-xl border border-outline-variant/[0.06] hover:border-primary/15 hover:bg-primary/[0.03] transition-all duration-300 group">
+      <div className="w-9 h-9 rounded-lg bg-primary/10 flex items-center justify-center text-primary shrink-0 group-hover:scale-110 group-hover:bg-primary/20 transition-all duration-500">
         <i className={`fa-solid ${icon} text-sm`} />
       </div>
       <div>
@@ -593,9 +522,7 @@ function MiniFeature({ icon, title, desc }: { icon: string; title: string; desc:
 function TestimonialCard({ quote, name, role, featured }: { quote: string; name: string; role: string; featured?: boolean }) {
   return (
     <div className={`rounded-2xl p-8 flex flex-col justify-between h-full transition-all duration-500 glow-card ${
-      featured
-        ? "gradient-border"
-        : "border border-outline-variant/[0.08] hover:border-outline-variant/15"
+      featured ? "gradient-border" : "border border-outline-variant/[0.08] hover:border-outline-variant/15"
     }`}>
       <div className={featured ? "glass-panel rounded-2xl p-8 -m-8 h-full flex flex-col justify-between" : "flex flex-col justify-between h-full"}>
         <div>
@@ -607,7 +534,7 @@ function TestimonialCard({ quote, name, role, featured }: { quote: string; name:
           <p className="text-on-surface/90 leading-relaxed mb-6">&ldquo;{quote}&rdquo;</p>
         </div>
         <div className="flex items-center gap-3">
-          <div className="w-8 h-8 rounded-full bg-gradient-to-br from-primary/20 to-tertiary/20 flex items-center justify-center text-xs font-bold text-primary">
+          <div className="w-9 h-9 rounded-full bg-gradient-to-br from-primary/25 to-tertiary/25 flex items-center justify-center text-xs font-bold text-primary border border-primary/10">
             {name.charAt(0)}
           </div>
           <div>
@@ -621,13 +548,12 @@ function TestimonialCard({ quote, name, role, featured }: { quote: string; name:
 }
 
 function UseCaseCard({ icon, title, desc, accent }: { icon: string; title: string; desc: string; accent: string }) {
-  const colors = accent === "tertiary"
-    ? { iconBg: "bg-tertiary/10", iconText: "text-tertiary", hoverBg: "group-hover:bg-tertiary/15" }
-    : { iconBg: "bg-primary/10", iconText: "text-primary", hoverBg: "group-hover:bg-primary/15" };
-
+  const isPrimary = accent === "primary";
   return (
     <div className="glass-panel noise-overlay rounded-2xl border border-outline-variant/[0.08] p-8 relative overflow-hidden group glow-card hover:border-outline-variant/15 transition-all duration-500">
-      <div className={`absolute top-6 right-6 w-12 h-12 rounded-xl ${colors.iconBg} flex items-center justify-center ${colors.iconText} group-hover:scale-110 ${colors.hoverBg} transition-all duration-500`}>
+      {/* Card accent glow */}
+      <div className={`absolute -top-10 -right-10 w-32 h-32 ${isPrimary ? "bg-primary/[0.08]" : "bg-tertiary/[0.08]"} rounded-full blur-[40px] pointer-events-none group-hover:opacity-150 transition-opacity`} />
+      <div className={`absolute top-6 right-6 w-12 h-12 rounded-xl ${isPrimary ? "bg-primary/10 group-hover:bg-primary/20" : "bg-tertiary/10 group-hover:bg-tertiary/20"} flex items-center justify-center ${isPrimary ? "text-primary" : "text-tertiary"} group-hover:scale-110 transition-all duration-500`}>
         <i className={`fa-solid ${icon} text-lg`} />
       </div>
       <h3 className="text-xl font-bold mb-3 relative z-10 pr-16">{title}</h3>

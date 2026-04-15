@@ -240,8 +240,8 @@ h1, h2, h3, h4, .headline {
 
   /* Dot grid pattern */
   .bg-dot-grid {
-    background-image: radial-gradient(circle, rgba(var(--color-primary), 0.08) 1px, transparent 1px);
-    background-size: 28px 28px;
+    background-image: radial-gradient(circle, rgba(var(--color-primary), 0.18) 1px, transparent 1px);
+    background-size: 24px 24px;
   }
 
   /* Topographic / contour lines */
@@ -250,18 +250,18 @@ h1, h2, h3, h4, .headline {
       repeating-radial-gradient(
         ellipse 600px 350px at 30% 40%,
         transparent 0px,
-        transparent 38px,
-        rgba(var(--color-primary), 0.04) 39px,
-        rgba(var(--color-primary), 0.04) 40px,
-        transparent 41px
+        transparent 30px,
+        rgba(var(--color-primary), 0.10) 30.5px,
+        rgba(var(--color-primary), 0.10) 31.5px,
+        transparent 32px
       ),
       repeating-radial-gradient(
         ellipse 500px 400px at 70% 60%,
         transparent 0px,
-        transparent 38px,
-        rgba(var(--color-tertiary), 0.035) 39px,
-        rgba(var(--color-tertiary), 0.035) 40px,
-        transparent 41px
+        transparent 30px,
+        rgba(var(--color-tertiary), 0.08) 30.5px,
+        rgba(var(--color-tertiary), 0.08) 31.5px,
+        transparent 32px
       );
   }
 
@@ -270,18 +270,18 @@ h1, h2, h3, h4, .headline {
     background-image: repeating-linear-gradient(
       0deg,
       transparent 0px,
-      transparent 3px,
-      rgba(var(--color-primary), 0.02) 3px,
-      rgba(var(--color-primary), 0.02) 4px
+      transparent 2px,
+      rgba(var(--color-primary), 0.06) 2px,
+      rgba(var(--color-primary), 0.06) 3px
     );
   }
 
   /* Cross-hatch / engineering grid */
   .bg-crosshatch {
     background-image:
-      linear-gradient(rgba(var(--color-primary), 0.04) 1px, transparent 1px),
-      linear-gradient(90deg, rgba(var(--color-primary), 0.04) 1px, transparent 1px);
-    background-size: 48px 48px;
+      linear-gradient(rgba(var(--color-primary), 0.10) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(var(--color-primary), 0.10) 1px, transparent 1px);
+    background-size: 40px 40px;
   }
 
   /* Diagonal lines */
@@ -289,18 +289,18 @@ h1, h2, h3, h4, .headline {
     background-image: repeating-linear-gradient(
       -45deg,
       transparent 0px,
-      transparent 10px,
-      rgba(var(--color-primary), 0.025) 10px,
-      rgba(var(--color-primary), 0.025) 11px
+      transparent 8px,
+      rgba(var(--color-primary), 0.07) 8px,
+      rgba(var(--color-primary), 0.07) 9px
     );
   }
 
   /* Shifting aurora */
   .bg-aurora {
     background:
-      linear-gradient(135deg, rgba(var(--color-primary), 0.06) 0%, transparent 40%),
-      linear-gradient(225deg, rgba(var(--color-tertiary), 0.06) 0%, transparent 40%),
-      linear-gradient(315deg, rgba(var(--color-inverse-primary), 0.05) 0%, transparent 40%);
+      linear-gradient(135deg, rgba(var(--color-primary), 0.15) 0%, transparent 50%),
+      linear-gradient(225deg, rgba(var(--color-tertiary), 0.12) 0%, transparent 50%),
+      linear-gradient(315deg, rgba(var(--color-inverse-primary), 0.10) 0%, transparent 50%);
     background-size: 200% 200%;
     animation: gradient-shift 12s ease infinite;
   }
@@ -308,22 +308,22 @@ h1, h2, h3, h4, .headline {
   /* Radial ripple rings */
   .bg-ripple {
     background-image:
-      radial-gradient(circle at 50% 50%, transparent 20%, rgba(var(--color-primary), 0.03) 20.5%, transparent 21%),
-      radial-gradient(circle at 50% 50%, transparent 35%, rgba(var(--color-primary), 0.025) 35.5%, transparent 36%),
-      radial-gradient(circle at 50% 50%, transparent 50%, rgba(var(--color-primary), 0.02) 50.5%, transparent 51%),
-      radial-gradient(circle at 50% 50%, transparent 65%, rgba(var(--color-primary), 0.015) 65.5%, transparent 66%),
-      radial-gradient(circle at 50% 50%, transparent 80%, rgba(var(--color-primary), 0.01) 80.5%, transparent 81%);
+      radial-gradient(circle at 50% 50%, transparent 18%, rgba(var(--color-primary), 0.08) 18.5%, transparent 19.5%),
+      radial-gradient(circle at 50% 50%, transparent 32%, rgba(var(--color-primary), 0.06) 32.5%, transparent 33.5%),
+      radial-gradient(circle at 50% 50%, transparent 46%, rgba(var(--color-primary), 0.05) 46.5%, transparent 47.5%),
+      radial-gradient(circle at 50% 50%, transparent 60%, rgba(var(--color-primary), 0.04) 60.5%, transparent 61.5%),
+      radial-gradient(circle at 50% 50%, transparent 74%, rgba(var(--color-primary), 0.03) 74.5%, transparent 75.5%);
   }
 
-  /* Stacked isometric cubes (subtle) */
+  /* Isometric grid */
   .bg-iso-grid {
     background-image:
-      linear-gradient(30deg, rgba(var(--color-primary), 0.03) 12%, transparent 12.5%, transparent 87%, rgba(var(--color-primary), 0.03) 87.5%),
-      linear-gradient(150deg, rgba(var(--color-primary), 0.03) 12%, transparent 12.5%, transparent 87%, rgba(var(--color-primary), 0.03) 87.5%),
-      linear-gradient(30deg, rgba(var(--color-primary), 0.03) 12%, transparent 12.5%, transparent 87%, rgba(var(--color-primary), 0.03) 87.5%),
-      linear-gradient(150deg, rgba(var(--color-primary), 0.03) 12%, transparent 12.5%, transparent 87%, rgba(var(--color-primary), 0.03) 87.5%),
-      linear-gradient(60deg, rgba(var(--color-tertiary), 0.02) 25%, transparent 25.5%, transparent 75%, rgba(var(--color-tertiary), 0.02) 75%),
-      linear-gradient(60deg, rgba(var(--color-tertiary), 0.02) 25%, transparent 25.5%, transparent 75%, rgba(var(--color-tertiary), 0.02) 75%);
+      linear-gradient(30deg, rgba(var(--color-primary), 0.07) 12%, transparent 12.5%, transparent 87%, rgba(var(--color-primary), 0.07) 87.5%),
+      linear-gradient(150deg, rgba(var(--color-primary), 0.07) 12%, transparent 12.5%, transparent 87%, rgba(var(--color-primary), 0.07) 87.5%),
+      linear-gradient(30deg, rgba(var(--color-primary), 0.07) 12%, transparent 12.5%, transparent 87%, rgba(var(--color-primary), 0.07) 87.5%),
+      linear-gradient(150deg, rgba(var(--color-primary), 0.07) 12%, transparent 12.5%, transparent 87%, rgba(var(--color-primary), 0.07) 87.5%),
+      linear-gradient(60deg, rgba(var(--color-tertiary), 0.05) 25%, transparent 25.5%, transparent 75%, rgba(var(--color-tertiary), 0.05) 75%),
+      linear-gradient(60deg, rgba(var(--color-tertiary), 0.05) 25%, transparent 25.5%, transparent 75%, rgba(var(--color-tertiary), 0.05) 75%);
     background-size: 40px 70px;
     background-position: 0 0, 0 0, 20px 35px, 20px 35px, 0 0, 20px 35px;
   }
@@ -331,9 +331,9 @@ h1, h2, h3, h4, .headline {
   /* Spotlight cone from top */
   .bg-spotlight {
     background: radial-gradient(
-      ellipse 50% 80% at 50% -10%,
-      rgba(var(--color-primary), 0.10) 0%,
-      rgba(var(--color-primary), 0.03) 40%,
+      ellipse 60% 80% at 50% -10%,
+      rgba(var(--color-primary), 0.18) 0%,
+      rgba(var(--color-primary), 0.06) 40%,
       transparent 70%
     );
   }
@@ -341,8 +341,28 @@ h1, h2, h3, h4, .headline {
   /* Dual-glow from corners */
   .bg-corner-glow {
     background:
-      radial-gradient(ellipse at 0% 0%, rgba(var(--color-primary), 0.08) 0%, transparent 50%),
-      radial-gradient(ellipse at 100% 100%, rgba(var(--color-tertiary), 0.06) 0%, transparent 50%);
+      radial-gradient(ellipse at 0% 0%, rgba(var(--color-primary), 0.15) 0%, transparent 50%),
+      radial-gradient(ellipse at 100% 100%, rgba(var(--color-tertiary), 0.12) 0%, transparent 50%);
+  }
+
+  /* Honeycomb hex pattern */
+  .bg-honeycomb {
+    background-color: transparent;
+    background-image:
+      radial-gradient(circle farthest-side at 0% 50%, transparent 23%, rgba(var(--color-primary), 0.06) 24%, rgba(var(--color-primary), 0.06) 26%, transparent 27%),
+      radial-gradient(circle farthest-side at 0% 50%, transparent 23%, rgba(var(--color-tertiary), 0.05) 24%, rgba(var(--color-tertiary), 0.05) 26%, transparent 27%);
+    background-size: 56px 97px;
+    background-position: 0 0, 28px 48px;
+  }
+
+  /* Concentric diamond rings */
+  .bg-diamond-grid {
+    background-image:
+      linear-gradient(45deg, transparent 44%, rgba(var(--color-primary), 0.06) 44.5%, rgba(var(--color-primary), 0.06) 45.5%, transparent 46%),
+      linear-gradient(-45deg, transparent 44%, rgba(var(--color-primary), 0.06) 44.5%, rgba(var(--color-primary), 0.06) 45.5%, transparent 46%),
+      linear-gradient(45deg, transparent 44%, rgba(var(--color-tertiary), 0.04) 44.5%, rgba(var(--color-tertiary), 0.04) 45.5%, transparent 46%),
+      linear-gradient(-45deg, transparent 44%, rgba(var(--color-tertiary), 0.04) 44.5%, rgba(var(--color-tertiary), 0.04) 45.5%, transparent 46%);
+    background-size: 60px 60px, 60px 60px, 120px 120px, 120px 120px;
   }
 }
 

@@ -41,7 +41,7 @@ const TIERS = [
       { text: "CSV & PDF exports", included: true },
       { text: "Team members", included: true },
     ],
-    cta: "Start 14-day Trial",
+    cta: "Get Nova",
     href: "/checkout?plan=pro",
     highlight: true,
   },
@@ -125,7 +125,9 @@ export default function PricingPage() {
       {/* Hero */}
       <section className="relative pt-36 md:pt-44 pb-16 md:pb-20 px-6 overflow-hidden text-center">
         <div className="absolute inset-0 gradient-mesh pointer-events-none" />
-        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[600px] h-[400px] bg-primary/[0.06] rounded-full blur-[140px] pointer-events-none" />
+        <div className="absolute inset-0 bg-dot-grid pointer-events-none" />
+        <div className="absolute top-[-15%] left-1/2 -translate-x-1/2 w-[800px] h-[600px] bg-primary/[0.14] rounded-full blur-[140px] pointer-events-none" />
+        <div className="absolute bottom-0 right-[10%] w-[400px] h-[300px] bg-tertiary/[0.08] rounded-full blur-[100px] pointer-events-none" />
 
         <div className="relative z-10 max-w-3xl mx-auto">
           <span className="inline-block text-xs font-bold text-primary uppercase tracking-[0.2em] mb-4 animate-fade-up">Pricing</span>
@@ -140,8 +142,10 @@ export default function PricingPage() {
       </section>
 
       {/* Pricing Cards */}
-      <section className="px-6 pb-24 md:pb-32 relative">
-        <div className="max-w-5xl mx-auto">
+      <section className="px-6 pb-24 md:pb-32 relative overflow-hidden">
+        <div className="absolute inset-0 bg-crosshatch pointer-events-none" />
+        <div className="absolute inset-0 bg-aurora pointer-events-none" />
+        <div className="max-w-5xl mx-auto relative z-10">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-8 items-start">
             {TIERS.map((tier, i) => (
               <div
@@ -216,8 +220,11 @@ export default function PricingPage() {
       </section>
 
       {/* Comparison Table */}
-      <section className="px-6 pb-24 md:pb-32">
-        <div className="max-w-4xl mx-auto">
+      <section className="px-6 pb-24 md:pb-32 relative overflow-hidden bg-surface-container-low/20">
+        <div className="absolute inset-0 bg-diagonal-lines pointer-events-none" />
+        <div className="absolute inset-0 bg-corner-glow pointer-events-none" />
+        <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-outline-variant/15 to-transparent" />
+        <div className="max-w-4xl mx-auto relative z-10 pt-24 md:pt-32">
           <h2 className="text-2xl md:text-3xl font-headline font-bold text-center mb-12">Compare plans at a glance</h2>
           <div className="rounded-2xl overflow-hidden border border-outline-variant/[0.08] bg-surface-container/30">
             <table className="w-full text-sm">
@@ -248,8 +255,12 @@ export default function PricingPage() {
       </section>
 
       {/* FAQ */}
-      <section className="px-6 pb-24 md:pb-32">
-        <div className="max-w-3xl mx-auto">
+      <section className="px-6 pb-24 md:pb-32 relative overflow-hidden">
+        <div className="absolute inset-0 bg-honeycomb pointer-events-none" />
+        <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-primary/20 to-transparent" />
+        <div className="absolute top-[20%] left-[-5%] w-[400px] h-[350px] bg-primary/[0.07] rounded-full blur-[120px] pointer-events-none" />
+        <div className="absolute bottom-[20%] right-[-5%] w-[350px] h-[300px] bg-tertiary/[0.06] rounded-full blur-[100px] pointer-events-none" />
+        <div className="max-w-3xl mx-auto relative z-10 pt-24 md:pt-32">
           <h2 className="text-2xl md:text-3xl font-headline font-bold text-center mb-12">Frequently asked questions</h2>
           <div className="space-y-4">
             {FAQ.map((item) => (
@@ -263,8 +274,11 @@ export default function PricingPage() {
       </section>
 
       {/* CTA */}
-      <section className="px-6 pb-24 md:pb-32 text-center">
-        <div className="max-w-3xl mx-auto">
+      <section className="px-6 pb-24 md:pb-32 text-center relative overflow-hidden bg-surface-container-low/20">
+        <div className="absolute inset-0 bg-ripple pointer-events-none" />
+        <div className="absolute inset-0 gradient-mesh pointer-events-none" />
+        <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-outline-variant/15 to-transparent" />
+        <div className="max-w-3xl mx-auto relative z-10 pt-24 md:pt-32">
           <div className="gradient-border rounded-3xl">
             <div className="relative glass-panel noise-overlay p-12 md:p-16 rounded-3xl overflow-hidden">
               <div className="absolute top-0 left-1/4 w-1/2 h-1/2 bg-primary/[0.06] rounded-full blur-[80px] pointer-events-none" />
