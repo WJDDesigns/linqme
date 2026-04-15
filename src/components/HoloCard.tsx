@@ -31,8 +31,8 @@ function clamp(val: number, min = 0, max = 100) {
 export default function HoloCard({
   children,
   className = "",
-  glowColor = "rgba(var(--color-primary), 0.4)",
-  tiltFactor = 5,
+  glowColor = "rgba(var(--color-primary), 0.25)",
+  tiltFactor = 8,
   featured = false,
 }: Props) {
   const cardRef = useRef<HTMLDivElement>(null);
