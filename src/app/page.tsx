@@ -8,10 +8,10 @@ export default function LandingPage() {
     <main className="min-h-screen flex flex-col selection:bg-primary/30">
       {/* Top Nav */}
       <nav className="fixed top-0 w-full z-50 flex justify-between items-center px-6 md:px-8 py-4 bg-background/70 backdrop-blur-2xl border-b border-on-surface/[0.04]">
-        <div className="flex items-center gap-2.5">
+        <Link href="/" className="flex items-center gap-2.5">
           <SiteLaunchLogo className="h-7 w-auto text-primary" ringClassName="text-on-surface/70" />
           <span className="text-lg font-bold font-headline text-on-surface tracking-tight">SiteLaunch</span>
-        </div>
+        </Link>
         <div className="hidden md:flex items-center gap-8">
           <a className="text-sm text-on-surface-variant hover:text-on-surface transition-colors duration-300" href="#features">Features</a>
           <a className="text-sm text-on-surface-variant hover:text-on-surface transition-colors duration-300" href="#how-it-works">How It Works</a>
@@ -175,7 +175,7 @@ export default function LandingPage() {
                     <div className="space-y-2">
                       <div className="text-[11px] font-semibold text-on-surface-variant/60 uppercase tracking-wider mb-2">Recent Submissions</div>
                       {[
-                        { name: "Pop Marketing", status: "Complete", statusColor: "tertiary", time: "2h ago", progress: 100 },
+                        { name: "Bloom Agency", status: "Complete", statusColor: "tertiary", time: "2h ago", progress: 100 },
                         { name: "Horizon Digital", status: "In Progress", statusColor: "primary", time: "5h ago", progress: 65 },
                         { name: "Bloom Studio", status: "Pending Review", statusColor: "warning", time: "1d ago", progress: 100 },
                       ].map((item) => (
@@ -215,7 +215,7 @@ export default function LandingPage() {
                 </div>
               </div>
               <div className="text-[10px] text-on-surface-variant/70 leading-relaxed">
-                Pop Marketing completed their onboarding form with 12 uploaded files.
+                Bloom Agency completed their onboarding form with 12 uploaded files.
               </div>
             </div>
           </div>
@@ -415,9 +415,9 @@ export default function LandingPage() {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <TestimonialCard quote="SiteLaunch cut our client onboarding time from 2 weeks to 2 days. The white-labeling means clients think it's our own tool." name="Sarah Chen" role="Founder, PixelForge Studio" />
-            <TestimonialCard quote="We used to chase clients for assets across email, Slack, and Dropbox. Now everything lands in one place, organized and ready." name="Marcus Reyes" role="Creative Director, BrandHive" featured />
-            <TestimonialCard quote="The form builder is incredibly flexible. We've built different onboarding flows for web design, branding, and SEO clients." name="Emily Nakamura" role="Operations Lead, CreativOps" />
+            <TestimonialCard quote="SiteLaunch cut our client onboarding time from 2 weeks to 2 days. The white-labeling means clients think it's our own tool." name="Lena Morales" role="Founder, PixelForge Studio" />
+            <TestimonialCard quote="We used to chase clients for assets across email, Slack, and Dropbox. Now everything lands in one place, organized and ready." name="Jordan Ellis" role="Creative Director, BrandHive" featured />
+            <TestimonialCard quote="The form builder is incredibly flexible. We've built different onboarding flows for web design, branding, and SEO clients." name="Priya Sandoval" role="Operations Lead, CreativOps" />
           </div>
         </div>
       </section>
@@ -543,10 +543,10 @@ export default function LandingPage() {
       {/* Footer */}
       <footer className="w-full py-12 px-8 border-t border-on-surface/[0.06]">
         <div className="max-w-6xl mx-auto flex flex-col md:flex-row items-center justify-between gap-6">
-          <div className="flex items-center gap-2.5">
+          <Link href="/" className="flex items-center gap-2.5">
             <SiteLaunchLogo className="h-5 w-auto text-primary" ringClassName="text-on-surface/50" />
             <span className="text-sm font-bold text-on-surface font-headline">SiteLaunch</span>
-          </div>
+          </Link>
           <div className="flex flex-wrap justify-center gap-8 text-xs text-on-surface-variant/40 uppercase tracking-widest font-label">
             <a className="hover:text-primary transition-colors duration-300" href="#">Privacy Policy</a>
             <a className="hover:text-primary transition-colors duration-300" href="#">Terms of Service</a>

@@ -1,5 +1,6 @@
 import SignupForm from "./SignupForm";
 import SiteLaunchLogo from "@/components/SiteLaunchLogo";
+import Link from "next/link";
 
 export default function SignupPage() {
   const rootHost = (process.env.NEXT_PUBLIC_ROOT_DOMAIN ?? "mysitelaunch.com").replace(
@@ -17,9 +18,9 @@ export default function SignupPage() {
 
       <div className="relative w-full max-w-lg space-y-6 animate-scale-in">
         {/* Logo */}
-        <div className="flex items-center justify-center mb-2">
+        <Link href="/" className="flex items-center justify-center mb-2">
           <SiteLaunchLogo className="h-14 w-auto text-primary" ringClassName="text-on-surface/60" />
-        </div>
+        </Link>
 
         <div className="text-center">
           <h1 className="text-3xl font-bold tracking-tight font-headline text-on-surface">

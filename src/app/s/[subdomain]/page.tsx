@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { contrastText } from "@/lib/color-utils";
 import { startSubmissionAction } from "./actions";
 import SiteLaunchLogo from "@/components/SiteLaunchLogo";
+import Link from "next/link";
 
 interface Props {
   params: Promise<{ subdomain: string }>;
@@ -130,10 +131,10 @@ export default async function PartnerHomePage({ params }: Props) {
             {footerText ? (
               <p className="text-xs text-on-surface/60">{footerText}</p>
             ) : null}
-            <div className="flex items-center gap-2">
+            <Link href="/" className="flex items-center gap-2">
               <SiteLaunchLogo className="h-5 w-auto text-primary" ringClassName="text-on-surface/50" />
               <span className="text-sm font-bold text-on-surface font-headline">SiteLaunch</span>
-            </div>
+            </Link>
             <p className="text-[10px] uppercase tracking-[0.3em] text-on-surface/30">
               &copy; {new Date().getFullYear()} SiteLaunch &middot; WJD Designs
             </p>

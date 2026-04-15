@@ -65,9 +65,9 @@ export default function LoginPage() {
 
       <div className="relative w-full max-w-sm animate-scale-in">
         {/* Logo */}
-        <div className="flex items-center justify-center mb-8">
+        <Link href="/" className="flex items-center justify-center mb-8">
           <SiteLaunchLogo className="h-14 w-auto text-primary" ringClassName="text-on-surface/60" />
-        </div>
+        </Link>
 
         <div className="gradient-border rounded-2xl">
           <div className="relative glass-panel-strong noise-overlay rounded-2xl p-8">

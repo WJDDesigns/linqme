@@ -8,7 +8,9 @@ export default function NotFound() {
       <div className="absolute top-1/3 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] bg-primary/[0.08] rounded-full blur-[140px] pointer-events-none" />
 
       <div className="relative z-10 max-w-md">
-        <SiteLaunchLogo className="h-12 w-auto text-primary mx-auto mb-8" ringClassName="text-on-surface/40" />
+        <Link href="/" className="block mx-auto mb-8 w-fit">
+          <SiteLaunchLogo className="h-12 w-auto text-primary" ringClassName="text-on-surface/40" />
+        </Link>
         <h1 className="text-7xl font-headline font-extrabold gradient-text mb-4">404</h1>
         <h2 className="text-xl font-headline font-bold text-on-surface mb-3">Page not found</h2>
         <p className="text-on-surface-variant/60 mb-8">

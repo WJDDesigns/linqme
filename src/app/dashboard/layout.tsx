@@ -4,6 +4,7 @@ import SidebarNav from "./SidebarNav";
 import ImpersonationBanner from "./ImpersonationBanner";
 import ThemeToggle from "@/components/ThemeToggle";
 import SiteLaunchLogo from "@/components/SiteLaunchLogo";
+import Link from "next/link";
 
 const TIER_LABELS: Record<string, string> = {
   free: "Free",
@@ -72,7 +73,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
       <aside className="hidden md:flex w-64 shrink-0 flex-col h-screen fixed left-0 border-r border-on-surface/[0.06] bg-background/80 backdrop-blur-xl z-40" style={impersonatingName ? { top: "40px", height: "calc(100vh - 40px)" } : undefined}>
         {/* Logo */}
         <div className="px-6 py-6 mb-2">
-          <div className="flex items-center gap-3">
+          <Link href="/" className="flex items-center gap-3">
             <SiteLaunchLogo className="h-10 w-auto text-primary" ringClassName="text-on-surface/60" />
             <div>
               <h2 className="text-lg font-bold text-on-surface font-headline tracking-tight">
@@ -82,7 +83,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
                 {account ? (TIER_LABELS[account.planTier] ?? account.planTier) : "Platform"}
               </p>
             </div>
-          </div>
+          </Link>
         </div>
 
         {/* Nav with mode toggle */}

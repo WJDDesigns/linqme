@@ -27,7 +27,7 @@ export default async function NewPartnerPage() {
         className="glass-panel rounded-2xl border border-outline-variant/15 p-6 space-y-5"
       >
         <Field label="Name" hint="Displayed to their clients.">
-          <input name="name" required autoFocus className={INPUT_CLS} placeholder="POP Marketing" />
+          <input name="name" required autoFocus className={INPUT_CLS} placeholder="Acme Agency" />
         </Field>
 
         <Field

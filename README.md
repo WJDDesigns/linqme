@@ -66,7 +66,7 @@ update public.profiles set role = 'superadmin' where email = 'wayne@wjddesigns.c
 
 ```sql
 insert into public.partners (slug, name, primary_color)
-values ('pop', 'POP Marketing', '#e11d48');
+values ('acme', 'Acme Agency', '#e11d48');
 ```
 
 ### 6. Run it
