@@ -15,7 +15,7 @@ export default function SignupPage() {
       <div className="absolute top-1/4 left-1/2 -translate-x-1/2 w-[500px] h-[500px] bg-primary/[0.06] rounded-full blur-[140px] pointer-events-none" />
       <div className="absolute bottom-1/3 left-1/4 w-[300px] h-[300px] bg-tertiary/[0.04] rounded-full blur-[100px] pointer-events-none" />
 
-      <div className="relative w-full max-w-md space-y-6 animate-scale-in">
+      <div className="relative w-full max-w-lg space-y-6 animate-scale-in">
         {/* Logo */}
         <div className="flex items-center justify-center mb-2">
           <SiteLaunchLogo className="h-14 w-auto text-primary" ringClassName="text-on-surface/60" />

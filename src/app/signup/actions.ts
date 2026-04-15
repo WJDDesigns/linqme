@@ -19,6 +19,7 @@ function sanitizeSlug(raw: string): string {
 }
 
 export async function signupAction(formData: FormData): Promise<SignupResult> {
+  // Step 1: Account basics
   const email = String(formData.get("email") ?? "").trim().toLowerCase();
   const password = String(formData.get("password") ?? "");
   const companyName = String(formData.get("company_name") ?? "").trim();
@@ -26,6 +27,24 @@ export async function signupAction(formData: FormData): Promise<SignupResult> {
   const slug = sanitizeSlug(slugRaw || companyName);
   const planType = String(formData.get("plan_type") ?? "agency");
 
+  // Step 2: Business details
+  const phone = String(formData.get("phone") ?? "").trim();
+  const website = String(formData.get("website") ?? "").trim();
+  const industry = String(formData.get("industry") ?? "").trim();
+  const billingAddressLine1 = String(formData.get("billing_address_line1") ?? "").trim();
+  const billingAddressLine2 = String(formData.get("billing_address_line2") ?? "").trim();
+  const billingCity = String(formData.get("billing_city") ?? "").trim();
+  const billingState = String(formData.get("billing_state") ?? "").trim();
+  const billingZip = String(formData.get("billing_zip") ?? "").trim();
+  const billingCountry = String(formData.get("billing_country") ?? "US").trim();
+
+  // Step 3: Usage & preferences
+  const teamSize = String(formData.get("team_size") ?? "").trim();
+  const expectedMonthlyClients = String(formData.get("expected_monthly_clients") ?? "").trim();
+  const referralSource = String(formData.get("referral_source") ?? "").trim();
+  const taxId = String(formData.get("tax_id") ?? "").trim();
+
+  // Validation
   if (!email || !password || !companyName || !slug) {
     return { ok: false, error: "All fields are required." };
   }
@@ -63,12 +82,25 @@ export async function signupAction(formData: FormData): Promise<SignupResult> {
   }
   const userId = created.user.id;
 
-  // 3. Bootstrap the top-level partner + membership.
+  // 3. Bootstrap the top-level partner + membership with all profile data.
   const { error: bootErr } = await admin.rpc("bootstrap_account", {
     p_owner_id: userId,
     p_company_name: companyName,
     p_slug: slug,
     p_plan_type: planType,
+    p_phone: phone || null,
+    p_website: website || null,
+    p_industry: industry || null,
+    p_billing_address_line1: billingAddressLine1 || null,
+    p_billing_address_line2: billingAddressLine2 || null,
+    p_billing_city: billingCity || null,
+    p_billing_state: billingState || null,
+    p_billing_zip: billingZip || null,
+    p_billing_country: billingCountry || "US",
+    p_team_size: teamSize || null,
+    p_expected_monthly_clients: expectedMonthlyClients || null,
+    p_referral_source: referralSource || null,
+    p_tax_id: taxId || null,
   });
   if (bootErr) {
     await admin.auth.admin.deleteUser(userId);
@@ -88,7 +120,9 @@ export async function signupAction(formData: FormData): Promise<SignupResult> {
       planType: planType as "agency" | "agency_plus_partners",
     });
   } catch (err) {
-    console.error("[signup] welcome email failed:", err);
+    if (process.env.NODE_ENV === "development") {
+      console.error("[signup] welcome email failed:", err);
+    }
   }
 
   if (signInErr) {
