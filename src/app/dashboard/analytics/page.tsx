@@ -1,9 +1,7 @@
 import { requireSession, getCurrentAccount } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
-import dynamic from "next/dynamic";
-
-const AnalyticsCharts = dynamic(() => import("./AnalyticsCharts"), { ssr: false });
+import AnalyticsCharts from "./AnalyticsChartsLazy";
 
 export default async function AnalyticsPage() {
   const session = await requireSession();
