@@ -44,7 +44,9 @@ export async function middleware(request: NextRequest) {
       pathname.startsWith("/checkout") ||
       pathname.startsWith("/invite");
     if (!user && !isPublicRoute) {
+      const originalUrl = `${pathname}${url.search}`;
       url.pathname = "/login";
+      url.search = `?next=${encodeURIComponent(originalUrl)}`;
       return NextResponse.redirect(url);
     }
     if (user && pathname === "/") {

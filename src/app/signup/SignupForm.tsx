@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { signupAction } from "./actions";
 
@@ -13,6 +14,8 @@ const SELECT_CLS =
 const STEPS = ["Account", "Business", "Details"] as const;
 
 export default function SignupForm({ rootHost }: { rootHost: string }) {
+  const searchParams = useSearchParams();
+  const nextUrl = searchParams.get("next");
   const [step, setStep] = useState(0);
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
@@ -103,7 +106,8 @@ export default function SignupForm({ rootHost }: { rootHost: string }) {
       return;
     }
 
-    window.location.href = result.next;
+    // If there's a ?next= param (e.g. from checkout), go there instead of dashboard
+    window.location.href = nextUrl && result.next === "/dashboard" ? nextUrl : result.next;
   }
 
   return (
@@ -440,7 +444,10 @@ export default function SignupForm({ rootHost }: { rootHost: string }) {
 
         <p className="text-xs text-on-surface-variant/50 text-center">
           Already have an account?{" "}
-          <Link href="/login" className="font-medium text-primary hover:underline">
+          <Link
+            href={nextUrl ? `/login?next=${encodeURIComponent(nextUrl)}` : "/login"}
+            className="font-medium text-primary hover:underline"
+          >
             Sign in
           </Link>
         </p>

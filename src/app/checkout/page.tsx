@@ -26,8 +26,10 @@ interface Props {
 }
 
 export default async function CheckoutPage({ searchParams }: Props) {
-  const session = await requireSession();
   const { plan: selectedPlan } = await searchParams;
+  // Preserve the checkout URL so user returns here after login/signup
+  const redirectTo = selectedPlan ? `/checkout?plan=${selectedPlan}` : "/checkout";
+  const session = await requireSession(redirectTo);
   const plans = await getPlans();
   const paidPlans = plans.filter((p) => p.priceMonthly > 0);
 

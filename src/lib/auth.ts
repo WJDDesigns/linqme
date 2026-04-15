@@ -51,10 +51,16 @@ export async function getSession(): Promise<SessionContext | null> {
 
 /**
  * Guard: requires an authenticated user. Redirects to /login if missing.
+ * Pass `redirectTo` to preserve the original URL so the user returns after login.
  */
-export async function requireSession(): Promise<SessionContext> {
+export async function requireSession(redirectTo?: string): Promise<SessionContext> {
   const session = await getSession();
-  if (!session) redirect("/login");
+  if (!session) {
+    const loginUrl = redirectTo
+      ? `/login?next=${encodeURIComponent(redirectTo)}`
+      : "/login";
+    redirect(loginUrl);
+  }
   return session;
 }
 

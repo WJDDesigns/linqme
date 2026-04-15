@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import SiteLaunchLogo from "@/components/SiteLaunchLogo";
 import Link from "next/link";
@@ -13,6 +13,8 @@ const INPUT_CLS =
 
 export default function LoginPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const nextUrl = searchParams.get("next") || "/dashboard";
   const [mode, setMode] = useState<Mode>("password");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -32,7 +34,7 @@ export default function LoginPage() {
       setErrorMsg(error.message);
       return;
     }
-    router.push("/dashboard");
+    router.push(nextUrl);
     router.refresh();
   }
 
@@ -42,9 +44,10 @@ export default function LoginPage() {
     setErrorMsg(null);
 
     const supabase = createClient();
+    const callbackUrl = `${window.location.origin}/auth/callback?next=${encodeURIComponent(nextUrl)}`;
     const { error } = await supabase.auth.signInWithOtp({
       email,
-      options: { emailRedirectTo: `${window.location.origin}/auth/callback` },
+      options: { emailRedirectTo: callbackUrl },
     });
 
     if (error) {
@@ -147,7 +150,10 @@ export default function LoginPage() {
             )}
             <p className="mt-6 text-center text-xs text-on-surface-variant/50">
               Don&apos;t have an account?{" "}
-              <Link href="/signup" className="font-medium text-primary hover:underline">
+              <Link
+                href={nextUrl !== "/dashboard" ? `/signup?next=${encodeURIComponent(nextUrl)}` : "/signup"}
+                className="font-medium text-primary hover:underline"
+              >
                 Create one
               </Link>
             </p>
