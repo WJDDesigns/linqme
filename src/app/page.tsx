@@ -30,20 +30,27 @@ export default function LandingPage() {
         </div>
       </nav>
 
-      {/* Hero */}
+      {/* ═══════════════════════════════════════════════
+          HERO — gradient mesh + floating orbs + spotlight
+         ═══════════════════════════════════════════════ */}
       <section className="relative pt-36 md:pt-44 pb-24 md:pb-32 px-6 overflow-hidden">
-        {/* Gradient mesh background */}
+        {/* Layered background */}
         <div className="absolute inset-0 gradient-mesh pointer-events-none" />
-        {/* Radial hero spotlight */}
-        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[600px] bg-gradient-radial from-primary/[0.08] via-primary/[0.02] to-transparent rounded-full blur-3xl pointer-events-none" />
-        {/* Decorative floating orbs */}
-        <div className="absolute top-32 left-[10%] w-3 h-3 rounded-full bg-primary/30 float hidden md:block" />
-        <div className="absolute top-48 right-[15%] w-2 h-2 rounded-full bg-tertiary/40 float-delayed hidden md:block" />
-        <div className="absolute bottom-32 left-[20%] w-2.5 h-2.5 rounded-full bg-inverse-primary/30 float hidden md:block" />
-        <div className="absolute bottom-40 right-[25%] w-1.5 h-1.5 rounded-full bg-primary/20 float-delayed hidden md:block" />
+        <div className="absolute inset-0 bg-dot-grid pointer-events-none opacity-60" />
+        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[900px] h-[700px] bg-gradient-radial from-primary/[0.10] via-primary/[0.03] to-transparent rounded-full blur-3xl pointer-events-none" />
+
+        {/* Floating orbs */}
+        <div className="absolute top-32 left-[8%] w-4 h-4 rounded-full bg-primary/25 blur-[2px] float hidden md:block" />
+        <div className="absolute top-48 right-[12%] w-2.5 h-2.5 rounded-full bg-tertiary/35 blur-[1px] float-delayed hidden md:block" />
+        <div className="absolute bottom-28 left-[18%] w-3 h-3 rounded-full bg-inverse-primary/25 blur-[2px] float hidden md:block" />
+        <div className="absolute bottom-40 right-[22%] w-2 h-2 rounded-full bg-primary/20 float-delayed hidden md:block" />
+        <div className="absolute top-64 left-[45%] w-1.5 h-1.5 rounded-full bg-tertiary/30 float hidden md:block" />
+
+        {/* Animated gradient ring behind hero text */}
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] rounded-full border border-primary/[0.06] animate-glow-breathe pointer-events-none hidden md:block" />
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[700px] h-[700px] rounded-full border border-primary/[0.03] animate-glow-breathe pointer-events-none hidden md:block" style={{ animationDelay: "2s" }} />
 
         <div className="max-w-5xl mx-auto text-center relative z-10">
-          {/* Badge */}
           <div className="animate-fade-up inline-flex items-center gap-2 px-4 py-1.5 rounded-full glass-panel border border-primary/15 mb-8">
             <span className="w-1.5 h-1.5 rounded-full bg-tertiary animate-glow-pulse" />
             <span className="text-xs font-semibold text-on-surface-variant tracking-wide">Now in Public Beta</span>
@@ -85,7 +92,6 @@ export default function LandingPage() {
         <div className="animate-slide-up delay-5 max-w-4xl mx-auto mt-16 md:mt-20 relative">
           <div className="gradient-border rounded-2xl">
             <div className="relative rounded-2xl overflow-hidden bg-surface-container border border-outline-variant/10 shadow-[0_32px_80px_rgba(0,0,0,0.3)]">
-              {/* Browser chrome */}
               <div className="flex items-center gap-2 px-5 py-3 bg-surface-container-high/50 border-b border-outline-variant/10">
                 <div className="flex gap-1.5">
                   <div className="w-2.5 h-2.5 rounded-full bg-error/40" />
@@ -99,7 +105,6 @@ export default function LandingPage() {
                   </div>
                 </div>
               </div>
-              {/* Dashboard mockup content */}
               <div className="p-6 md:p-8 space-y-4">
                 <div className="flex gap-4">
                   <div className="w-32 h-full rounded-xl bg-surface-container-low p-4 hidden md:block space-y-3">
@@ -142,39 +147,54 @@ export default function LandingPage() {
               </div>
             </div>
           </div>
-          {/* Glow under mockup */}
           <div className="absolute -bottom-8 left-1/2 -translate-x-1/2 w-3/4 h-16 bg-primary/10 blur-[60px] rounded-full" />
         </div>
       </section>
 
-      {/* Social proof / trust strip */}
-      <section className="py-12 border-y border-on-surface/[0.04]">
-        <div className="max-w-5xl mx-auto px-6 text-center">
+      {/* ═══════════════════════════════════════════════
+          TRUST STRIP — scanlines + subtle glow
+         ═══════════════════════════════════════════════ */}
+      <section className="relative py-14 border-y border-on-surface/[0.04] overflow-hidden">
+        <div className="absolute inset-0 bg-scanlines pointer-events-none" />
+        <div className="absolute inset-0 bg-spotlight pointer-events-none opacity-50" />
+        <div className="max-w-5xl mx-auto px-6 text-center relative z-10">
           <p className="text-xs uppercase tracking-[0.25em] text-on-surface-variant/40 font-semibold mb-6">Trusted by agencies and creative teams worldwide</p>
           <div className="flex flex-wrap justify-center gap-x-12 gap-y-4 items-center text-on-surface-variant/20">
             {["Agency Co", "Studio X", "PixelForge", "BrandHive", "CreativOps"].map((name) => (
-              <span key={name} className="text-lg md:text-xl font-headline font-bold tracking-tight">{name}</span>
+              <span key={name} className="text-lg md:text-xl font-headline font-bold tracking-tight hover:text-on-surface-variant/40 transition-colors duration-500">{name}</span>
             ))}
           </div>
         </div>
       </section>
 
-      {/* Stats */}
-      <section className="py-20 md:py-28 px-6">
-        <div className="max-w-5xl mx-auto">
+      {/* ═══════════════════════════════════════════════
+          STATS — ripple rings + corner glows
+         ═══════════════════════════════════════════════ */}
+      <section className="relative py-24 md:py-32 px-6 overflow-hidden">
+        <div className="absolute inset-0 bg-ripple pointer-events-none" />
+        <div className="absolute inset-0 bg-corner-glow pointer-events-none" />
+
+        <div className="max-w-5xl mx-auto relative z-10">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-6 md:gap-8">
-            <StatBlock value="10,000+" label="Submissions collected" />
-            <StatBlock value="500+" label="Agencies onboard" />
-            <StatBlock value="99.9%" label="Uptime SLA" />
-            <StatBlock value="2 min" label="Average setup time" />
+            <StatBlock value="10,000+" label="Submissions collected" icon="fa-paper-plane" />
+            <StatBlock value="500+" label="Agencies onboard" icon="fa-building" />
+            <StatBlock value="99.9%" label="Uptime SLA" icon="fa-shield-halved" />
+            <StatBlock value="2 min" label="Average setup time" icon="fa-bolt" />
           </div>
         </div>
       </section>
 
-      {/* How It Works */}
-      <section id="how-it-works" className="py-24 md:py-32 relative overflow-hidden">
+      {/* ═══════════════════════════════════════════════
+          HOW IT WORKS — topographic contour lines
+         ═══════════════════════════════════════════════ */}
+      <section id="how-it-works" className="relative py-24 md:py-32 overflow-hidden">
+        <div className="absolute inset-0 bg-topo pointer-events-none" />
         <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-outline-variant/15 to-transparent" />
-        <div className="max-w-6xl mx-auto px-6">
+        {/* Floating accent blobs */}
+        <div className="absolute top-20 right-[10%] w-[300px] h-[300px] bg-tertiary/[0.04] rounded-full blur-[100px] pointer-events-none animate-glow-breathe" />
+        <div className="absolute bottom-20 left-[5%] w-[250px] h-[250px] bg-primary/[0.04] rounded-full blur-[80px] pointer-events-none animate-glow-breathe" style={{ animationDelay: "3s" }} />
+
+        <div className="max-w-6xl mx-auto px-6 relative z-10">
           <div className="text-center mb-16 md:mb-20">
             <span className="inline-block text-xs font-bold text-tertiary uppercase tracking-[0.2em] mb-4">How It Works</span>
             <h2 className="text-4xl md:text-5xl font-headline font-bold text-on-surface leading-tight">
@@ -182,37 +202,50 @@ export default function LandingPage() {
             </h2>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-8">
-            <StepCard
-              num={1}
-              title="Deploy Your Portal"
-              desc="Send a personalized, white-labeled link to your client. No login required for them, full control for you."
-              icon="fa-rocket"
-              delay="delay-1"
-            />
-            <StepCard
-              num={2}
-              title="Collect with Precision"
-              desc="Clients fill out a step-by-step onboarding form and drag-and-drop assets into pre-defined containers."
-              icon="fa-bullseye"
-              delay="delay-2"
-            />
-            <StepCard
-              num={3}
-              title="Launch Faster"
-              desc="Get notified the moment everything is submitted. All files and data organized in one dashboard."
-              icon="fa-bolt"
-              delay="delay-3"
-            />
+          {/* Connected timeline */}
+          <div className="relative">
+            {/* Vertical connector line (desktop) */}
+            <div className="hidden md:block absolute top-0 bottom-0 left-1/2 -translate-x-1/2 w-px bg-gradient-to-b from-primary/20 via-tertiary/15 to-primary/20" />
+
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-8">
+              <StepCard
+                num={1}
+                title="Deploy Your Portal"
+                desc="Send a personalized, white-labeled link to your client. No login required for them, full control for you."
+                icon="fa-rocket"
+                delay="delay-1"
+                accentColor="primary"
+              />
+              <StepCard
+                num={2}
+                title="Collect with Precision"
+                desc="Clients fill out a step-by-step onboarding form and drag-and-drop assets into pre-defined containers."
+                icon="fa-bullseye"
+                delay="delay-2"
+                accentColor="tertiary"
+              />
+              <StepCard
+                num={3}
+                title="Launch Faster"
+                desc="Get notified the moment everything is submitted. All files and data organized in one dashboard."
+                icon="fa-bolt"
+                delay="delay-3"
+                accentColor="primary"
+              />
+            </div>
           </div>
         </div>
       </section>
 
-      {/* Features Bento Grid */}
-      <section id="features" className="py-24 md:py-32 px-6 relative">
+      {/* ═══════════════════════════════════════════════
+          FEATURES BENTO — crosshatch grid + aurora
+         ═══════════════════════════════════════════════ */}
+      <section id="features" className="relative py-24 md:py-32 px-6 overflow-hidden">
+        <div className="absolute inset-0 bg-crosshatch pointer-events-none" />
+        <div className="absolute inset-0 bg-aurora pointer-events-none" />
         <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-primary/20 to-transparent" />
 
-        <div className="max-w-6xl mx-auto">
+        <div className="max-w-6xl mx-auto relative z-10">
           <div className="text-center mb-16 md:mb-20">
             <span className="inline-block text-xs font-bold text-primary uppercase tracking-[0.2em] mb-4">Features</span>
             <h2 className="text-4xl md:text-5xl font-headline font-bold mb-4">Built for the Modern Agency</h2>
@@ -222,9 +255,9 @@ export default function LandingPage() {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
             {/* Feature 1 — wide */}
             <div className="md:col-span-2 group relative rounded-2xl overflow-hidden glow-card">
-              <div className="gradient-border rounded-2xl">
+              <div className="gradient-border rounded-2xl h-full">
                 <div className="relative glass-panel noise-overlay p-8 md:p-10 rounded-2xl min-h-[220px] flex flex-col justify-end">
-                  <div className="absolute top-6 right-6 w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center text-primary group-hover:scale-110 transition-transform duration-500">
+                  <div className="absolute top-6 right-6 w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center text-primary group-hover:scale-110 group-hover:bg-primary/15 transition-all duration-500">
                     <i className="fa-solid fa-wand-magic-sparkles text-lg" />
                   </div>
                   <div className="relative z-10">
@@ -238,7 +271,7 @@ export default function LandingPage() {
             {/* Feature 2 */}
             <div className="group relative rounded-2xl overflow-hidden glow-card">
               <div className="relative bg-surface-container-high/60 noise-overlay p-8 rounded-2xl border border-outline-variant/10 min-h-[220px] flex flex-col justify-end">
-                <div className="absolute top-6 right-6 w-12 h-12 rounded-xl bg-tertiary/10 flex items-center justify-center text-tertiary group-hover:scale-110 transition-transform duration-500">
+                <div className="absolute top-6 right-6 w-12 h-12 rounded-xl bg-tertiary/10 flex items-center justify-center text-tertiary group-hover:scale-110 group-hover:bg-tertiary/15 transition-all duration-500">
                   <i className="fa-solid fa-sitemap text-lg" />
                 </div>
                 <div className="relative z-10">
@@ -251,7 +284,7 @@ export default function LandingPage() {
             {/* Feature 3 */}
             <div className="group relative rounded-2xl overflow-hidden glow-card">
               <div className="relative bg-surface-container-high/60 noise-overlay p-8 rounded-2xl border border-outline-variant/10 min-h-[220px] flex flex-col justify-end">
-                <div className="absolute top-6 right-6 w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center text-primary group-hover:scale-110 transition-transform duration-500">
+                <div className="absolute top-6 right-6 w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center text-primary group-hover:scale-110 group-hover:bg-primary/15 transition-all duration-500">
                   <i className="fa-solid fa-pen-ruler text-lg" />
                 </div>
                 <div className="relative z-10">
@@ -263,9 +296,9 @@ export default function LandingPage() {
 
             {/* Feature 4 — wide */}
             <div className="md:col-span-2 group relative rounded-2xl overflow-hidden glow-card">
-              <div className="gradient-border rounded-2xl">
+              <div className="gradient-border rounded-2xl h-full">
                 <div className="relative glass-panel noise-overlay p-8 md:p-10 rounded-2xl min-h-[220px] flex flex-col justify-end">
-                  <div className="absolute top-6 right-6 w-12 h-12 rounded-xl bg-tertiary/10 flex items-center justify-center text-tertiary group-hover:scale-110 transition-transform duration-500">
+                  <div className="absolute top-6 right-6 w-12 h-12 rounded-xl bg-tertiary/10 flex items-center justify-center text-tertiary group-hover:scale-110 group-hover:bg-tertiary/15 transition-all duration-500">
                     <i className="fa-solid fa-shield-halved text-lg" />
                   </div>
                   <div className="relative z-10">
@@ -277,7 +310,7 @@ export default function LandingPage() {
             </div>
           </div>
 
-          {/* Additional features list */}
+          {/* Mini features — iso grid behind */}
           <div className="mt-12 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
             <MiniFeature icon="fa-file-csv" title="CSV & PDF Exports" desc="Download submissions as spreadsheets or branded PDFs." />
             <MiniFeature icon="fa-clock-rotate-left" title="Auto-save Drafts" desc="Clients can leave and come back. Nothing is ever lost." />
@@ -289,10 +322,15 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* Testimonials */}
-      <section className="py-24 md:py-32 px-6 relative overflow-hidden">
+      {/* ═══════════════════════════════════════════════
+          TESTIMONIALS — diagonal lines + dual glows
+         ═══════════════════════════════════════════════ */}
+      <section className="relative py-24 md:py-32 px-6 overflow-hidden">
+        <div className="absolute inset-0 bg-diagonal-lines pointer-events-none" />
         <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-outline-variant/15 to-transparent" />
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[400px] bg-primary/[0.03] rounded-full blur-[120px] pointer-events-none" />
+        {/* Dual ambient blobs */}
+        <div className="absolute top-1/4 left-[5%] w-[400px] h-[350px] bg-primary/[0.05] rounded-full blur-[120px] pointer-events-none animate-glow-breathe" />
+        <div className="absolute bottom-1/4 right-[5%] w-[350px] h-[300px] bg-tertiary/[0.04] rounded-full blur-[100px] pointer-events-none animate-glow-breathe" style={{ animationDelay: "2.5s" }} />
 
         <div className="max-w-6xl mx-auto relative z-10">
           <div className="text-center mb-16 md:mb-20">
@@ -322,10 +360,18 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* Use cases */}
-      <section className="py-24 md:py-32 px-6 relative">
+      {/* ═══════════════════════════════════════════════
+          USE CASES — iso grid + spotlight
+         ═══════════════════════════════════════════════ */}
+      <section className="relative py-24 md:py-32 px-6 overflow-hidden">
+        <div className="absolute inset-0 bg-iso-grid pointer-events-none" />
+        <div className="absolute inset-0 bg-spotlight pointer-events-none" />
         <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-primary/20 to-transparent" />
-        <div className="max-w-6xl mx-auto">
+        {/* Accent streak */}
+        <div className="absolute top-[30%] -left-[10%] w-[60%] h-px bg-gradient-to-r from-transparent via-primary/10 to-transparent rotate-[8deg] pointer-events-none" />
+        <div className="absolute bottom-[30%] -right-[10%] w-[60%] h-px bg-gradient-to-r from-transparent via-tertiary/10 to-transparent -rotate-[5deg] pointer-events-none" />
+
+        <div className="max-w-6xl mx-auto relative z-10">
           <div className="text-center mb-16 md:mb-20">
             <span className="inline-block text-xs font-bold text-primary uppercase tracking-[0.2em] mb-4">Use Cases</span>
             <h2 className="text-4xl md:text-5xl font-headline font-bold mb-4">Works for every kind of agency</h2>
@@ -337,30 +383,39 @@ export default function LandingPage() {
               icon="fa-laptop-code"
               title="Web Design & Development"
               desc="Collect copy, images, brand guidelines, and sitemap approvals before a single pixel is pushed. Stop waiting on clients to dig through their Google Drive."
+              accent="primary"
             />
             <UseCaseCard
               icon="fa-bullhorn"
               title="Marketing & Social Media"
               desc="Gather brand voice guidelines, campaign briefs, target audience details, and creative assets in a structured, repeatable flow."
+              accent="tertiary"
             />
             <UseCaseCard
               icon="fa-paintbrush"
               title="Branding & Identity"
               desc="Onboard new branding clients with questionnaires about their vision, competitors, color preferences, and inspiration boards."
+              accent="tertiary"
             />
             <UseCaseCard
               icon="fa-handshake"
               title="Consulting & Freelance"
               desc="Standardize your intake process across clients. Collect project requirements, timelines, budgets, and stakeholder info upfront."
+              accent="primary"
             />
           </div>
         </div>
       </section>
 
-      {/* Pricing teaser */}
-      <section className="py-24 md:py-32 px-6 relative overflow-hidden">
+      {/* ═══════════════════════════════════════════════
+          PRICING TEASER — dot grid + aurora
+         ═══════════════════════════════════════════════ */}
+      <section className="relative py-24 md:py-32 px-6 overflow-hidden">
+        <div className="absolute inset-0 bg-dot-grid pointer-events-none opacity-40" />
+        <div className="absolute inset-0 bg-aurora pointer-events-none opacity-70" />
         <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-outline-variant/15 to-transparent" />
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[400px] bg-primary/[0.04] rounded-full blur-[120px] pointer-events-none" />
+        {/* Central glow */}
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[400px] bg-primary/[0.06] rounded-full blur-[120px] pointer-events-none" />
 
         <div className="max-w-4xl mx-auto relative z-10 text-center">
           <span className="inline-block text-xs font-bold text-primary uppercase tracking-[0.2em] mb-4">Pricing</span>
@@ -370,20 +425,20 @@ export default function LandingPage() {
           </p>
 
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-5 mb-12">
-            <div className="glass-panel rounded-2xl border border-outline-variant/[0.08] p-6 text-center">
+            <div className="glass-panel rounded-2xl border border-outline-variant/[0.08] p-6 text-center hover:border-outline-variant/20 transition-all duration-500 glow-card">
               <h3 className="text-lg font-bold font-headline mb-1">Comet</h3>
               <div className="text-3xl font-extrabold font-headline mb-2">Free</div>
               <p className="text-xs text-on-surface-variant/60">1 submission/mo &middot; 1 GB</p>
             </div>
             <div className="gradient-border rounded-2xl">
-              <div className="glass-panel rounded-2xl p-6 text-center relative">
-                <div className="absolute -top-px left-1/2 -translate-x-1/2 w-20 h-px bg-gradient-to-r from-transparent via-primary to-transparent" />
+              <div className="glass-panel rounded-2xl p-6 text-center relative glow-card">
+                <div className="absolute -top-px left-1/2 -translate-x-1/2 w-32 h-px bg-gradient-to-r from-transparent via-primary to-transparent" />
                 <h3 className="text-lg font-bold font-headline mb-1 text-primary">Nova</h3>
                 <div className="text-3xl font-extrabold font-headline gradient-text mb-2">$99<span className="text-base font-normal text-on-surface-variant">/mo</span></div>
                 <p className="text-xs text-on-surface-variant/60">25 submissions/mo &middot; 50 GB</p>
               </div>
             </div>
-            <div className="glass-panel rounded-2xl border border-outline-variant/[0.08] p-6 text-center">
+            <div className="glass-panel rounded-2xl border border-outline-variant/[0.08] p-6 text-center hover:border-outline-variant/20 transition-all duration-500 glow-card">
               <h3 className="text-lg font-bold font-headline mb-1">Supernova</h3>
               <div className="text-3xl font-extrabold font-headline mb-2">$249<span className="text-base font-normal text-on-surface-variant">/mo</span></div>
               <p className="text-xs text-on-surface-variant/60">Unlimited &middot; 500 GB</p>
@@ -400,10 +455,15 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* FAQ */}
-      <section className="py-24 md:py-32 px-6 relative">
+      {/* ═══════════════════════════════════════════════
+          FAQ — crosshatch + corner glow
+         ═══════════════════════════════════════════════ */}
+      <section className="relative py-24 md:py-32 px-6 overflow-hidden">
+        <div className="absolute inset-0 bg-crosshatch pointer-events-none opacity-60" />
+        <div className="absolute inset-0 bg-corner-glow pointer-events-none" />
         <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-primary/20 to-transparent" />
-        <div className="max-w-3xl mx-auto">
+
+        <div className="max-w-3xl mx-auto relative z-10">
           <div className="text-center mb-16 md:mb-20">
             <span className="inline-block text-xs font-bold text-primary uppercase tracking-[0.2em] mb-4">FAQ</span>
             <h2 className="text-4xl md:text-5xl font-headline font-bold mb-4">Common questions</h2>
@@ -420,13 +480,21 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* CTA */}
-      <section className="py-24 md:py-32 px-6 text-center relative">
-        <div className="max-w-4xl mx-auto">
+      {/* ═══════════════════════════════════════════════
+          CTA — full ripple + mesh + breathing glow
+         ═══════════════════════════════════════════════ */}
+      <section className="relative py-24 md:py-32 px-6 text-center overflow-hidden">
+        <div className="absolute inset-0 bg-ripple pointer-events-none" />
+        <div className="absolute inset-0 gradient-mesh pointer-events-none opacity-60" />
+
+        <div className="max-w-4xl mx-auto relative z-10">
           <div className="gradient-border rounded-3xl">
             <div className="relative glass-panel noise-overlay p-12 md:p-20 rounded-3xl overflow-hidden">
-              <div className="absolute top-0 left-1/4 w-1/2 h-1/2 bg-primary/[0.06] rounded-full blur-[80px] pointer-events-none" />
-              <div className="absolute bottom-0 right-1/4 w-1/3 h-1/3 bg-tertiary/[0.04] rounded-full blur-[60px] pointer-events-none" />
+              <div className="absolute top-0 left-1/4 w-1/2 h-1/2 bg-primary/[0.08] rounded-full blur-[80px] pointer-events-none animate-glow-breathe" />
+              <div className="absolute bottom-0 right-1/4 w-1/3 h-1/3 bg-tertiary/[0.06] rounded-full blur-[60px] pointer-events-none animate-glow-breathe" style={{ animationDelay: "2s" }} />
+              {/* Decorative rings */}
+              <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[400px] h-[400px] rounded-full border border-primary/[0.05] pointer-events-none" />
+              <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] rounded-full border border-primary/[0.03] pointer-events-none" />
 
               <h2 className="text-4xl md:text-5xl font-headline font-bold mb-6 relative z-10">
                 Ready to stop chasing content?
@@ -472,24 +540,32 @@ export default function LandingPage() {
 
 /* ── Sub-components ───────────────────────────────── */
 
-function StatBlock({ value, label }: { value: string; label: string }) {
+function StatBlock({ value, label, icon }: { value: string; label: string; icon: string }) {
   return (
-    <div className="text-center">
+    <div className="text-center group">
+      <div className="inline-flex items-center justify-center w-12 h-12 rounded-xl bg-primary/10 mb-4 group-hover:bg-primary/15 group-hover:scale-110 transition-all duration-500">
+        <i className={`fa-solid ${icon} text-primary`} />
+      </div>
       <div className="text-4xl md:text-5xl font-headline font-extrabold gradient-text mb-2">{value}</div>
       <p className="text-sm text-on-surface-variant/60">{label}</p>
     </div>
   );
 }
 
-function StepCard({ num, title, desc, icon, delay }: { num: number; title: string; desc: string; icon: string; delay: string }) {
+function StepCard({ num, title, desc, icon, delay, accentColor }: { num: number; title: string; desc: string; icon: string; delay: string; accentColor: string }) {
+  const colorClasses = accentColor === "tertiary"
+    ? { numBg: "bg-tertiary/10", numText: "text-tertiary", iconBg: "bg-tertiary/10 group-hover:bg-tertiary/15", iconText: "text-tertiary" }
+    : { numBg: "bg-primary/10", numText: "text-primary", iconBg: "bg-primary/10 group-hover:bg-primary/15", iconText: "text-primary" };
+
   return (
     <div className={`animate-fade-up ${delay} group relative`}>
       <div className="relative glass-panel noise-overlay rounded-2xl border border-outline-variant/10 p-8 h-full hover:border-primary/20 transition-all duration-500 glow-card">
+        {/* Step number glow ring */}
         <div className="flex items-center gap-4 mb-5">
-          <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center text-primary text-sm font-bold font-headline group-hover:bg-primary/15 transition-colors">
+          <div className={`relative w-10 h-10 rounded-full ${colorClasses.numBg} flex items-center justify-center ${colorClasses.numText} text-sm font-bold font-headline group-hover:shadow-[0_0_20px_rgba(var(--color-${accentColor}),0.2)] transition-all duration-500`}>
             {num}
           </div>
-          <div className="w-10 h-10 rounded-xl bg-surface-container-high/60 flex items-center justify-center text-on-surface-variant/40 group-hover:text-primary transition-colors">
+          <div className={`w-10 h-10 rounded-xl ${colorClasses.iconBg} flex items-center justify-center ${colorClasses.iconText} transition-all duration-500`}>
             <i className={`fa-solid ${icon}`} />
           </div>
         </div>
@@ -502,8 +578,8 @@ function StepCard({ num, title, desc, icon, delay }: { num: number; title: strin
 
 function MiniFeature({ icon, title, desc }: { icon: string; title: string; desc: string }) {
   return (
-    <div className="flex items-start gap-4 p-5 rounded-xl border border-outline-variant/[0.06] hover:border-primary/15 transition-all duration-300 group">
-      <div className="w-9 h-9 rounded-lg bg-primary/10 flex items-center justify-center text-primary shrink-0 group-hover:scale-110 transition-transform duration-500">
+    <div className="flex items-start gap-4 p-5 rounded-xl border border-outline-variant/[0.06] hover:border-primary/15 hover:bg-primary/[0.02] transition-all duration-300 group">
+      <div className="w-9 h-9 rounded-lg bg-primary/10 flex items-center justify-center text-primary shrink-0 group-hover:scale-110 group-hover:bg-primary/15 transition-all duration-500">
         <i className={`fa-solid ${icon} text-sm`} />
       </div>
       <div>
@@ -516,10 +592,10 @@ function MiniFeature({ icon, title, desc }: { icon: string; title: string; desc:
 
 function TestimonialCard({ quote, name, role, featured }: { quote: string; name: string; role: string; featured?: boolean }) {
   return (
-    <div className={`rounded-2xl p-8 flex flex-col justify-between h-full ${
+    <div className={`rounded-2xl p-8 flex flex-col justify-between h-full transition-all duration-500 glow-card ${
       featured
         ? "gradient-border"
-        : "border border-outline-variant/[0.08]"
+        : "border border-outline-variant/[0.08] hover:border-outline-variant/15"
     }`}>
       <div className={featured ? "glass-panel rounded-2xl p-8 -m-8 h-full flex flex-col justify-between" : "flex flex-col justify-between h-full"}>
         <div>
@@ -530,19 +606,28 @@ function TestimonialCard({ quote, name, role, featured }: { quote: string; name:
           </div>
           <p className="text-on-surface/90 leading-relaxed mb-6">&ldquo;{quote}&rdquo;</p>
         </div>
-        <div>
-          <p className="font-bold text-sm">{name}</p>
-          <p className="text-xs text-on-surface-variant/50">{role}</p>
+        <div className="flex items-center gap-3">
+          <div className="w-8 h-8 rounded-full bg-gradient-to-br from-primary/20 to-tertiary/20 flex items-center justify-center text-xs font-bold text-primary">
+            {name.charAt(0)}
+          </div>
+          <div>
+            <p className="font-bold text-sm">{name}</p>
+            <p className="text-xs text-on-surface-variant/50">{role}</p>
+          </div>
         </div>
       </div>
     </div>
   );
 }
 
-function UseCaseCard({ icon, title, desc }: { icon: string; title: string; desc: string }) {
+function UseCaseCard({ icon, title, desc, accent }: { icon: string; title: string; desc: string; accent: string }) {
+  const colors = accent === "tertiary"
+    ? { iconBg: "bg-tertiary/10", iconText: "text-tertiary", hoverBg: "group-hover:bg-tertiary/15" }
+    : { iconBg: "bg-primary/10", iconText: "text-primary", hoverBg: "group-hover:bg-primary/15" };
+
   return (
-    <div className="glass-panel noise-overlay rounded-2xl border border-outline-variant/[0.08] p-8 relative overflow-hidden group glow-card">
-      <div className="absolute top-6 right-6 w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center text-primary group-hover:scale-110 transition-transform duration-500">
+    <div className="glass-panel noise-overlay rounded-2xl border border-outline-variant/[0.08] p-8 relative overflow-hidden group glow-card hover:border-outline-variant/15 transition-all duration-500">
+      <div className={`absolute top-6 right-6 w-12 h-12 rounded-xl ${colors.iconBg} flex items-center justify-center ${colors.iconText} group-hover:scale-110 ${colors.hoverBg} transition-all duration-500`}>
         <i className={`fa-solid ${icon} text-lg`} />
       </div>
       <h3 className="text-xl font-bold mb-3 relative z-10 pr-16">{title}</h3>
@@ -553,7 +638,7 @@ function UseCaseCard({ icon, title, desc }: { icon: string; title: string; desc:
 
 function FaqItem({ q, a }: { q: string; a: string }) {
   return (
-    <div className="glass-panel rounded-2xl border border-outline-variant/[0.08] p-6">
+    <div className="glass-panel rounded-2xl border border-outline-variant/[0.08] p-6 hover:border-outline-variant/15 transition-all duration-300 glow-card">
       <h3 className="font-bold text-on-surface mb-2">{q}</h3>
       <p className="text-sm text-on-surface-variant/70 leading-relaxed">{a}</p>
     </div>
