@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
+import SiteLaunchLogo from "@/components/SiteLaunchLogo";
 import Link from "next/link";
 
 type Mode = "password" | "magic";
@@ -64,10 +65,8 @@ export default function LoginPage() {
 
       <div className="relative w-full max-w-sm animate-scale-in">
         {/* Logo */}
-        <div className="flex items-center justify-center gap-2.5 mb-8">
-          <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary via-inverse-primary to-tertiary flex items-center justify-center shadow-lg shadow-primary/20">
-            <span className="text-white text-base font-bold">S</span>
-          </div>
+        <div className="flex items-center justify-center mb-8">
+          <SiteLaunchLogo className="w-12 h-12 text-primary" ringClassName="text-on-surface/60" />
         </div>
 
         <div className="gradient-border rounded-2xl">

@@ -2,6 +2,7 @@ import { createClient } from "@/lib/supabase/server";
 import { notFound } from "next/navigation";
 import { contrastText } from "@/lib/color-utils";
 import { startSubmissionAction } from "./actions";
+import SiteLaunchLogo from "@/components/SiteLaunchLogo";
 
 interface Props {
   params: Promise<{ subdomain: string }>;
@@ -130,9 +131,7 @@ export default async function PartnerHomePage({ params }: Props) {
               <p className="text-xs text-on-surface/60">{footerText}</p>
             ) : null}
             <div className="flex items-center gap-2">
-              <div className="w-5 h-5 rounded-md bg-gradient-to-br from-primary to-tertiary flex items-center justify-center">
-                <span className="text-white text-[8px] font-bold">S</span>
-              </div>
+              <SiteLaunchLogo className="w-5 h-5 text-primary" ringClassName="text-on-surface/50" />
               <span className="text-sm font-bold text-on-surface font-headline">SiteLaunch</span>
             </div>
             <p className="text-[10px] uppercase tracking-[0.3em] text-on-surface/30">

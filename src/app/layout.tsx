@@ -9,6 +9,12 @@ export const metadata: Metadata = {
   description: "Client onboarding, launched.",
   applicationName: "SiteLaunch",
   manifest: "/manifest.webmanifest",
+  icons: {
+    icon: [
+      { url: "/favicon.svg", type: "image/svg+xml" },
+    ],
+    apple: [{ url: "/favicon.svg" }],
+  },
 };
 
 export const viewport: Viewport = {

@@ -3,6 +3,7 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import SidebarNav from "./SidebarNav";
 import ImpersonationBanner from "./ImpersonationBanner";
 import ThemeToggle from "@/components/ThemeToggle";
+import SiteLaunchLogo from "@/components/SiteLaunchLogo";
 
 const TIER_LABELS: Record<string, string> = {
   free: "Free",
@@ -72,9 +73,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
         {/* Logo */}
         <div className="px-6 py-6 mb-2">
           <div className="flex items-center gap-3">
-            <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-primary via-inverse-primary to-tertiary flex items-center justify-center shadow-lg shadow-primary/20">
-              <span className="text-white text-sm font-bold">S</span>
-            </div>
+            <SiteLaunchLogo className="w-9 h-9 text-primary" ringClassName="text-on-surface/60" />
             <div>
               <h2 className="text-lg font-bold text-on-surface font-headline tracking-tight">
                 {impersonatingName ?? (isAdmin ? "SiteLaunch" : (account?.name ?? "SiteLaunch"))}
