@@ -5,15 +5,45 @@ import type { ThemeMode } from "@/components/ThemeProvider";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: { default: "SiteLaunch", template: "%s · SiteLaunch" },
-  description: "Client onboarding, launched.",
+  title: { default: "SiteLaunch — Client Onboarding for Agencies", template: "%s · SiteLaunch" },
+  description:
+    "Collect client content, files, and approvals in one branded workspace. SiteLaunch replaces scattered emails with a streamlined onboarding portal your clients will love.",
   applicationName: "SiteLaunch",
   manifest: "/manifest.webmanifest",
+  metadataBase: new URL(process.env.NEXT_PUBLIC_MARKETING_URL || "https://mysitelaunch.com"),
+  keywords: ["client onboarding", "agency tools", "content collection", "white-label portal", "SaaS"],
+  authors: [{ name: "WJD Designs", url: "https://wjddesigns.com" }],
+  creator: "WJD Designs",
+  openGraph: {
+    type: "website",
+    locale: "en_US",
+    siteName: "SiteLaunch",
+    title: "SiteLaunch — Client Onboarding for Agencies",
+    description:
+      "Collect client content, files, and approvals in one branded workspace. Replace scattered emails with a streamlined onboarding portal.",
+    url: "/",
+    images: [
+      {
+        url: "/og-image.png",
+        width: 1200,
+        height: 630,
+        alt: "SiteLaunch — Client onboarding, launched.",
+      },
+    ],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "SiteLaunch — Client Onboarding for Agencies",
+    description:
+      "Collect client content, files, and approvals in one branded workspace.",
+    images: ["/og-image.png"],
+  },
   icons: {
     icon: [
       { url: "/favicon.svg", type: "image/svg+xml" },
+      { url: "/favicon-48.png", sizes: "48x48", type: "image/png" },
     ],
-    apple: [{ url: "/favicon.svg" }],
+    apple: [{ url: "/apple-touch-icon.png", sizes: "180x180" }],
   },
 };
 

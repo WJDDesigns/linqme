@@ -38,9 +38,11 @@ export async function sendMail(args: SendMailArgs): Promise<SendMailResult> {
   const client = getResend();
 
   if (!client) {
-    console.log(
-      `[email] RESEND_API_KEY not set — skipping. Would send to=${JSON.stringify(args.to)} subject="${args.subject}"`,
-    );
+    if (process.env.NODE_ENV === "development") {
+      console.log(
+        `[email] RESEND_API_KEY not set — skipping. Would send to=${JSON.stringify(args.to)} subject="${args.subject}"`,
+      );
+    }
     return { ok: true, skipped: true };
   }
 

@@ -1,4 +1,5 @@
 import { getPlans } from "@/lib/plans";
+import { requireSession } from "@/lib/auth";
 import CheckoutForm from "./CheckoutForm";
 import Link from "next/link";
 import SiteLaunchLogo from "@/components/SiteLaunchLogo";
@@ -8,6 +9,7 @@ interface Props {
 }
 
 export default async function CheckoutPage({ searchParams }: Props) {
+  await requireSession(); // Redirect to /login if unauthenticated
   const { plan: selectedPlan } = await searchParams;
   const plans = await getPlans();
   const paidPlans = plans.filter((p) => p.priceMonthly > 0);

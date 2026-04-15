@@ -9,7 +9,10 @@ export async function middleware(request: NextRequest) {
   const rootDomain = process.env.NEXT_PUBLIC_ROOT_DOMAIN || "mysitelaunch.com";
   const tenant = resolveTenant(host, rootDomain);
 
-  console.log(`[mw] host=${host} root=${rootDomain} kind=${tenant.kind} slug=${tenant.slug ?? "-"} path=${request.nextUrl.pathname} user=${user ? "yes" : "no"}`);
+  // Tenant debug logging — only in development
+  if (process.env.NODE_ENV === "development") {
+    console.log(`[mw] host=${host} root=${rootDomain} kind=${tenant.kind} slug=${tenant.slug ?? "-"} path=${request.nextUrl.pathname} user=${user ? "yes" : "no"}`);
+  }
 
   const url = request.nextUrl.clone();
   const pathname = url.pathname;
@@ -32,11 +35,14 @@ export async function middleware(request: NextRequest) {
 
   // --- App-domain auth guard ----------------------------------------------
   if (tenant.kind === "app") {
-    const isAuthRoute =
+    const isPublicRoute =
+      pathname === "/" ||
       pathname.startsWith("/login") ||
       pathname.startsWith("/signup") ||
-      pathname.startsWith("/auth");
-    if (!user && !isAuthRoute) {
+      pathname.startsWith("/auth") ||
+      pathname.startsWith("/pricing") ||
+      pathname.startsWith("/checkout");
+    if (!user && !isPublicRoute) {
       url.pathname = "/login";
       return NextResponse.redirect(url);
     }
