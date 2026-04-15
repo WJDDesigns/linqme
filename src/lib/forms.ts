@@ -35,8 +35,12 @@ export interface PackageOption {
   price: number;
   /** Short tagline, e.g. "Best for small teams" */
   description?: string;
+  /** Longer paragraph description for the package */
+  longDescription?: string;
   /** Highlight / badge text, e.g. "Most Popular" */
   badge?: string;
+  /** Feature bullet points shown as a checkmark list */
+  featureList?: string[];
 }
 
 /** A rule that recommends a package based on a prior answer */
@@ -95,6 +99,16 @@ export interface RepeaterConfig {
   summaryFields?: string[];
 }
 
+/** Condition to show/hide a field or step based on another field's value */
+export interface ShowCondition {
+  /** ID of the field to evaluate (from any step) */
+  fieldId: string;
+  /** Comparison operator */
+  operator: "equals" | "not_equals" | "contains" | "not_empty" | "is_empty";
+  /** Value to compare against (not used for not_empty / is_empty) */
+  value?: string;
+}
+
 export interface FieldDef {
   id: string;
   type: FieldType;
@@ -113,6 +127,8 @@ export interface FieldDef {
   packageConfig?: PackageConfig;
   /** For repeater fields — sub-fields and entry config */
   repeaterConfig?: RepeaterConfig;
+  /** Show this field only when the condition is met */
+  showCondition?: ShowCondition;
 }
 
 export interface UploadedFile {
@@ -128,10 +144,41 @@ export interface StepDef {
   title: string;
   description?: string;
   fields: FieldDef[];
+  /** Show this step/page only when the condition is met */
+  showCondition?: ShowCondition;
 }
 
 export interface FormSchema {
   steps: StepDef[];
+}
+
+/**
+ * Evaluate a show condition against the current form data.
+ * Returns true if the field/step should be visible.
+ */
+export function evaluateCondition(
+  condition: ShowCondition | undefined,
+  allData: Record<string, unknown>,
+): boolean {
+  if (!condition || !condition.fieldId) return true;
+
+  const raw = allData[condition.fieldId];
+  const fieldVal = raw === undefined || raw === null ? "" : String(raw);
+
+  switch (condition.operator) {
+    case "equals":
+      return fieldVal === (condition.value ?? "");
+    case "not_equals":
+      return fieldVal !== (condition.value ?? "");
+    case "contains":
+      return fieldVal.toLowerCase().includes((condition.value ?? "").toLowerCase());
+    case "not_empty":
+      return fieldVal.trim() !== "";
+    case "is_empty":
+      return fieldVal.trim() === "";
+    default:
+      return true;
+  }
 }
 
 export function mergeSchema(base: FormSchema, overrides: Record<string, unknown>): FormSchema {
@@ -143,9 +190,13 @@ export function mergeSchema(base: FormSchema, overrides: Record<string, unknown>
 export function validateStepData(
   step: StepDef,
   data: Record<string, unknown>,
+  /** All form data across steps, used to evaluate field-level conditions */
+  allData?: Record<string, unknown>,
 ): { ok: true } | { ok: false; errors: Record<string, string> } {
   const errors: Record<string, string> = {};
   for (const f of step.fields) {
+    // Skip hidden fields — they should not be validated
+    if (f.showCondition && !evaluateCondition(f.showCondition, allData ?? data)) continue;
     // File fields are validated separately (upload state lives in submission_files).
     if (f.type === "file" || f.type === "files") continue;
     // Heading fields are display-only, never validated.

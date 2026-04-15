@@ -1,8 +1,9 @@
 "use client";
 
-import { useState, useTransition, useEffect, useRef, useCallback } from "react";
+import { useState, useTransition, useEffect, useRef, useCallback, useMemo } from "react";
 import Image from "next/image";
 import type { FormSchema, FieldDef, UploadedFile, PackageRule, RepeaterSubField } from "@/lib/forms";
+import { evaluateCondition } from "@/lib/forms";
 import { isLightColor } from "@/lib/color-utils";
 import FileField from "./FileField";
 
@@ -76,10 +77,22 @@ export default function SubmissionForm({
 
   useEffect(() => { ensureStyles(); }, []);
 
-  const step = schema.steps[stepIdx];
-  const isLast = stepIdx === schema.steps.length - 1;
-  const progress = ((stepIdx) / schema.steps.length) * 100;
+  // Compute visible steps based on conditions evaluated against current data
+  const visibleSteps = useMemo(
+    () => schema.steps.filter((s) => evaluateCondition(s.showCondition, data)),
+    [schema.steps, data],
+  );
+
+  const step = visibleSteps[stepIdx];
+  const isLast = stepIdx === visibleSteps.length - 1;
+  const progress = ((stepIdx) / visibleSteps.length) * 100;
   const lightBg = isLightColor(primaryColor);
+
+  // Compute visible fields for current step based on conditions
+  const visibleFields = useMemo(
+    () => step?.fields.filter((f) => evaluateCondition(f.showCondition, data)) ?? [],
+    [step, data],
+  );
 
   useEffect(() => {
     if (transitioning) return;
@@ -123,7 +136,7 @@ export default function SubmissionForm({
       if (isLast) {
         setShowDone(true);
       } else {
-        animateTransition(() => setStepIdx((i) => Math.min(schema.steps.length - 1, i + 1)));
+        animateTransition(() => setStepIdx((i) => Math.min(visibleSteps.length - 1, i + 1)));
       }
       return;
     }
@@ -137,7 +150,7 @@ export default function SubmissionForm({
       if (res.done) {
         startSubmit(async () => { await submit(); setShowDone(true); });
       } else if (res.nextStepId) {
-        const nextIdx = schema.steps.findIndex((s) => s.id === res.nextStepId);
+        const nextIdx = visibleSteps.findIndex((s) => s.id === res.nextStepId);
         if (nextIdx >= 0) animateTransition(() => setStepIdx(nextIdx));
       }
     });
@@ -199,13 +212,13 @@ export default function SubmissionForm({
         <div className="px-6 pt-5">
           <div className="flex items-center justify-between mb-2">
             <span className="text-[10px] font-bold uppercase tracking-widest text-on-surface-variant/60">Progress</span>
-            <span className="text-xs font-bold font-headline" style={{ color: primaryColor }}>{Math.round(((completedSteps.size) / schema.steps.length) * 100)}%</span>
+            <span className="text-xs font-bold font-headline" style={{ color: primaryColor }}>{Math.round(((completedSteps.size) / visibleSteps.length) * 100)}%</span>
           </div>
           <div className="h-1.5 w-full bg-surface-container-highest rounded-full overflow-hidden">
             <div
               className="h-full transition-all duration-700 ease-out rounded-full"
               style={{
-                width: `${(completedSteps.size / schema.steps.length) * 100}%`,
+                width: `${(completedSteps.size / visibleSteps.length) * 100}%`,
                 backgroundColor: primaryColor,
               }}
             />
@@ -214,7 +227,7 @@ export default function SubmissionForm({
 
         {/* Step list */}
         <nav className="flex-1 px-4 py-4 space-y-1">
-          {schema.steps.map((s, i) => {
+          {visibleSteps.map((s, i) => {
             const isCurrent = i === stepIdx;
             const isCompleted = completedSteps.has(i);
             return (
@@ -287,7 +300,7 @@ export default function SubmissionForm({
         {/* Sidebar footer */}
         <div className="px-6 py-4 border-t border-outline-variant/10">
           <p className="text-[10px] text-on-surface-variant/40 uppercase tracking-widest">
-            Step {stepIdx + 1} of {schema.steps.length}
+            Step {stepIdx + 1} of {visibleSteps.length}
           </p>
         </div>
       </aside>
@@ -319,13 +332,13 @@ export default function SubmissionForm({
             )}
           </div>
           <span className="text-xs font-bold font-headline shrink-0 ml-2" style={{ color: primaryColor }}>
-            {stepIdx + 1}/{schema.steps.length}
+            {stepIdx + 1}/{visibleSteps.length}
           </span>
         </div>
 
         {/* Step dots */}
         <div className="flex items-center gap-1.5 px-4 pb-3">
-          {schema.steps.map((_, i) => {
+          {visibleSteps.map((_, i) => {
             const isCompleted = completedSteps.has(i);
             const isCurrent = i === stepIdx;
             return (
@@ -369,7 +382,7 @@ export default function SubmissionForm({
 
           {/* Fields */}
           <form onSubmit={handleNext} className={`space-y-6 ${transitioning ? "sl-fade-out" : "sl-fade-in"}`}>
-            {step.fields.map((f, i) =>
+            {visibleFields.map((f, i) =>
               f.type === "file" || f.type === "files" ? (
                 <div key={f.id} className={`sl-fade-up sl-d${Math.min(i + 2, 5)}`}>
                   <FileField field={f} initialFiles={initialFiles[f.id] ?? []} upload={uploadFile} remove={deleteFile} primaryColor={primaryColor} />
@@ -751,6 +764,9 @@ function CelestialField({
                 <div className="mb-3 mt-1">
                   <h3 className="text-lg font-bold text-on-surface font-headline">{pkg.name}</h3>
                   {pkg.description && <p className="text-xs text-on-surface-variant/60 mt-0.5">{pkg.description}</p>}
+                  {pkg.longDescription && (
+                    <p className="text-sm text-on-surface-variant mt-2 leading-relaxed">{pkg.longDescription}</p>
+                  )}
                 </div>
 
                 <div className="mb-4">
@@ -764,7 +780,19 @@ function CelestialField({
                   )}
                 </div>
 
-                {/* Feature list for this package */}
+                {/* Package feature bullet list */}
+                {pkg.featureList && pkg.featureList.length > 0 && (
+                  <div className="space-y-1.5 mb-4">
+                    {pkg.featureList.map((feat, fi) => (
+                      <div key={fi} className="flex items-start gap-2 text-xs">
+                        <i className="fa-solid fa-check w-4 text-center mt-0.5 shrink-0" style={{ color: primaryColor }} />
+                        <span className="text-on-surface">{feat}</span>
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                {/* Comparison feature grid for this package */}
                 {cfg.features.length > 0 && (
                   <div className="space-y-2 pt-3 border-t border-outline-variant/15">
                     {cfg.features.map((feat, fi) => {

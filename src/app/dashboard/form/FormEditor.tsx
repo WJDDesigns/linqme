@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useCallback, useRef, useEffect } from "react";
-import type { FormSchema, StepDef, FieldDef, FieldType, PackageConfig, PackageOption, PackageFeature, PackageRule, RepeaterConfig, RepeaterSubField } from "@/lib/forms";
+import type { FormSchema, StepDef, FieldDef, FieldType, PackageConfig, PackageOption, PackageFeature, PackageRule, RepeaterConfig, RepeaterSubField, ShowCondition } from "@/lib/forms";
 import { saveFormSchemaAction } from "./actions";
 
 /* ── Field type catalogue ──────────────────────────────────── */
@@ -503,6 +503,11 @@ export default function FormEditor({ initialSchema, onOpenTemplates, formId }: {
                           className="text-sm font-bold text-on-surface bg-transparent border-none outline-none flex-1 min-w-0"
                           placeholder="Step title"
                         />
+                        {step.showCondition?.fieldId && (
+                          <span className="text-[9px] font-bold uppercase tracking-widest px-1.5 py-0.5 rounded bg-amber-500/15 text-amber-400 border border-amber-500/20 shrink-0" title="This page has a visibility condition">
+                            <i className="fa-solid fa-eye text-[8px] mr-0.5" /> Conditional
+                          </span>
+                        )}
                         <span className="text-xs text-on-surface-variant/60 whitespace-nowrap shrink-0 hidden sm:inline">
                           {step.fields.length} field{step.fields.length !== 1 ? "s" : ""}
                         </span>
@@ -526,6 +531,16 @@ export default function FormEditor({ initialSchema, onOpenTemplates, formId }: {
                             placeholder="Step description (optional)"
                             className="w-full text-xs text-on-surface-variant bg-transparent border-none outline-none mb-2"
                           />
+
+                          {/* Page-level condition */}
+                          <div className="mb-3">
+                            <ConditionBuilder
+                              condition={step.showCondition}
+                              onChange={(c) => updateStepMeta(step.id, { showCondition: c })}
+                              allFields={schema.steps.flatMap((s) => s.fields)}
+                              label="Show this page when"
+                            />
+                          </div>
 
                           {step.fields.length === 0 && !dropTarget && (
                             <div className="text-center py-8 text-sm text-on-surface-variant border-2 border-dashed border-outline-variant/20 rounded-xl">
@@ -566,6 +581,7 @@ export default function FormEditor({ initialSchema, onOpenTemplates, formId }: {
                                     <div className="text-xs text-on-surface-variant/60 truncate">
                                       {labelFor(field.type)}
                                       {field.required && <span className="ml-1 text-tertiary font-medium">&middot; Required</span>}
+                                      {field.showCondition?.fieldId && <span className="ml-1 text-amber-400 font-medium">&middot; <i className="fa-solid fa-eye text-[9px]" /> Conditional</span>}
                                     </div>
                                   </div>
                                   <button
@@ -618,6 +634,7 @@ export default function FormEditor({ initialSchema, onOpenTemplates, formId }: {
                 field={selectedField}
                 onUpdate={(patch) => updateField(selectedStepId!, selectedFieldId!, patch)}
                 onClose={clearSelection}
+                allFields={schema.steps.flatMap((s) => s.fields)}
               />
             ) : (
               <div className="space-y-4">
@@ -696,10 +713,11 @@ function FieldPalette({ onDragStart, onClickAdd }: {
 
 /* ── Field settings panel ──────────────────────────────────── */
 
-function FieldSettingsPanel({ field, onUpdate, onClose }: {
+function FieldSettingsPanel({ field, onUpdate, onClose, allFields }: {
   field: FieldDef;
   onUpdate: (patch: Partial<FieldDef>) => void;
   onClose: () => void;
+  allFields: FieldDef[];
 }) {
   return (
     <div>
@@ -793,6 +811,13 @@ function FieldSettingsPanel({ field, onUpdate, onClose }: {
               <div className="absolute left-0.5 top-0.5 w-3 h-3 bg-on-surface-variant rounded-full peer-checked:translate-x-4 peer-checked:bg-on-primary transition-all" />
             </label>
           </div>
+          <ConditionBuilder
+            condition={field.showCondition}
+            onChange={(c) => onUpdate({ showCondition: c })}
+            allFields={allFields}
+            excludeFieldId={field.id}
+            label="Show field when"
+          />
         </section>
 
         <div className="pt-4">
@@ -961,13 +986,34 @@ function PackageSettingsPanel({ config, onUpdate }: {
                 </label>
               </div>
               <label className="block">
-                <span className="text-[10px] text-on-surface-variant mb-0.5 block">Description</span>
+                <span className="text-[10px] text-on-surface-variant mb-0.5 block">Short tagline</span>
                 <input
                   value={pkg.description ?? ""}
                   onChange={(e) => updatePackage(pkg.id, { description: e.target.value || undefined })}
-                  placeholder="Short tagline..."
+                  placeholder="e.g. Best for small teams"
                   className={`${INPUT_CLS} text-xs`}
                 />
+              </label>
+              <label className="block">
+                <span className="text-[10px] text-on-surface-variant mb-0.5 block">Description paragraph</span>
+                <textarea
+                  value={pkg.longDescription ?? ""}
+                  onChange={(e) => updatePackage(pkg.id, { longDescription: e.target.value || undefined })}
+                  placeholder="Detailed description of what this package includes..."
+                  rows={3}
+                  className={`${INPUT_CLS} text-xs`}
+                />
+              </label>
+              <label className="block">
+                <span className="text-[10px] text-on-surface-variant mb-0.5 block">Features (one per line)</span>
+                <textarea
+                  value={(pkg.featureList ?? []).join("\n")}
+                  onChange={(e) => updatePackage(pkg.id, { featureList: e.target.value.split("\n").filter((l) => l.trim()) })}
+                  placeholder={"5 pages included\nCustom domain\n24/7 support"}
+                  rows={4}
+                  className={`${INPUT_CLS} text-xs font-mono`}
+                />
+                <span className="text-[9px] text-on-surface-variant/50 mt-0.5 block">Displayed as a checkmark list on the package card.</span>
               </label>
             </div>
           ))}
@@ -1122,6 +1168,126 @@ function PackageSettingsPanel({ config, onUpdate }: {
         </div>
       )}
     </section>
+  );
+}
+
+/* ── Condition builder (shared by fields and steps) ─────── */
+
+const CONDITION_OPERATORS: { value: ShowCondition["operator"]; label: string }[] = [
+  { value: "equals", label: "Equals" },
+  { value: "not_equals", label: "Does not equal" },
+  { value: "contains", label: "Contains" },
+  { value: "not_empty", label: "Is not empty" },
+  { value: "is_empty", label: "Is empty" },
+];
+
+function ConditionBuilder({
+  condition,
+  onChange,
+  allFields,
+  excludeFieldId,
+  label,
+}: {
+  condition?: ShowCondition;
+  onChange: (c: ShowCondition | undefined) => void;
+  allFields: FieldDef[];
+  excludeFieldId?: string;
+  label: string;
+}) {
+  const [open, setOpen] = useState(!!condition?.fieldId);
+
+  // Fields that can be used as condition sources (ones with user input)
+  const sourceFields = allFields.filter(
+    (f) => f.id !== excludeFieldId && f.type !== "heading" && f.type !== "file" && f.type !== "files",
+  );
+
+  const selectedField = condition?.fieldId ? sourceFields.find((f) => f.id === condition.fieldId) : null;
+  const hasOptions = selectedField && (selectedField.type === "select" || selectedField.type === "radio" || selectedField.type === "checkbox");
+  const needsValue = condition?.operator && condition.operator !== "not_empty" && condition.operator !== "is_empty";
+
+  return (
+    <div className="bg-surface-container rounded-xl p-3 border border-outline-variant/10">
+      <div className="flex items-center justify-between">
+        <span className="text-[10px] font-bold text-on-surface-variant uppercase tracking-widest">
+          <i className="fa-solid fa-eye text-[9px] mr-1 text-amber-400" />
+          {label}
+        </span>
+        <label className="relative cursor-pointer">
+          <input
+            type="checkbox"
+            checked={open}
+            onChange={(e) => {
+              setOpen(e.target.checked);
+              if (!e.target.checked) onChange(undefined);
+            }}
+            className="sr-only peer"
+          />
+          <div className="w-8 h-4 bg-surface-container-highest rounded-full peer-checked:bg-amber-500 transition-colors" />
+          <div className="absolute left-0.5 top-0.5 w-3 h-3 bg-on-surface-variant rounded-full peer-checked:translate-x-4 peer-checked:bg-white transition-all" />
+        </label>
+      </div>
+
+      {open && (
+        <div className="mt-2 space-y-2">
+          <select
+            value={condition?.fieldId ?? ""}
+            onChange={(e) => {
+              if (!e.target.value) {
+                onChange(undefined);
+                return;
+              }
+              onChange({ fieldId: e.target.value, operator: condition?.operator ?? "equals", value: condition?.value });
+            }}
+            className={`${INPUT_CLS} text-xs`}
+          >
+            <option value="">Select a field...</option>
+            {sourceFields.map((f) => (
+              <option key={f.id} value={f.id}>{f.label} ({labelFor(f.type)})</option>
+            ))}
+          </select>
+
+          {condition?.fieldId && (
+            <select
+              value={condition.operator}
+              onChange={(e) => onChange({ ...condition, operator: e.target.value as ShowCondition["operator"] })}
+              className={`${INPUT_CLS} text-xs`}
+            >
+              {CONDITION_OPERATORS.map((op) => (
+                <option key={op.value} value={op.value}>{op.label}</option>
+              ))}
+            </select>
+          )}
+
+          {condition?.fieldId && needsValue && (
+            hasOptions ? (
+              <select
+                value={condition.value ?? ""}
+                onChange={(e) => onChange({ ...condition, value: e.target.value })}
+                className={`${INPUT_CLS} text-xs`}
+              >
+                <option value="">Select a value...</option>
+                {(selectedField!.options ?? []).map((o) => (
+                  <option key={o} value={o}>{o}</option>
+                ))}
+              </select>
+            ) : (
+              <input
+                value={condition.value ?? ""}
+                onChange={(e) => onChange({ ...condition, value: e.target.value })}
+                placeholder="Value to match..."
+                className={`${INPUT_CLS} text-xs`}
+              />
+            )
+          )}
+
+          {condition?.fieldId && (
+            <p className="text-[9px] text-on-surface-variant/50">
+              This {label.includes("page") ? "page" : "field"} will be hidden unless the condition is met.
+            </p>
+          )}
+        </div>
+      )}
+    </div>
   );
 }
 

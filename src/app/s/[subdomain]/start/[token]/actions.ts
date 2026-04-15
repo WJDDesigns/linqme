@@ -57,13 +57,16 @@ export async function saveStepAction(
     stepData[f.id] = typeof raw === "string" ? raw : raw;
   }
 
-  const validation = validateStepData(step, stepData);
-  if (!validation.ok) return { errors: validation.errors };
-
-  const merged = {
+  // Merge with existing data for condition evaluation
+  const allData = {
     ...(sub.data as Record<string, unknown>),
     ...stepData,
   };
+
+  const validation = validateStepData(step, stepData, allData);
+  if (!validation.ok) return { errors: validation.errors };
+
+  const merged = allData;
 
   const admin = createAdminClient();
   const { error } = await admin
