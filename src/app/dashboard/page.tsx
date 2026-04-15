@@ -1,10 +1,15 @@
 import Link from "next/link";
-import { requireSession, getVisiblePartners } from "@/lib/auth";
+import { requireSession, getVisiblePartners, getCurrentAccount } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 
 export default async function DashboardOverview() {
   const session = await requireSession();
-  const partners = await getVisiblePartners();
+  const account = await getCurrentAccount(session.userId);
+  const allPartners = await getVisiblePartners();
+  // Filter out the user's own root account — only show sub-partners (same as Partners page)
+  const partners = account
+    ? allPartners.filter((p) => p.id !== account.id)
+    : allPartners;
 
   const supabase = await createClient();
   const { count: submissionCount } = await supabase
