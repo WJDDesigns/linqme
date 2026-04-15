@@ -108,7 +108,6 @@ export default async function SettingsPage() {
             partnerId={account.id}
             currentDomain={partner.custom_domain ?? null}
             saveAction={saveWorkspaceDomainAction}
-            cnameTarget={partner.cname_target ?? undefined}
           />
         )}
 
