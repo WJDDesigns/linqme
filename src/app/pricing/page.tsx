@@ -45,7 +45,7 @@ const TIERS = [
       { text: "Team members", included: true },
     ],
     cta: "Get Nova",
-    href: "/checkout?plan=pro",
+    href: "/signup?plan=nova",
     highlight: true,
   },
   {
@@ -64,7 +64,7 @@ const TIERS = [
       { text: "SLA guarantee", included: true },
     ],
     cta: "Get Supernova",
-    href: "/checkout?plan=enterprise",
+    href: "/signup?plan=supernova",
     highlight: false,
   },
 ];

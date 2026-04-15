@@ -19,7 +19,7 @@ interface Props {
 
 export default function AdminPlanChanger({ partnerId, partnerName, currentTier, plans }: Props) {
   // Map legacy tier names
-  const mappedCurrent = currentTier === "paid" || currentTier === "unlimited" ? "pro" : currentTier;
+  const mappedCurrent = currentTier === "paid" || currentTier === "unlimited" || currentTier === "pro" ? "nova" : currentTier === "enterprise" ? "supernova" : currentTier;
   const [selected, setSelected] = useState(mappedCurrent);
   const [pending, startTransition] = useTransition();
   const [msg, setMsg] = useState<string | null>(null);

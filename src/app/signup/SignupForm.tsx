@@ -15,7 +15,8 @@ const STEPS = ["Account", "Business", "Details"] as const;
 
 export default function SignupForm({ rootHost }: { rootHost: string }) {
   const searchParams = useSearchParams();
-  const nextUrl = searchParams.get("next");
+  const planParam = searchParams.get("plan");
+  const nextUrl = searchParams.get("next") || (planParam ? `/checkout?plan=${planParam}` : null);
   const [step, setStep] = useState(0);
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);

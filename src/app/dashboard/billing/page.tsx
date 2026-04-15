@@ -178,7 +178,7 @@ export default async function BillingPage() {
                   ) : (
                     /* Free → Paid: new checkout session */
                     <UpgradeButton
-                      tier={plan.slug as "pro" | "enterprise"}
+                      tier={plan.slug}
                       label="Upgrade"
                       highlight={plan.highlight}
                     />

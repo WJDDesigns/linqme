@@ -242,7 +242,7 @@ export default async function SettingsPage() {
                     )
                   ) : isUpgrade && plan.priceMonthly > 0 ? (
                     <UpgradeButton
-                      tier={plan.slug as "pro" | "enterprise"}
+                      tier={plan.slug}
                       label={
                         currentTier === "free"
                           ? "Upgrade"

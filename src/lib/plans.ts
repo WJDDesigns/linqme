@@ -56,22 +56,44 @@ export async function getAllPlans(): Promise<Plan[]> {
  * Get a single plan by slug.
  * Falls back to hardcoded defaults if the plans table is empty or missing.
  */
+/** Map legacy plan slugs to current ones */
+function normalizePlanSlug(slug: string): string {
+  switch (slug) {
+    case "pro": return "nova";
+    case "enterprise": return "supernova";
+    default: return slug;
+  }
+}
+
 export async function getPlanBySlug(slug: string): Promise<Plan | null> {
+  const normalized = normalizePlanSlug(slug);
+
   try {
     const admin = createAdminClient();
+    // Try the normalized slug first, then fall back to original
     const { data } = await admin
       .from("plans")
       .select("*")
-      .eq("slug", slug)
+      .eq("slug", normalized)
       .maybeSingle();
 
     if (data) return mapDbPlan(data);
+
+    // Try original slug in case DB still uses old names
+    if (normalized !== slug) {
+      const { data: legacy } = await admin
+        .from("plans")
+        .select("*")
+        .eq("slug", slug)
+        .maybeSingle();
+      if (legacy) return mapDbPlan(legacy);
+    }
   } catch {
     // DB unavailable — fall through to defaults
   }
 
   // Fallback: search hardcoded defaults
-  return getDefaultPlans().find((p) => p.slug === slug) ?? null;
+  return getDefaultPlans().find((p) => p.slug === normalized) ?? getDefaultPlans().find((p) => p.slug === slug) ?? null;
 }
 
 function mapDbPlan(row: Record<string, unknown>): Plan {
@@ -98,8 +120,10 @@ function mapDbPlan(row: Record<string, unknown>): Plan {
 export function getFormsLimitForTier(tier: string): number | null {
   switch (tier) {
     case "free": return 1;
-    case "pro": return 10;
-    case "enterprise": return null;
+    case "pro":
+    case "nova": return 10;
+    case "enterprise":
+    case "supernova": return null;
     default: return 1;
   }
 }
@@ -121,8 +145,8 @@ function getDefaultPlans(): Plan[] {
       sortOrder: 0,
     },
     {
-      id: "default-pro",
-      slug: "pro",
+      id: "default-nova",
+      slug: "nova",
       name: "Nova",
       priceMonthly: 9900,
       submissionsMonthlyLimit: 25,
@@ -135,8 +159,8 @@ function getDefaultPlans(): Plan[] {
       sortOrder: 1,
     },
     {
-      id: "default-enterprise",
-      slug: "enterprise",
+      id: "default-supernova",
+      slug: "supernova",
       name: "Supernova",
       priceMonthly: 24900,
       submissionsMonthlyLimit: null,

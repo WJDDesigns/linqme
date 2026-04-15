@@ -96,7 +96,9 @@ async function handleSubscriptionChange(
   // Determine plan tier from price metadata
   const priceId = sub.items.data[0]?.price.id;
   const priceMeta = sub.items.data[0]?.price.metadata;
-  const tier = priceMeta?.sitelaunch_tier ?? "pro";
+  // Normalize tier from Stripe metadata — handle both old (pro/enterprise) and new (nova/supernova) slugs
+  const rawTier = priceMeta?.sitelaunch_tier ?? "nova";
+  const tier = rawTier === "pro" ? "nova" : rawTier === "enterprise" ? "supernova" : rawTier;
 
   // In Stripe SDK v22+ period dates are on the latest_invoice or accessed via any
   const subAny = sub as unknown as Record<string, unknown>;
@@ -128,7 +130,7 @@ async function handleSubscriptionChange(
 
   // Sync plan_tier and limits on the partners table for active subscriptions
   if (sub.status === "active" || sub.status === "trialing") {
-    const dbTier = tierToDbEnum(tier as "free" | "pro" | "enterprise");
+    const dbTier = tierToDbEnum(tier);
     await admin
       .from("partners")
       .update({
