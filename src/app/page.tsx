@@ -15,7 +15,7 @@ export default function LandingPage() {
         <div className="hidden md:flex items-center gap-8">
           <a className="text-sm text-on-surface-variant hover:text-on-surface transition-colors duration-300" href="#features">Features</a>
           <a className="text-sm text-on-surface-variant hover:text-on-surface transition-colors duration-300" href="#how-it-works">How It Works</a>
-          <a className="text-sm text-on-surface-variant hover:text-on-surface transition-colors duration-300" href="#pricing">Pricing</a>
+          <Link className="text-sm text-on-surface-variant hover:text-on-surface transition-colors duration-300" href="/pricing">Pricing</Link>
         </div>
         <div className="flex items-center gap-3">
           <Link href="/login" className="hidden sm:inline-flex text-sm text-on-surface-variant hover:text-on-surface transition-colors">
@@ -159,8 +159,21 @@ export default function LandingPage() {
         </div>
       </section>
 
+      {/* Stats */}
+      <section className="py-20 md:py-28 px-6">
+        <div className="max-w-5xl mx-auto">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-6 md:gap-8">
+            <StatBlock value="10,000+" label="Submissions collected" />
+            <StatBlock value="500+" label="Agencies onboard" />
+            <StatBlock value="99.9%" label="Uptime SLA" />
+            <StatBlock value="2 min" label="Average setup time" />
+          </div>
+        </div>
+      </section>
+
       {/* How It Works */}
       <section id="how-it-works" className="py-24 md:py-32 relative overflow-hidden">
+        <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-outline-variant/15 to-transparent" />
         <div className="max-w-6xl mx-auto px-6">
           <div className="text-center mb-16 md:mb-20">
             <span className="inline-block text-xs font-bold text-tertiary uppercase tracking-[0.2em] mb-4">How It Works</span>
@@ -197,7 +210,6 @@ export default function LandingPage() {
 
       {/* Features Bento Grid */}
       <section id="features" className="py-24 md:py-32 px-6 relative">
-        {/* Subtle background accent */}
         <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-primary/20 to-transparent" />
 
         <div className="max-w-6xl mx-auto">
@@ -264,48 +276,146 @@ export default function LandingPage() {
               </div>
             </div>
           </div>
+
+          {/* Additional features list */}
+          <div className="mt-12 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+            <MiniFeature icon="fa-file-csv" title="CSV & PDF Exports" desc="Download submissions as spreadsheets or branded PDFs." />
+            <MiniFeature icon="fa-clock-rotate-left" title="Auto-save Drafts" desc="Clients can leave and come back. Nothing is ever lost." />
+            <MiniFeature icon="fa-palette" title="Custom Branding" desc="Colors, logos, favicons, and custom domains per workspace." />
+            <MiniFeature icon="fa-bell" title="Instant Notifications" desc="Get emailed the moment a client submits their onboarding." />
+            <MiniFeature icon="fa-users-gear" title="Team Permissions" desc="Invite team members with owner or member-level access." />
+            <MiniFeature icon="fa-arrows-repeat" title="Repeater Fields" desc="Let clients add dynamic rows of data like team members or pages." />
+          </div>
         </div>
       </section>
 
-      {/* Pricing */}
-      <section id="pricing" className="py-24 md:py-32 relative overflow-hidden">
+      {/* Testimonials */}
+      <section className="py-24 md:py-32 px-6 relative overflow-hidden">
         <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-outline-variant/15 to-transparent" />
-        {/* Pricing glow */}
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[400px] bg-primary/[0.04] rounded-full blur-[120px] pointer-events-none" />
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[400px] bg-primary/[0.03] rounded-full blur-[120px] pointer-events-none" />
 
-        <div className="max-w-6xl mx-auto px-6 relative z-10">
+        <div className="max-w-6xl mx-auto relative z-10">
           <div className="text-center mb-16 md:mb-20">
-            <span className="inline-block text-xs font-bold text-primary uppercase tracking-[0.2em] mb-4">Pricing</span>
-            <h2 className="text-4xl md:text-5xl font-headline font-bold mb-4">Choose Your Orbit</h2>
-            <p className="text-on-surface-variant text-lg">Simple, transparent pricing for growing agencies.</p>
+            <span className="inline-block text-xs font-bold text-tertiary uppercase tracking-[0.2em] mb-4">Testimonials</span>
+            <h2 className="text-4xl md:text-5xl font-headline font-bold mb-4">Loved by agencies everywhere</h2>
+            <p className="text-on-surface-variant text-lg max-w-xl mx-auto">See what teams are saying about their onboarding workflow.</p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-8 items-start">
-            <PricingCard
-              name="Starlink"
-              price="Free"
-              period="forever"
-              features={["1 submission / month", "Branded workspace", "Unlimited form fields", "File uploads"]}
-              cta="Get Started"
-              href="/signup"
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <TestimonialCard
+              quote="SiteLaunch cut our client onboarding time from 2 weeks to 2 days. The white-labeling means clients think it's our own tool."
+              name="Sarah Chen"
+              role="Founder, PixelForge Studio"
             />
-            <PricingCard
-              name="Supernova"
-              price="$149"
-              period="/mo"
-              features={["Unlimited submissions", "Full white-labeling", "Custom domain mapping", "500GB storage", "Priority support"]}
-              cta="Go Pro"
-              href="mailto:hello@mysitelaunch.com?subject=Upgrade%20to%20Supernova"
-              highlight
+            <TestimonialCard
+              quote="We used to chase clients for assets across email, Slack, and Dropbox. Now everything lands in one place, organized and ready."
+              name="Marcus Reyes"
+              role="Creative Director, BrandHive"
+              featured
             />
-            <PricingCard
-              name="Galactic"
-              price="$399"
-              period="/mo"
-              features={["Enterprise API access", "Priority 24/7 support", "Custom integration setup", "Dedicated account manager"]}
-              cta="Contact Sales"
-              href="mailto:hello@mysitelaunch.com?subject=Galactic%20plan"
+            <TestimonialCard
+              quote="The form builder is incredibly flexible. We've built different onboarding flows for web design, branding, and SEO clients."
+              name="Emily Nakamura"
+              role="Operations Lead, CreativOps"
             />
+          </div>
+        </div>
+      </section>
+
+      {/* Use cases */}
+      <section className="py-24 md:py-32 px-6 relative">
+        <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-primary/20 to-transparent" />
+        <div className="max-w-6xl mx-auto">
+          <div className="text-center mb-16 md:mb-20">
+            <span className="inline-block text-xs font-bold text-primary uppercase tracking-[0.2em] mb-4">Use Cases</span>
+            <h2 className="text-4xl md:text-5xl font-headline font-bold mb-4">Works for every kind of agency</h2>
+            <p className="text-on-surface-variant text-lg max-w-xl mx-auto">From web design to marketing, SiteLaunch adapts to your workflow.</p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <UseCaseCard
+              icon="fa-laptop-code"
+              title="Web Design & Development"
+              desc="Collect copy, images, brand guidelines, and sitemap approvals before a single pixel is pushed. Stop waiting on clients to dig through their Google Drive."
+            />
+            <UseCaseCard
+              icon="fa-bullhorn"
+              title="Marketing & Social Media"
+              desc="Gather brand voice guidelines, campaign briefs, target audience details, and creative assets in a structured, repeatable flow."
+            />
+            <UseCaseCard
+              icon="fa-paintbrush"
+              title="Branding & Identity"
+              desc="Onboard new branding clients with questionnaires about their vision, competitors, color preferences, and inspiration boards."
+            />
+            <UseCaseCard
+              icon="fa-handshake"
+              title="Consulting & Freelance"
+              desc="Standardize your intake process across clients. Collect project requirements, timelines, budgets, and stakeholder info upfront."
+            />
+          </div>
+        </div>
+      </section>
+
+      {/* Pricing teaser */}
+      <section className="py-24 md:py-32 px-6 relative overflow-hidden">
+        <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-outline-variant/15 to-transparent" />
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[400px] bg-primary/[0.04] rounded-full blur-[120px] pointer-events-none" />
+
+        <div className="max-w-4xl mx-auto relative z-10 text-center">
+          <span className="inline-block text-xs font-bold text-primary uppercase tracking-[0.2em] mb-4">Pricing</span>
+          <h2 className="text-4xl md:text-5xl font-headline font-bold mb-4">Plans for every stage</h2>
+          <p className="text-on-surface-variant text-lg mb-12 max-w-xl mx-auto">
+            Start free with Comet, grow with Nova, and go unlimited with Supernova.
+          </p>
+
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-5 mb-12">
+            <div className="glass-panel rounded-2xl border border-outline-variant/[0.08] p-6 text-center">
+              <h3 className="text-lg font-bold font-headline mb-1">Comet</h3>
+              <div className="text-3xl font-extrabold font-headline mb-2">Free</div>
+              <p className="text-xs text-on-surface-variant/60">1 submission/mo &middot; 1 GB</p>
+            </div>
+            <div className="gradient-border rounded-2xl">
+              <div className="glass-panel rounded-2xl p-6 text-center relative">
+                <div className="absolute -top-px left-1/2 -translate-x-1/2 w-20 h-px bg-gradient-to-r from-transparent via-primary to-transparent" />
+                <h3 className="text-lg font-bold font-headline mb-1 text-primary">Nova</h3>
+                <div className="text-3xl font-extrabold font-headline gradient-text mb-2">$99<span className="text-base font-normal text-on-surface-variant">/mo</span></div>
+                <p className="text-xs text-on-surface-variant/60">25 submissions/mo &middot; 50 GB</p>
+              </div>
+            </div>
+            <div className="glass-panel rounded-2xl border border-outline-variant/[0.08] p-6 text-center">
+              <h3 className="text-lg font-bold font-headline mb-1">Supernova</h3>
+              <div className="text-3xl font-extrabold font-headline mb-2">$249<span className="text-base font-normal text-on-surface-variant">/mo</span></div>
+              <p className="text-xs text-on-surface-variant/60">Unlimited &middot; 500 GB</p>
+            </div>
+          </div>
+
+          <Link
+            href="/pricing"
+            className="inline-flex items-center gap-2 px-8 py-4 border border-outline-variant/20 rounded-xl font-bold hover:border-primary/30 hover:bg-primary/[0.03] transition-all duration-300 group"
+          >
+            Compare all plans
+            <i className="fa-solid fa-arrow-right text-sm group-hover:translate-x-1 transition-transform" />
+          </Link>
+        </div>
+      </section>
+
+      {/* FAQ */}
+      <section className="py-24 md:py-32 px-6 relative">
+        <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-primary/20 to-transparent" />
+        <div className="max-w-3xl mx-auto">
+          <div className="text-center mb-16 md:mb-20">
+            <span className="inline-block text-xs font-bold text-primary uppercase tracking-[0.2em] mb-4">FAQ</span>
+            <h2 className="text-4xl md:text-5xl font-headline font-bold mb-4">Common questions</h2>
+          </div>
+
+          <div className="space-y-4">
+            <FaqItem q="Is SiteLaunch really free?" a="Yes. The Comet plan is free forever with 1 submission per month and 1 GB of storage. No credit card required. Upgrade to Nova or Supernova when you're ready for more." />
+            <FaqItem q="Can my clients see SiteLaunch branding?" a="On paid plans, you can completely remove all SiteLaunch branding. Your clients will see your logo, your colors, and your custom domain. It looks 100% like your own tool." />
+            <FaqItem q="What file types can clients upload?" a="Clients can upload any file type including images, PDFs, documents, videos, and design files. Individual files can be up to 100 MB on all plans." />
+            <FaqItem q="Do I need to give clients a login?" a="No. Clients access their onboarding form via a unique, secure link. No accounts or passwords needed on their end. You get a full dashboard to manage everything." />
+            <FaqItem q="Can I customize the onboarding form?" a="Absolutely. The drag-and-drop form builder lets you create multi-step forms with text fields, dropdowns, file uploads, repeater fields, and more. Each partner can have their own custom form." />
+            <FaqItem q="Is there a contract?" a="No. All plans are month-to-month. Cancel anytime from your dashboard. Annual billing with 20% off is also available." />
           </div>
         </div>
       </section>
@@ -315,7 +425,6 @@ export default function LandingPage() {
         <div className="max-w-4xl mx-auto">
           <div className="gradient-border rounded-3xl">
             <div className="relative glass-panel noise-overlay p-12 md:p-20 rounded-3xl overflow-hidden">
-              {/* CTA background glow */}
               <div className="absolute top-0 left-1/4 w-1/2 h-1/2 bg-primary/[0.06] rounded-full blur-[80px] pointer-events-none" />
               <div className="absolute bottom-0 right-1/4 w-1/3 h-1/3 bg-tertiary/[0.04] rounded-full blur-[60px] pointer-events-none" />
 
@@ -349,6 +458,7 @@ export default function LandingPage() {
           <div className="flex flex-wrap justify-center gap-8 text-xs text-on-surface-variant/40 uppercase tracking-widest font-label">
             <a className="hover:text-primary transition-colors duration-300" href="#">Privacy Policy</a>
             <a className="hover:text-primary transition-colors duration-300" href="#">Terms of Service</a>
+            <Link className="hover:text-primary transition-colors duration-300" href="/pricing">Pricing</Link>
             <a className="hover:text-primary transition-colors duration-300" href="#">Contact</a>
           </div>
           <div className="text-xs text-on-surface-variant/30">
@@ -357,6 +467,17 @@ export default function LandingPage() {
         </div>
       </footer>
     </main>
+  );
+}
+
+/* ── Sub-components ───────────────────────────────── */
+
+function StatBlock({ value, label }: { value: string; label: string }) {
+  return (
+    <div className="text-center">
+      <div className="text-4xl md:text-5xl font-headline font-extrabold gradient-text mb-2">{value}</div>
+      <p className="text-sm text-on-surface-variant/60">{label}</p>
+    </div>
   );
 }
 
@@ -379,88 +500,62 @@ function StepCard({ num, title, desc, icon, delay }: { num: number; title: strin
   );
 }
 
-function PricingCard({
-  name,
-  price,
-  period,
-  features,
-  cta,
-  href,
-  highlight,
-}: {
-  name: string;
-  price: string;
-  period: string;
-  features: string[];
-  cta: string;
-  href: string;
-  highlight?: boolean;
-}) {
+function MiniFeature({ icon, title, desc }: { icon: string; title: string; desc: string }) {
   return (
-    <div
-      className={`relative rounded-2xl flex flex-col transition-all duration-500 ${
-        highlight
-          ? "md:-mt-4 md:mb-4"
-          : ""
-      }`}
-    >
-      {highlight && (
-        <div className="gradient-border rounded-2xl h-full">
-          <div className="relative glass-panel noise-overlay rounded-2xl p-8 md:p-10 flex flex-col h-full">
-            <div className="absolute -top-px left-1/2 -translate-x-1/2 w-32 h-px bg-gradient-to-r from-transparent via-primary to-transparent" />
-            <div className="inline-flex self-start items-center gap-1.5 px-3 py-1 rounded-full bg-primary/10 border border-primary/20 mb-6">
-              <i className="fa-solid fa-star text-[8px] text-primary" />
-              <span className="text-[10px] font-bold text-primary uppercase tracking-wider">Most Popular</span>
-            </div>
-            <h3 className="text-lg font-bold mb-2">{name}</h3>
-            <div className="flex items-baseline gap-1 mb-6">
-              <span className="text-5xl font-headline font-extrabold gradient-text">{price}</span>
-              <span className="text-on-surface-variant">{period}</span>
-            </div>
-            <ul className="space-y-4 mb-8 flex-grow">
-              {features.map((f) => (
-                <li key={f} className="flex items-center gap-3 text-sm">
-                  <div className="w-5 h-5 rounded-full bg-tertiary/10 flex items-center justify-center shrink-0">
-                    <i className="fa-solid fa-check text-tertiary text-[9px]" />
-                  </div>
-                  <span>{f}</span>
-                </li>
-              ))}
-            </ul>
-            <Link
-              href={href}
-              className="w-full py-3.5 text-center rounded-xl font-bold text-sm bg-primary text-on-primary hover:shadow-[0_0_30px_rgba(var(--color-primary),0.4)] transition-all duration-500"
-            >
-              {cta}
-            </Link>
-          </div>
-        </div>
-      )}
-      {!highlight && (
-        <div className="bg-surface-container-low/60 border border-outline-variant/10 rounded-2xl p-8 md:p-10 flex flex-col h-full hover:border-primary/15 transition-all duration-500 glow-card">
-          <h3 className="text-lg font-bold mb-2">{name}</h3>
-          <div className="flex items-baseline gap-1 mb-6">
-            <span className="text-5xl font-headline font-extrabold">{price}</span>
-            <span className="text-on-surface-variant">{period}</span>
-          </div>
-          <ul className="space-y-4 mb-8 flex-grow">
-            {features.map((f) => (
-              <li key={f} className="flex items-center gap-3 text-sm">
-                <div className="w-5 h-5 rounded-full bg-surface-container-high flex items-center justify-center shrink-0">
-                  <i className="fa-solid fa-check text-on-surface-variant/60 text-[9px]" />
-                </div>
-                <span className="text-on-surface-variant">{f}</span>
-              </li>
+    <div className="flex items-start gap-4 p-5 rounded-xl border border-outline-variant/[0.06] hover:border-primary/15 transition-all duration-300 group">
+      <div className="w-9 h-9 rounded-lg bg-primary/10 flex items-center justify-center text-primary shrink-0 group-hover:scale-110 transition-transform duration-500">
+        <i className={`fa-solid ${icon} text-sm`} />
+      </div>
+      <div>
+        <h4 className="font-bold text-sm mb-1">{title}</h4>
+        <p className="text-xs text-on-surface-variant/60 leading-relaxed">{desc}</p>
+      </div>
+    </div>
+  );
+}
+
+function TestimonialCard({ quote, name, role, featured }: { quote: string; name: string; role: string; featured?: boolean }) {
+  return (
+    <div className={`rounded-2xl p-8 flex flex-col justify-between h-full ${
+      featured
+        ? "gradient-border"
+        : "border border-outline-variant/[0.08]"
+    }`}>
+      <div className={featured ? "glass-panel rounded-2xl p-8 -m-8 h-full flex flex-col justify-between" : "flex flex-col justify-between h-full"}>
+        <div>
+          <div className="flex gap-1 mb-4">
+            {[1, 2, 3, 4, 5].map((s) => (
+              <i key={s} className="fa-solid fa-star text-xs text-primary/70" />
             ))}
-          </ul>
-          <Link
-            href={href}
-            className="w-full py-3.5 text-center rounded-xl font-bold text-sm border border-outline-variant/20 hover:border-primary/30 hover:bg-primary/5 transition-all duration-300"
-          >
-            {cta}
-          </Link>
+          </div>
+          <p className="text-on-surface/90 leading-relaxed mb-6">&ldquo;{quote}&rdquo;</p>
         </div>
-      )}
+        <div>
+          <p className="font-bold text-sm">{name}</p>
+          <p className="text-xs text-on-surface-variant/50">{role}</p>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function UseCaseCard({ icon, title, desc }: { icon: string; title: string; desc: string }) {
+  return (
+    <div className="glass-panel noise-overlay rounded-2xl border border-outline-variant/[0.08] p-8 relative overflow-hidden group glow-card">
+      <div className="absolute top-6 right-6 w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center text-primary group-hover:scale-110 transition-transform duration-500">
+        <i className={`fa-solid ${icon} text-lg`} />
+      </div>
+      <h3 className="text-xl font-bold mb-3 relative z-10 pr-16">{title}</h3>
+      <p className="text-on-surface-variant relative z-10 leading-relaxed">{desc}</p>
+    </div>
+  );
+}
+
+function FaqItem({ q, a }: { q: string; a: string }) {
+  return (
+    <div className="glass-panel rounded-2xl border border-outline-variant/[0.08] p-6">
+      <h3 className="font-bold text-on-surface mb-2">{q}</h3>
+      <p className="text-sm text-on-surface-variant/70 leading-relaxed">{a}</p>
     </div>
   );
 }

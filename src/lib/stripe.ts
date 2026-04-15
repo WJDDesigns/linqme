@@ -31,7 +31,7 @@ export interface PlanConfig {
 export const PLANS: Record<BillingTier, PlanConfig> = {
   free: {
     tier: "free",
-    name: "Starlink",
+    name: "Comet",
     priceMonthly: 0,
     stripePriceId: null, // no Stripe subscription for free
     submissionsMonthlyLimit: 1,
@@ -39,34 +39,37 @@ export const PLANS: Record<BillingTier, PlanConfig> = {
       "Your own branded workspace",
       "Unlimited form fields",
       "File uploads",
+      "1 GB storage",
       "1 submission / month",
     ],
   },
   pro: {
     tier: "pro",
-    name: "Supernova",
-    priceMonthly: 14900, // $149
+    name: "Nova",
+    priceMonthly: 9900, // $99
     stripePriceId: process.env.STRIPE_PRICE_PRO ?? null,
-    submissionsMonthlyLimit: null, // unlimited
+    submissionsMonthlyLimit: 25,
     features: [
-      "Everything in Starlink",
-      "Unlimited submissions",
-      "Custom domain",
-      "Branded emails",
+      "Everything in Comet",
+      "25 submissions / month",
+      "50 GB storage",
       "Full white-labeling",
+      "Custom domain",
+      "CSV & PDF exports",
     ],
   },
   enterprise: {
     tier: "enterprise",
-    name: "Galactic",
-    priceMonthly: 39900, // $399
+    name: "Supernova",
+    priceMonthly: 24900, // $249
     stripePriceId: process.env.STRIPE_PRICE_ENTERPRISE ?? null,
     submissionsMonthlyLimit: null,
     features: [
-      "Everything in Supernova",
-      "Priority support",
-      "API access (coming)",
-      "Dedicated success contact",
+      "Everything in Nova",
+      "Unlimited submissions",
+      "500 GB storage",
+      "Priority 24/7 support",
+      "Dedicated account manager",
     ],
   },
 };
