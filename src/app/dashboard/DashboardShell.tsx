@@ -104,7 +104,7 @@ export default function DashboardShell({
       >
         {/* Logo + collapse toggle */}
         <div className={`flex items-center ${collapsed ? "justify-center px-2" : "px-6"} py-6 mb-2`}>
-          <Link href="/" className={`flex items-center ${collapsed ? "justify-center" : "gap-3"}`}>
+          <Link href="/dashboard" className={`flex items-center ${collapsed ? "justify-center" : "gap-3"}`}>
             <SiteLaunchLogo className="h-10 w-auto text-primary shrink-0" ringClassName="text-on-surface/60" />
             {!collapsed && (
               <div className="min-w-0">

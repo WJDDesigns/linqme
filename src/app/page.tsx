@@ -2,8 +2,11 @@ import Link from "next/link";
 import SiteLaunchLogo from "@/components/SiteLaunchLogo";
 import ThemeToggle from "@/components/ThemeToggle";
 import HomePricingTeaser from "./HomePricingTeaser";
+import { getSession } from "@/lib/auth";
 
-export default function LandingPage() {
+export default async function LandingPage() {
+  const session = await getSession();
+  const isLoggedIn = !!session;
   const appUrl = process.env.NEXT_PUBLIC_APP_URL || "/login";
   return (
     <main className="min-h-screen flex flex-col selection:bg-primary/30">
@@ -21,15 +24,26 @@ export default function LandingPage() {
         <div className="flex items-center gap-4">
           <ThemeToggle showAuto={false} />
           <div className="h-5 w-px bg-on-surface/10 hidden sm:block" />
-          <Link href="/login" className="hidden sm:inline-flex text-sm text-on-surface-variant hover:text-on-surface transition-colors">
-            Sign in
-          </Link>
-          <Link
-            href={`${appUrl}/signup`}
-            className="px-5 py-2 bg-primary text-on-primary font-semibold rounded-xl text-sm hover:shadow-[0_0_24px_rgba(var(--color-primary),0.4)] active:scale-[0.97] transition-all duration-300"
-          >
-            Get Started Free
-          </Link>
+          {isLoggedIn ? (
+            <Link
+              href="/dashboard"
+              className="px-5 py-2 bg-primary text-on-primary font-semibold rounded-xl text-sm hover:shadow-[0_0_24px_rgba(var(--color-primary),0.4)] active:scale-[0.97] transition-all duration-300"
+            >
+              Dashboard
+            </Link>
+          ) : (
+            <>
+              <Link href="/login" className="hidden sm:inline-flex text-sm text-on-surface-variant hover:text-on-surface transition-colors">
+                Sign in
+              </Link>
+              <Link
+                href={`${appUrl}/signup`}
+                className="px-5 py-2 bg-primary text-on-primary font-semibold rounded-xl text-sm hover:shadow-[0_0_24px_rgba(var(--color-primary),0.4)] active:scale-[0.97] transition-all duration-300"
+              >
+                Get Started Free
+              </Link>
+            </>
+          )}
         </div>
       </nav>
 
@@ -74,19 +88,31 @@ export default function LandingPage() {
           </p>
 
           <div className="animate-fade-up delay-3 flex flex-col sm:flex-row gap-4 justify-center items-center mb-8">
-            <Link
-              href="/signup"
-              className="group relative px-8 py-4 bg-primary text-on-primary font-bold rounded-xl hover:shadow-[0_0_40px_rgba(var(--color-primary),0.35)] transition-all duration-500 text-base"
-            >
-              Start Your Free Portal
-              <i className="fa-solid fa-arrow-right ml-2 text-sm group-hover:translate-x-1 transition-transform" />
-            </Link>
-            <Link
-              href="/login"
-              className="px-8 py-4 glass-panel border border-outline-variant/15 rounded-xl hover:border-primary/30 hover:bg-primary/[0.03] transition-all duration-300 text-on-surface font-medium"
-            >
-              Sign in
-            </Link>
+            {isLoggedIn ? (
+              <Link
+                href="/dashboard"
+                className="group relative px-8 py-4 bg-primary text-on-primary font-bold rounded-xl hover:shadow-[0_0_40px_rgba(var(--color-primary),0.35)] transition-all duration-500 text-base"
+              >
+                Go to Dashboard
+                <i className="fa-solid fa-arrow-right ml-2 text-sm group-hover:translate-x-1 transition-transform" />
+              </Link>
+            ) : (
+              <>
+                <Link
+                  href="/signup"
+                  className="group relative px-8 py-4 bg-primary text-on-primary font-bold rounded-xl hover:shadow-[0_0_40px_rgba(var(--color-primary),0.35)] transition-all duration-500 text-base"
+                >
+                  Start Your Free Portal
+                  <i className="fa-solid fa-arrow-right ml-2 text-sm group-hover:translate-x-1 transition-transform" />
+                </Link>
+                <Link
+                  href="/login"
+                  className="px-8 py-4 glass-panel border border-outline-variant/15 rounded-xl hover:border-primary/30 hover:bg-primary/[0.03] transition-all duration-300 text-on-surface font-medium"
+                >
+                  Sign in
+                </Link>
+              </>
+            )}
           </div>
 
           <p className="animate-fade-up delay-4 text-xs text-on-surface-variant/50">
