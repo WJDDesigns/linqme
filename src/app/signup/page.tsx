@@ -16,7 +16,7 @@ export default function SignupPage() {
       <RocketAnimation />
       <AuthHeader />
 
-      <div className="relative z-10 w-full max-w-lg space-y-6 animate-scale-in mt-[14vh]">
+      <div className="relative z-10 w-full max-w-lg space-y-6 animate-scale-in">
         <div className="text-center">
           <h1 className="text-3xl font-bold tracking-tight font-headline text-on-surface">
             Start with SiteLaunch

@@ -20,7 +20,7 @@ export default async function MfaChallengePage({ searchParams }: Props) {
       <RocketAnimation />
       <AuthHeader />
 
-      <div className="relative z-10 w-full max-w-sm animate-scale-in mt-[18vh]">
+      <div className="relative z-10 w-full max-w-sm animate-scale-in">
         <MfaChallenge redirectTo={redirectTo} userId={session.userId} />
       </div>
     </main>

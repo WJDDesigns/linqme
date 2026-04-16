@@ -20,7 +20,7 @@ export default async function MfaSetupPage({ searchParams }: Props) {
       <RocketAnimation />
       <AuthHeader />
 
-      <div className="relative z-10 w-full max-w-md animate-scale-in mt-[16vh]">
+      <div className="relative z-10 w-full max-w-md animate-scale-in">
         <MfaSetupFlow redirectTo={redirectTo} userEmail={session.email} />
       </div>
     </main>

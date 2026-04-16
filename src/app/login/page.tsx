@@ -79,7 +79,7 @@ export default function LoginPage() {
       <RocketAnimation />
       <AuthHeader />
 
-      <div className="relative z-10 w-full max-w-sm animate-scale-in mt-[18vh]">
+      <div className="relative z-10 w-full max-w-sm animate-scale-in">
         <div className="gradient-border rounded-2xl">
           <div className="relative rounded-2xl p-8 bg-surface-container shadow-xl border border-outline-variant/10">
             <h1 className="text-2xl font-bold font-headline text-on-surface tracking-tight text-center">

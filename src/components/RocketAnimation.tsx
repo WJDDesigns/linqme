@@ -99,7 +99,8 @@ export default function RocketAnimation() {
 
     function rocketPos() {
       const cx = W / 2;
-      const baseY = H * 0.22;
+      // Sit above the vertically-centered dialog — roughly 18% from top
+      const baseY = H * 0.18;
       const bob = Math.sin(t * 0.7) * 4 + Math.sin(t * 1.2) * 2;
       const sway = Math.sin(t * 0.45) * 1.5;
       return { x: cx + sway, y: baseY + bob };
