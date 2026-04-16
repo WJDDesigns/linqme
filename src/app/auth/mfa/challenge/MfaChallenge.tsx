@@ -123,7 +123,7 @@ export default function MfaChallenge({ redirectTo, userId }: Props) {
 
   return (
     <div className="gradient-border rounded-2xl">
-      <div className="relative glass-panel-strong noise-overlay rounded-2xl p-8 space-y-6">
+      <div className="relative rounded-2xl p-8 space-y-6 bg-surface-container shadow-xl border border-outline-variant/10">
         <div className="text-center">
           <div className="w-14 h-14 mx-auto rounded-2xl bg-primary/10 flex items-center justify-center mb-4">
             <i className="fa-solid fa-shield-halved text-primary text-xl" />

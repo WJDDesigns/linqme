@@ -12,11 +12,9 @@ export default function SignupPage() {
   );
 
   return (
-    <main className="min-h-screen flex items-end justify-center px-4 pb-[4vh] pt-[38vh] relative overflow-hidden">
+    <main className="min-h-screen flex items-end justify-center px-4 pb-[4vh] pt-[32vh] relative overflow-hidden bg-surface">
       {/* Rocket animation background */}
       <RocketAnimation />
-      {/* Soft glow for depth */}
-      <div className="absolute top-1/4 left-1/2 -translate-x-1/2 w-[500px] h-[500px] bg-primary/[0.06] rounded-full blur-[140px] pointer-events-none" />
 
       <div className="relative z-10 w-full max-w-lg space-y-6 animate-scale-in">
         {/* Logo */}

@@ -135,7 +135,7 @@ export default function MfaSetupFlow({ redirectTo, userEmail }: Props) {
 
   return (
     <div className="gradient-border rounded-2xl">
-      <div className="relative glass-panel-strong noise-overlay rounded-2xl p-8 space-y-6">
+      <div className="relative rounded-2xl p-8 space-y-6 bg-surface-container shadow-xl border border-outline-variant/10">
 
         {/* ── Step: Choose Method ─── */}
         {step === "choose" && (

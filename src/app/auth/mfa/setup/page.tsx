@@ -17,9 +17,8 @@ export default async function MfaSetupPage({ searchParams }: Props) {
   const redirectTo = next || "/dashboard";
 
   return (
-    <main className="min-h-screen flex items-end justify-center px-6 pb-[6vh] pt-[38vh] relative overflow-hidden">
+    <main className="min-h-screen flex items-end justify-center px-6 pb-[6vh] pt-[35vh] relative overflow-hidden bg-surface">
       <RocketAnimation />
-      <div className="absolute top-1/3 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] bg-primary/[0.06] rounded-full blur-[140px] pointer-events-none" />
 
       <div className="relative z-10 w-full max-w-md animate-scale-in">
         <Link href="/" className="flex items-center justify-center mb-8">

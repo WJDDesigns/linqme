@@ -75,11 +75,9 @@ export default function LoginPage() {
   }
 
   return (
-    <main className="min-h-screen flex items-end justify-center px-6 pb-[8vh] pt-[45vh] relative overflow-hidden">
+    <main className="min-h-screen flex items-end justify-center px-6 pb-[8vh] pt-[42vh] relative overflow-hidden bg-surface">
       {/* Rocket animation background */}
       <RocketAnimation />
-      {/* Soft radial wash for depth */}
-      <div className="absolute top-1/3 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] bg-primary/[0.06] rounded-full blur-[140px] pointer-events-none" />
 
       <div className="relative z-10 w-full max-w-sm animate-scale-in">
         {/* Logo */}
@@ -88,7 +86,7 @@ export default function LoginPage() {
         </Link>
 
         <div className="gradient-border rounded-2xl">
-          <div className="relative glass-panel-strong noise-overlay rounded-2xl p-8">
+          <div className="relative rounded-2xl p-8 bg-surface-container shadow-xl border border-outline-variant/10">
             <h1 className="text-2xl font-bold font-headline text-on-surface tracking-tight text-center">
               Welcome back
             </h1>

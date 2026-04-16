@@ -120,7 +120,7 @@ export default function SignupForm({ rootHost }: { rootHost: string }) {
 
   return (
     <div className="gradient-border rounded-2xl">
-      <div className="glass-panel-strong noise-overlay rounded-2xl p-6 space-y-5">
+      <div className="rounded-2xl p-6 space-y-5 bg-surface-container shadow-xl border border-outline-variant/10">
         {/* Progress Steps */}
         <div className="flex items-center justify-between mb-2">
           {STEPS.map((label, i) => (
