@@ -1,11 +1,12 @@
 import Link from "next/link";
-import { requireSession, getCurrentAccount } from "@/lib/auth";
+import { requireSession, getCurrentAccount, getVisiblePartners } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { getFormsLimitForTier } from "@/lib/plans";
 import type { FormSchema } from "@/lib/forms";
 import CreateFormButton from "./CreateFormButton";
 import LandingModeToggle from "./LandingModeToggle";
+import FormSettingsPanel from "./[formId]/FormSettingsPanel";
 
 export default async function FormsListPage() {
   const session = await requireSession();
@@ -29,6 +30,8 @@ export default async function FormsListPage() {
     .from("partner_forms")
     .select(
       `id, name, slug, description, is_active, is_default, created_at, template_id,
+       notification_emails, notification_bcc,
+       confirm_page_heading, confirm_page_body, redirect_url,
        form_templates ( id, schema )`,
     )
     .eq("partner_id", account.id)
@@ -64,6 +67,26 @@ export default async function FormsListPage() {
   for (const s of subData ?? []) {
     subCountMap[s.partner_form_id] = (subCountMap[s.partner_form_id] ?? 0) + 1;
   }
+
+  // Load partner assignments for all forms in bulk
+  const { data: allAssignments } = formIds.length > 0
+    ? await admin
+        .from("form_partner_assignments")
+        .select("partner_form_id, partner_id")
+        .in("partner_form_id", formIds)
+    : { data: [] };
+
+  const assignmentMap: Record<string, string[]> = {};
+  for (const a of allAssignments ?? []) {
+    if (!assignmentMap[a.partner_form_id]) assignmentMap[a.partner_form_id] = [];
+    assignmentMap[a.partner_form_id].push(a.partner_id);
+  }
+
+  // Get sub-partners for settings panel
+  const allPartners = await getVisiblePartners();
+  const subPartners = allPartners
+    .filter((p) => p.id !== account.id)
+    .map((p) => ({ id: p.id, name: p.name }));
 
   return (
     <div className="max-w-5xl mx-auto px-6 md:px-10 py-8 space-y-8">
@@ -147,6 +170,20 @@ export default async function FormsListPage() {
                     </div>
 
                     <div className="flex items-center gap-2 shrink-0">
+                      <FormSettingsPanel
+                        formId={form.id}
+                        formName={form.name}
+                        formSlug={form.slug}
+                        isDefault={form.is_default}
+                        partners={subPartners}
+                        assignedPartnerIds={assignmentMap[form.id] ?? []}
+                        storefrontHost={storefrontHost}
+                        notificationEmails={(form.notification_emails as string[]) ?? []}
+                        notificationBcc={(form.notification_bcc as string[]) ?? []}
+                        confirmPageHeading={(form.confirm_page_heading as string) ?? ""}
+                        confirmPageBody={(form.confirm_page_body as string) ?? ""}
+                        redirectUrl={(form.redirect_url as string) ?? ""}
+                      />
                       <a
                         href={formUrl}
                         target="_blank"
