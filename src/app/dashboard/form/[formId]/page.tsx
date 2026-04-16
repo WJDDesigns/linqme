@@ -33,6 +33,8 @@ export default async function FormEditorPage({ params }: PageProps) {
     .from("partner_forms")
     .select(
       `id, name, slug, template_id, is_default, is_active,
+       notification_emails, notification_bcc,
+       confirm_page_heading, confirm_page_body, redirect_url,
        form_templates ( id, schema )`,
     )
     .eq("id", formId)
@@ -92,6 +94,11 @@ export default async function FormEditorPage({ params }: PageProps) {
             partners={subPartners}
             assignedPartnerIds={assignedPartnerIds}
             storefrontHost={storefrontHost}
+            notificationEmails={(pf.notification_emails as string[]) ?? []}
+            notificationBcc={(pf.notification_bcc as string[]) ?? []}
+            confirmPageHeading={(pf.confirm_page_heading as string) ?? ""}
+            confirmPageBody={(pf.confirm_page_body as string) ?? ""}
+            redirectUrl={(pf.redirect_url as string) ?? ""}
           />
         }
       />

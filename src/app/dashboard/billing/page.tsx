@@ -24,8 +24,12 @@ export default async function BillingPage() {
   }
 
   const usage = await getAccountUsage(account.id);
-  const currentTier = mapLegacyTier(account.planTier);
   const plans = await getPlans();
+
+  // Superadmins always get the highest tier
+  const isAdminUser = session.role === "superadmin";
+  const highestPlan = plans.length > 0 ? plans[plans.length - 1] : null;
+  const currentTier = isAdminUser ? (highestPlan?.slug ?? "supernova") : mapLegacyTier(account.planTier);
 
   // Find the current plan from DB
   const currentPlan = plans.find((p) => p.slug === currentTier) ?? plans[0];

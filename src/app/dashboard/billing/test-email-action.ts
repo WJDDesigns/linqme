@@ -11,6 +11,11 @@ export interface TestEmailResult {
 
 export async function sendTestEmailAction(): Promise<TestEmailResult> {
   const session = await requireSession();
+
+  // Only superadmins and partner owners can send test emails
+  if (session.role !== "superadmin" && session.role !== "partner_owner") {
+    return { ok: false, message: "Only admins can send test emails." };
+  }
   if (!session.email) {
     return { ok: false, message: "No email on your profile." };
   }

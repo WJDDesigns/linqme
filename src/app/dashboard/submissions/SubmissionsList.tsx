@@ -65,9 +65,20 @@ export default function SubmissionsList({ submissions, isSuperadmin, partners, f
   const [actionMsg, setActionMsg] = useState<string | null>(null);
   const [confirmDelete, setConfirmDelete] = useState<string | null>(null);
   const [confirmBulkDelete, setConfirmBulkDelete] = useState(false);
+  const [sortCol, setSortCol] = useState<"client" | "partner" | "status" | "date">("date");
+  const [sortDir, setSortDir] = useState<"asc" | "desc">("desc");
+
+  function handleSort(col: "client" | "partner" | "status" | "date") {
+    if (sortCol === col) {
+      setSortDir((d) => (d === "asc" ? "desc" : "asc"));
+    } else {
+      setSortCol(col);
+      setSortDir(col === "date" ? "desc" : "asc");
+    }
+  }
 
   const filtered = useMemo(() => {
-    return submissions.filter((s) => {
+    const list = submissions.filter((s) => {
       if (statusFilter !== "all" && s.status !== statusFilter) return false;
       if (partnerFilter !== "all" && s.partner_id !== partnerFilter) return false;
       if (formFilter !== "all" && (s.form_slug ?? "") !== formFilter) return false;
@@ -82,7 +93,29 @@ export default function SubmissionsList({ submissions, isSuperadmin, partners, f
       }
       return true;
     });
-  }, [submissions, search, statusFilter, partnerFilter, formFilter]);
+
+    // Sort
+    const dir = sortDir === "asc" ? 1 : -1;
+    list.sort((a, b) => {
+      switch (sortCol) {
+        case "client":
+          return dir * (a.client_name ?? "").localeCompare(b.client_name ?? "");
+        case "partner":
+          return dir * (a.partner_name ?? "").localeCompare(b.partner_name ?? "");
+        case "status":
+          return dir * a.status.localeCompare(b.status);
+        case "date": {
+          const da = new Date(a.submitted_at || a.created_at).getTime();
+          const db = new Date(b.submitted_at || b.created_at).getTime();
+          return dir * (da - db);
+        }
+        default:
+          return 0;
+      }
+    });
+
+    return list;
+  }, [submissions, search, statusFilter, partnerFilter, formFilter, sortCol, sortDir]);
 
   const allSelected = filtered.length > 0 && filtered.every((s) => selected.has(s.id));
   const someSelected = selected.size > 0;
@@ -318,10 +351,22 @@ export default function SubmissionsList({ submissions, isSuperadmin, partners, f
                   className="w-3.5 h-3.5 rounded border-outline-variant/30 text-primary focus:ring-primary/40 cursor-pointer"
                 />
               </div>
-              <div className="col-span-3">Client</div>
-              <div className="col-span-2 hidden md:block">Partner</div>
-              <div className="col-span-2">Status</div>
-              <div className="col-span-2 hidden md:block">Received</div>
+              <button onClick={() => handleSort("client")} className="col-span-3 flex items-center gap-1 hover:text-primary transition-colors text-left">
+                Client
+                {sortCol === "client" && <i className={`fa-solid fa-caret-${sortDir === "asc" ? "up" : "down"} text-primary text-[8px]`} />}
+              </button>
+              <button onClick={() => handleSort("partner")} className="col-span-2 hidden md:flex items-center gap-1 hover:text-primary transition-colors text-left">
+                Partner
+                {sortCol === "partner" && <i className={`fa-solid fa-caret-${sortDir === "asc" ? "up" : "down"} text-primary text-[8px]`} />}
+              </button>
+              <button onClick={() => handleSort("status")} className="col-span-2 flex items-center gap-1 hover:text-primary transition-colors text-left">
+                Status
+                {sortCol === "status" && <i className={`fa-solid fa-caret-${sortDir === "asc" ? "up" : "down"} text-primary text-[8px]`} />}
+              </button>
+              <button onClick={() => handleSort("date")} className="col-span-2 hidden md:flex items-center gap-1 hover:text-primary transition-colors text-left">
+                Received
+                {sortCol === "date" && <i className={`fa-solid fa-caret-${sortDir === "asc" ? "up" : "down"} text-primary text-[8px]`} />}
+              </button>
               <div className="col-span-2" />
             </div>
 
@@ -335,7 +380,8 @@ export default function SubmissionsList({ submissions, isSuperadmin, partners, f
                     key={s.id}
                     className={`grid grid-cols-12 px-5 md:px-8 py-4 items-center transition-colors gap-2 ${
                       isSelected ? "bg-primary/5" : "hover:bg-white/[0.02]"
-                    } group`}
+                    } group border-l-[3px]`}
+                    style={{ borderLeftColor: s.partner_color || "transparent" }}
                   >
                     {/* Checkbox */}
                     <div className="col-span-1 flex items-center">

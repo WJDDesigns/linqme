@@ -235,6 +235,70 @@ export async function toggleFormActiveAction(formId: string, isActive: boolean):
 }
 
 /**
+ * Update per-form notification settings.
+ */
+export async function updateFormNotificationSettingsAction(
+  formId: string,
+  settings: {
+    notificationEmails: string[];
+    notificationBcc: string[];
+    confirmPageHeading: string | null;
+    confirmPageBody: string | null;
+    redirectUrl: string | null;
+  },
+): Promise<ActionResult> {
+  const session = await requireSession();
+  const account = await getCurrentAccount(session.userId);
+  if (!account) return { ok: false, error: "No account found." };
+
+  const admin = createAdminClient();
+
+  // Verify ownership
+  const { data: form } = await admin
+    .from("partner_forms")
+    .select("id")
+    .eq("id", formId)
+    .eq("partner_id", account.id)
+    .maybeSingle();
+
+  if (!form) return { ok: false, error: "Form not found." };
+
+  // Validate emails
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  for (const email of [...settings.notificationEmails, ...settings.notificationBcc]) {
+    if (!emailRegex.test(email.trim())) {
+      return { ok: false, error: `Invalid email: ${email}` };
+    }
+  }
+
+  // Validate redirect URL if provided
+  if (settings.redirectUrl) {
+    try {
+      new URL(settings.redirectUrl);
+    } catch {
+      return { ok: false, error: "Invalid redirect URL. Must be a full URL (https://...)." };
+    }
+  }
+
+  const { error } = await admin
+    .from("partner_forms")
+    .update({
+      notification_emails: settings.notificationEmails.map((e) => e.trim()).filter(Boolean),
+      notification_bcc: settings.notificationBcc.map((e) => e.trim()).filter(Boolean),
+      confirm_page_heading: settings.confirmPageHeading?.trim() || null,
+      confirm_page_body: settings.confirmPageBody?.trim() || null,
+      redirect_url: settings.redirectUrl?.trim() || null,
+    })
+    .eq("id", formId);
+
+  if (error) return { ok: false, error: error.message };
+
+  revalidatePath("/dashboard/form");
+  revalidatePath(`/dashboard/form/${formId}`);
+  return { ok: true };
+}
+
+/**
  * Duplicate a form.
  */
 export async function duplicateFormAction(formId: string): Promise<ActionResult> {

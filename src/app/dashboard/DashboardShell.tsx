@@ -187,28 +187,30 @@ export default function DashboardShell({
         <div className="border-t border-on-surface/[0.06] px-3 py-4 mt-auto">
           {collapsed ? (
             <div className="flex flex-col items-center gap-2">
-              {userAvatarUrl ? (
-                <div className="relative w-8 h-8 rounded-full overflow-hidden ring-1 ring-primary/10">
-                  <Image src={userAvatarUrl} alt="" fill className="object-cover" sizes="32px" />
-                </div>
-              ) : (
-                <div className="w-8 h-8 rounded-full bg-gradient-to-br from-primary/20 to-tertiary/10 flex items-center justify-center text-[10px] font-bold text-primary ring-1 ring-primary/10">
-                  {(userName || userEmail).slice(0, 1).toUpperCase()}
-                </div>
-              )}
+              <Link href="/dashboard/settings" title="Profile settings">
+                {userAvatarUrl ? (
+                  <div className="relative w-8 h-8 rounded-full overflow-hidden ring-1 ring-primary/10 hover:ring-primary/40 transition-all">
+                    <Image src={userAvatarUrl} alt="" fill className="object-cover" sizes="32px" />
+                  </div>
+                ) : (
+                  <div className="w-8 h-8 rounded-full bg-gradient-to-br from-primary/20 to-tertiary/10 flex items-center justify-center text-[10px] font-bold text-primary ring-1 ring-primary/10 hover:ring-primary/40 transition-all">
+                    {(userName || userEmail).slice(0, 1).toUpperCase()}
+                  </div>
+                )}
+              </Link>
               <button onClick={handleSignOut} className="text-on-surface-variant/40 hover:text-primary transition-colors" title="Sign out">
                 <i className="fa-solid fa-right-from-bracket text-xs" />
               </button>
             </div>
           ) : (
             <>
-              <div className="flex items-center gap-3 px-3 py-2">
+              <Link href="/dashboard/settings" className="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-primary/5 transition-colors group/avatar">
                 {userAvatarUrl ? (
-                  <div className="relative w-8 h-8 rounded-full overflow-hidden ring-1 ring-primary/10 shrink-0">
+                  <div className="relative w-8 h-8 rounded-full overflow-hidden ring-1 ring-primary/10 group-hover/avatar:ring-primary/40 transition-all shrink-0">
                     <Image src={userAvatarUrl} alt="" fill className="object-cover" sizes="32px" />
                   </div>
                 ) : (
-                  <div className="w-8 h-8 rounded-full bg-gradient-to-br from-primary/20 to-tertiary/10 flex items-center justify-center text-[10px] font-bold text-primary ring-1 ring-primary/10 shrink-0">
+                  <div className="w-8 h-8 rounded-full bg-gradient-to-br from-primary/20 to-tertiary/10 flex items-center justify-center text-[10px] font-bold text-primary ring-1 ring-primary/10 group-hover/avatar:ring-primary/40 transition-all shrink-0">
                     {(userName || userEmail).slice(0, 1).toUpperCase()}
                   </div>
                 )}
@@ -216,7 +218,7 @@ export default function DashboardShell({
                   <p className="text-xs font-bold text-on-surface truncate">{userName || userEmail}</p>
                   <p className="text-[10px] text-on-surface-variant/50 truncate">{userEmail}</p>
                 </div>
-              </div>
+              </Link>
               <div className="px-3 mt-1">
                 <button onClick={handleSignOut} className="text-xs text-on-surface-variant/40 hover:text-primary transition-colors duration-300 uppercase tracking-widest">
                   Sign out
