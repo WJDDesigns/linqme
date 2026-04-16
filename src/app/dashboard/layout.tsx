@@ -1,8 +1,11 @@
 import { requireSession, getCurrentAccount, getAccountUsage, getImpersonatingPartnerId, getPartnerMemberContext } from "@/lib/auth";
+import { headers } from "next/headers";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { trackSession } from "@/lib/session-tracker";
 import ImpersonationBanner from "./ImpersonationBanner";
 import UpgradeBanner from "./UpgradeBanner";
 import DashboardShell from "./DashboardShell";
+import { ToastProvider } from "@/components/Toast";
 
 const TIER_LABELS: Record<string, string> = {
   free: "Free",
@@ -45,6 +48,13 @@ function getPartnerMemberNav(partnerId: string, allowFormEditing: boolean) {
 
 export default async function DashboardLayout({ children }: { children: React.ReactNode }) {
   const session = await requireSession();
+
+  // Track session (non-blocking — fire and forget to avoid slowing page loads)
+  const headersList = await headers();
+  const ip = headersList.get("x-forwarded-for")?.split(",")[0]?.trim() ?? null;
+  const ua = headersList.get("user-agent") ?? null;
+  trackSession(session.userId, ip, ua).catch(() => {});
+
   const isAdmin = session.role === "superadmin";
   const isPartnerMember = session.role === "partner_member";
   const account = await getCurrentAccount(session.userId);
@@ -98,36 +108,38 @@ export default async function DashboardLayout({ children }: { children: React.Re
     : account ? (TIER_LABELS[account.planTier] ?? account.planTier) : "Platform";
 
   return (
-    <div className="min-h-screen bg-surface flex flex-col">
-      {/* Impersonation banner */}
-      {impersonatingName && <ImpersonationBanner partnerName={impersonatingName} />}
+    <ToastProvider>
+      <div className="min-h-screen bg-surface flex flex-col">
+        {/* Impersonation banner */}
+        {impersonatingName && <ImpersonationBanner partnerName={impersonatingName} />}
 
-      <DashboardShell
-        sidebarName={sidebarName}
-        sidebarLabel={sidebarLabel}
-        isAdmin={isAdmin}
-        isPartnerMember={isPartnerMember}
-        showPartners={showPartners}
-        accountName={account?.name ?? null}
-        workspaceItems={partnerMemberNav ?? WORKSPACE_NAV}
-        adminItems={ADMIN_NAV}
-        userName={session.fullName || session.email}
-        userEmail={session.email}
-        usageLine={usageLine}
-        usageRatio={usageRatio}
-        showUsageBar={account?.submissionsMonthlyLimit !== null}
-        hasImpersonation={!!impersonatingName}
-      >
-        {/* Upgrade banner for free-tier users near their limit */}
-        {account && usageLimit !== null && account.planTier === "free" && (
-          <UpgradeBanner
-            used={usageUsed}
-            limit={usageLimit}
-            planName={TIER_LABELS[account.planTier] ?? "Free"}
-          />
-        )}
-        {children}
-      </DashboardShell>
-    </div>
+        <DashboardShell
+          sidebarName={sidebarName}
+          sidebarLabel={sidebarLabel}
+          isAdmin={isAdmin}
+          isPartnerMember={isPartnerMember}
+          showPartners={showPartners}
+          accountName={account?.name ?? null}
+          workspaceItems={partnerMemberNav ?? WORKSPACE_NAV}
+          adminItems={ADMIN_NAV}
+          userName={session.fullName || session.email}
+          userEmail={session.email}
+          usageLine={usageLine}
+          usageRatio={usageRatio}
+          showUsageBar={account?.submissionsMonthlyLimit !== null}
+          hasImpersonation={!!impersonatingName}
+        >
+          {/* Upgrade banner for free-tier users near their limit */}
+          {account && usageLimit !== null && account.planTier === "free" && (
+            <UpgradeBanner
+              used={usageUsed}
+              limit={usageLimit}
+              planName={TIER_LABELS[account.planTier] ?? "Free"}
+            />
+          )}
+          {children}
+        </DashboardShell>
+      </div>
+    </ToastProvider>
   );
 }

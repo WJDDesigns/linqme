@@ -1,11 +1,12 @@
 "use server";
 
+import { headers } from "next/headers";
 import { createAdminClient } from "@/lib/supabase/admin";
-import { createClient } from "@/lib/supabase/server";
-import { sendWelcomeEmail } from "@/lib/notifications";
+import { sendWelcomeEmail, sendVerificationEmail } from "@/lib/notifications";
+import { rateLimiter } from "@/lib/rate-limit";
 
 export type SignupResult =
-  | { ok: true; next: "/dashboard" | "/login?signup=ok" }
+  | { ok: true; next: "/auth/verify-email" }
   | { ok: false; error: string };
 
 function sanitizeSlug(raw: string): string {
@@ -19,6 +20,14 @@ function sanitizeSlug(raw: string): string {
 }
 
 export async function signupAction(formData: FormData): Promise<SignupResult> {
+  // Rate limit by IP
+  const headerStore = await headers();
+  const ip = headerStore.get("x-forwarded-for")?.split(",")[0]?.trim() ?? "unknown";
+  const { success: withinLimit } = rateLimiter.check(`signup:${ip}`, 3, 60);
+  if (!withinLimit) {
+    return { ok: false, error: "Too many signup attempts. Please try again later." };
+  }
+
   // Step 1: Account basics
   const email = String(formData.get("email") ?? "").trim().toLowerCase();
   const password = String(formData.get("password") ?? "");
@@ -73,11 +82,11 @@ export async function signupAction(formData: FormData): Promise<SignupResult> {
     };
   }
 
-  // 2. Create the auth user — auto-confirm so they can sign in immediately.
+  // 2. Create the auth user — email NOT auto-confirmed; user must verify via email.
   const { data: created, error: createErr } = await admin.auth.admin.createUser({
     email,
     password,
-    email_confirm: true,
+    email_confirm: false,
     user_metadata: { full_name: companyName },
   });
   if (createErr || !created.user) {
@@ -118,11 +127,19 @@ export async function signupAction(formData: FormData): Promise<SignupResult> {
       .eq("id", userId);
   }
 
-  // 4. Sign them in so they land on the dashboard with a live session.
-  const supabase = await createClient();
-  const { error: signInErr } = await supabase.auth.signInWithPassword({ email, password });
+  // 4. Generate an email verification link and send it via Resend.
+  const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? "https://app.mysitelaunch.com";
+  const redirectTo = `${appUrl.replace(/\/$/, "")}/auth/callback?next=/dashboard`;
 
-  // 5. Send welcome email (non-blocking).
+  try {
+    await sendVerificationEmail({ to: email, companyName, redirectTo });
+  } catch (err) {
+    if (process.env.NODE_ENV === "development") {
+      console.error("[signup] verification email failed:", err);
+    }
+  }
+
+  // 5. Send welcome email (non-blocking) — they'll see it alongside the verification email.
   try {
     await sendWelcomeEmail({
       to: email,
@@ -136,9 +153,6 @@ export async function signupAction(formData: FormData): Promise<SignupResult> {
     }
   }
 
-  if (signInErr) {
-    return { ok: true, next: "/login?signup=ok" };
-  }
-
-  return { ok: true, next: "/dashboard" };
+  // Don't sign them in — they must verify their email first.
+  return { ok: true, next: "/auth/verify-email" };
 }

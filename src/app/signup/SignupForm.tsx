@@ -114,6 +114,12 @@ export default function SignupForm({ rootHost }: { rootHost: string }) {
       return;
     }
 
+    // If redirecting to verify-email, pass the email so the page can offer resend
+    if (result.next === "/auth/verify-email") {
+      window.location.href = `/auth/verify-email?email=${encodeURIComponent(formData.email)}`;
+      return;
+    }
+
     // If there's a ?next= param (e.g. from checkout), go there instead of dashboard
     window.location.href = nextUrl && result.next === "/dashboard" ? nextUrl : result.next;
   }

@@ -244,7 +244,7 @@ export default function PricingPage() {
           <div className="flex flex-wrap justify-center gap-8 text-xs text-on-surface-variant/40 uppercase tracking-widest font-label">
             <Link className="hover:text-primary transition-colors duration-300" href="/privacy">Privacy Policy</Link>
             <Link className="hover:text-primary transition-colors duration-300" href="/terms">Terms of Service</Link>
-            <a className="hover:text-primary transition-colors duration-300" href="#">Contact</a>
+            <Link className="hover:text-primary transition-colors duration-300" href="/support">Contact</Link>
           </div>
           <div className="text-xs text-on-surface-variant/30">
             &copy; {new Date().getFullYear()} SiteLaunch

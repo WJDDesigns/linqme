@@ -1,4 +1,109 @@
 /**
+ * Send an email verification link after signup.
+ * Uses the admin API to generate a Supabase magic link (type: "magiclink")
+ * and sends it via Resend so we control the template.
+ */
+export async function sendVerificationEmail(args: {
+  to: string;
+  companyName: string;
+  redirectTo: string;
+}): Promise<void> {
+  const admin = createAdminClient();
+
+  // Generate a Supabase sign-up confirmation link.
+  const { data: linkData, error: linkErr } = await admin.auth.admin.generateLink({
+    type: "magiclink",
+    email: args.to,
+    options: { redirectTo: args.redirectTo },
+  });
+
+  if (linkErr || !linkData) {
+    console.error("[notifications] generateLink failed:", linkErr?.message);
+    throw new Error(linkErr?.message ?? "Failed to generate verification link");
+  }
+
+  // The generated link contains hashed_token + verification_type params.
+  // We use the full action link Supabase provides.
+  const verifyUrl = linkData.properties?.action_link;
+  if (!verifyUrl) {
+    throw new Error("Supabase did not return an action_link");
+  }
+
+  const html = emailTemplate({
+    heading: "Verify your email",
+    body: `
+      <p style="margin: 0 0 8px;">
+        Hi ${escapeHtml(args.companyName)}, thanks for signing up for SiteLaunch!
+      </p>
+      <p style="margin: 0 0 0;">
+        Click the button below to verify your email address and get started.
+        This link will expire in 24 hours.
+      </p>
+    `,
+    cta: { label: "Verify email address", url: verifyUrl },
+  });
+
+  await sendMail({
+    to: args.to,
+    subject: "Verify your email — SiteLaunch",
+    html,
+  });
+}
+
+/**
+ * Resend the verification email for a user who hasn't confirmed yet.
+ */
+export async function resendVerificationEmail(args: {
+  email: string;
+  redirectTo: string;
+}): Promise<void> {
+  const admin = createAdminClient();
+
+  // Look up the user to get their name for the email template.
+  const { data: listData } = await admin.auth.admin.listUsers();
+  const user = listData?.users?.find(
+    (u) => u.email?.toLowerCase() === args.email.toLowerCase(),
+  );
+
+  const companyName = user?.user_metadata?.full_name ?? "there";
+
+  // Generate a new magic link.
+  const { data: linkData, error: linkErr } = await admin.auth.admin.generateLink({
+    type: "magiclink",
+    email: args.email,
+    options: { redirectTo: args.redirectTo },
+  });
+
+  if (linkErr || !linkData) {
+    throw new Error(linkErr?.message ?? "Failed to generate verification link");
+  }
+
+  const verifyUrl = linkData.properties?.action_link;
+  if (!verifyUrl) {
+    throw new Error("Supabase did not return an action_link");
+  }
+
+  const html = emailTemplate({
+    heading: "Verify your email",
+    body: `
+      <p style="margin: 0 0 8px;">
+        Hi ${escapeHtml(companyName)}, here's a new verification link for your SiteLaunch account.
+      </p>
+      <p style="margin: 0 0 0;">
+        Click the button below to verify your email address. This link will expire in 24 hours.
+      </p>
+    `,
+    cta: { label: "Verify email address", url: verifyUrl },
+  });
+
+  await sendMail({
+    to: args.email,
+    subject: "Verify your email — SiteLaunch",
+    html,
+  });
+}
+
+/**
  * Send a welcome email when someone completes signup.
  */
 export async function sendWelcomeEmail(args: {
@@ -40,6 +145,30 @@ export async function sendWelcomeEmail(args: {
     subject: "Welcome to SiteLaunch",
     html,
   });
+}
+
+/**
+ * Create an in-app notification for a user.
+ * Uses the admin client (service role) so it can be called from any server context.
+ */
+export async function createNotification(
+  userId: string,
+  type: string,
+  title: string,
+  message: string,
+  link?: string
+): Promise<void> {
+  const admin = createAdminClient();
+  const { error } = await admin.from("notifications").insert({
+    user_id: userId,
+    type,
+    title,
+    message,
+    link: link ?? null,
+  });
+  if (error) {
+    console.error("[notifications] createNotification failed:", error.message);
+  }
 }
 
 /**

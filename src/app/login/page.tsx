@@ -2,7 +2,6 @@
 
 import { useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { createClient } from "@/lib/supabase/client";
 import OAuthButtons from "@/components/OAuthButtons";
 import RocketAnimation from "@/components/RocketAnimation";
 import AuthHeader from "@/components/AuthHeader";
@@ -28,23 +27,20 @@ export default function LoginPage() {
     setStatus("sending");
     setErrorMsg(null);
 
-    const supabase = createClient();
-    const { error } = await supabase.auth.signInWithPassword({ email, password });
+    const res = await fetch("/api/auth/login", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email, password }),
+    });
+    const data = await res.json();
 
-    if (error) {
+    if (!res.ok) {
       setStatus("error");
-      setErrorMsg(error.message);
+      setErrorMsg(data.error ?? "Login failed.");
       return;
     }
 
-    // Check if user needs MFA verification
-    const { data: aalData } = await supabase.auth.mfa.getAuthenticatorAssuranceLevel();
-    const aal = aalData?.currentLevel;
-    const factors = await supabase.auth.mfa.listFactors();
-    const hasVerifiedFactors = (factors.data?.totp ?? []).some(f => f.status === "verified")
-      || (factors.data?.phone ?? []).some(f => f.status === "verified");
-
-    if (hasVerifiedFactors && aal !== "aal2") {
+    if (data.needsMfa) {
       // User has MFA enrolled but hasn't verified yet — redirect to challenge
       router.push(`/auth/mfa/challenge?next=${encodeURIComponent(nextUrl)}`);
       return;
@@ -59,16 +55,17 @@ export default function LoginPage() {
     setStatus("sending");
     setErrorMsg(null);
 
-    const supabase = createClient();
     const callbackUrl = `${window.location.origin}/auth/callback?next=${encodeURIComponent(nextUrl)}`;
-    const { error } = await supabase.auth.signInWithOtp({
-      email,
-      options: { emailRedirectTo: callbackUrl },
+    const res = await fetch("/api/auth/magic-link", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email, callbackUrl }),
     });
+    const data = await res.json();
 
-    if (error) {
+    if (!res.ok) {
       setStatus("error");
-      setErrorMsg(error.message);
+      setErrorMsg(data.error ?? "Failed to send magic link.");
       return;
     }
     setStatus("sent");

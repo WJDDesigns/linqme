@@ -554,7 +554,7 @@ export default function LandingPage() {
             <Link className="hover:text-primary transition-colors duration-300" href="/privacy">Privacy Policy</Link>
             <Link className="hover:text-primary transition-colors duration-300" href="/terms">Terms of Service</Link>
             <Link className="hover:text-primary transition-colors duration-300" href="/pricing">Pricing</Link>
-            <a className="hover:text-primary transition-colors duration-300" href="#">Contact</a>
+            <Link className="hover:text-primary transition-colors duration-300" href="/support">Contact</Link>
           </div>
           <div className="text-xs text-on-surface-variant/30">
             &copy; {new Date().getFullYear()} SiteLaunch

@@ -1,7 +1,9 @@
 import { requireSession, getCurrentAccount, getAccountUsage } from "@/lib/auth";
+import { headers } from "next/headers";
 import { mapLegacyTier } from "@/lib/stripe";
 import { getPlans } from "@/lib/plans";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { trackSession } from "@/lib/session-tracker";
 import TestEmailButton from "../billing/TestEmailButton";
 import UpgradeButton from "../billing/UpgradeButton";
 import ManageSubscriptionButton from "../billing/ManageSubscriptionButton";
@@ -9,8 +11,11 @@ import LogoUploadForm from "../partners/[id]/LogoUploadForm";
 import DomainSetup from "../partners/[id]/DomainSetup";
 import WhiteLabelSection from "../partners/[id]/WhiteLabelSection";
 import WorkspaceBrandingForm from "./WorkspaceBrandingForm";
+import DataExportSection from "./DataExportSection";
 import DeleteAccountSection from "./DeleteAccountSection";
 import MfaSettingsSection from "./MfaSettingsSection";
+import SessionsSection from "./SessionsSection";
+import ProfileSection from "./ProfileSection";
 import {
   uploadWorkspaceLogoAction,
   updateWorkspaceWhiteLabelAction,
@@ -34,8 +39,21 @@ export default async function SettingsPage() {
     );
   }
 
-  // Fetch full partner record for all branding sections
+  // Track session for the sessions management section
+  const headersList = await headers();
+  const ip = headersList.get("x-forwarded-for")?.split(",")[0]?.trim() ?? null;
+  const userAgent = headersList.get("user-agent") ?? null;
+  const currentSessionId = await trackSession(session.userId, ip, userAgent);
+
+  // Fetch user profile for the profile section
   const admin = createAdminClient();
+  const { data: profile } = await admin
+    .from("profiles")
+    .select("full_name, avatar_url")
+    .eq("id", session.userId)
+    .maybeSingle();
+
+  // Fetch full partner record for all branding sections
   const { data: partner } = await admin
     .from("partners")
     .select("*")
@@ -85,6 +103,13 @@ export default async function SettingsPage() {
             Manage your workspace branding, domain, and subscription.
           </p>
         </header>
+
+        {/* ─── Profile ─── */}
+        <ProfileSection
+          fullName={profile?.full_name ?? session.fullName}
+          email={session.email}
+          avatarUrl={profile?.avatar_url ?? null}
+        />
 
         {/* ─── Logo ─── */}
         {partner && (
@@ -330,6 +355,9 @@ export default async function SettingsPage() {
         {/* ─── Security / MFA ─── */}
         <MfaSettingsSection />
 
+        {/* ─── Active Sessions ─── */}
+        <SessionsSection currentSessionId={currentSessionId} />
+
         {/* ─── Email Notifications ─── */}
         <section className="glass-panel rounded-2xl border border-outline-variant/15 p-6">
           <h2 className="text-xs font-bold text-on-surface-variant uppercase tracking-widest mb-1">
@@ -341,6 +369,9 @@ export default async function SettingsPage() {
           </p>
           <TestEmailButton />
         </section>
+
+        {/* ─── Data Export ─── */}
+        <DataExportSection />
 
         {/* ─── Danger Zone ─── */}
         <DeleteAccountSection workspaceName={account.name} />

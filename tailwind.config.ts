@@ -86,6 +86,8 @@ const config: Config = {
         "glow-breathe": "glow-breathe 4s ease-in-out infinite",
         "gradient-shift": "gradient-shift 8s ease infinite",
         float: "float 6s ease-in-out infinite",
+        "slide-in-right":
+          "slide-in-right 0.3s cubic-bezier(0.22,1,0.36,1) both",
       },
       keyframes: {
         "celestial-fade-up": {
@@ -116,6 +118,10 @@ const config: Config = {
         float: {
           "0%, 100%": { transform: "translateY(0)" },
           "50%": { transform: "translateY(-12px)" },
+        },
+        "slide-in-right": {
+          from: { opacity: "0", transform: "translateX(16px)" },
+          to: { opacity: "1", transform: "translateX(0)" },
         },
       },
     },

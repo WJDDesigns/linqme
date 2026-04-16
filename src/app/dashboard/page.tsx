@@ -1,6 +1,9 @@
 import Link from "next/link";
+import { cookies } from "next/headers";
 import { requireSession, getVisiblePartners, getCurrentAccount } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/admin";
+import OnboardingChecklist from "@/components/OnboardingChecklist";
 
 const ROLE_LABELS: Record<string, string> = {
   superadmin: "Admin",
@@ -23,6 +26,48 @@ export default async function DashboardOverview() {
     .from("submissions")
     .select("id", { count: "exact", head: true });
 
+  // ── Onboarding checklist data ──
+  const cookieStore = await cookies();
+  const checklistDismissed =
+    cookieStore.get("sl_onboarding_dismissed")?.value === "1";
+
+  let hasLogo = false;
+  let hasBrandColors = false;
+  let hasCustomForm = false;
+  let hasMfa = false;
+  const hasSubmissions = (submissionCount ?? 0) > 0;
+
+  if (account && !checklistDismissed) {
+    const admin = createAdminClient();
+
+    // Partner branding checks
+    const { data: partner } = await admin
+      .from("partners")
+      .select("logo_url, primary_color")
+      .eq("id", account.id)
+      .maybeSingle();
+
+    hasLogo = !!partner?.logo_url;
+    hasBrandColors = !!partner?.primary_color;
+
+    // Form customization check — has at least one form
+    const { count: formCount } = await admin
+      .from("partner_forms")
+      .select("id", { count: "exact", head: true })
+      .eq("partner_id", account.id);
+
+    hasCustomForm = (formCount ?? 0) > 0;
+
+    // MFA check — profile.mfa_enabled
+    const { data: profile } = await admin
+      .from("profiles")
+      .select("mfa_enabled")
+      .eq("id", session.userId)
+      .maybeSingle();
+
+    hasMfa = profile?.mfa_enabled === true;
+  }
+
   return (
     <div className="max-w-5xl mx-auto px-6 md:px-10 py-8 space-y-8">
       {/* Header */}
@@ -36,6 +81,18 @@ export default async function DashboardOverview() {
             : "Manage your brand, form, and client submissions."}
         </p>
       </header>
+
+      {/* Onboarding checklist */}
+      {account && (
+        <OnboardingChecklist
+          hasLogo={hasLogo}
+          hasBrandColors={hasBrandColors}
+          hasCustomForm={hasCustomForm}
+          hasSubmissions={hasSubmissions}
+          hasMfa={hasMfa}
+          dismissed={checklistDismissed}
+        />
+      )}
 
       {/* Stat cards */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-5 animate-fade-up delay-1">

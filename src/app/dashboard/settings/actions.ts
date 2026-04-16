@@ -200,6 +200,141 @@ export async function saveWorkspaceDomainAction(formData: FormData) {
   revalidatePath("/dashboard");
 }
 
+/* ─── Profile Actions ─── */
+
+export async function updateProfileAction(formData: FormData) {
+  const session = await requireSession();
+  const fullName = String(formData.get("full_name") ?? "").trim();
+
+  const admin = createAdminClient();
+  const { error } = await admin
+    .from("profiles")
+    .update({ full_name: fullName || null })
+    .eq("id", session.userId);
+
+  if (error) throw new Error(error.message);
+
+  revalidatePath("/dashboard/settings");
+  revalidatePath("/dashboard");
+}
+
+export async function updateEmailAction(formData: FormData) {
+  const session = await requireSession();
+  const newEmail = String(formData.get("new_email") ?? "").trim();
+
+  if (!newEmail) throw new Error("Email is required");
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(newEmail)) {
+    throw new Error("Invalid email address");
+  }
+
+  const admin = createAdminClient();
+  const { error } = await admin.auth.admin.updateUserById(session.userId, {
+    email: newEmail,
+  });
+
+  if (error) throw new Error(error.message);
+
+  revalidatePath("/dashboard/settings");
+}
+
+export async function updatePasswordAction(formData: FormData) {
+  const session = await requireSession();
+  const newPassword = String(formData.get("new_password") ?? "");
+
+  if (newPassword.length < 8) {
+    throw new Error("Password must be at least 8 characters");
+  }
+
+  const admin = createAdminClient();
+  const { error } = await admin.auth.admin.updateUserById(session.userId, {
+    password: newPassword,
+  });
+
+  if (error) throw new Error(error.message);
+}
+
+export async function uploadAvatarAction(formData: FormData): Promise<string> {
+  const session = await requireSession();
+
+  const file = formData.get("avatar") as File | null;
+  if (!file || typeof file === "string" || file.size === 0) {
+    throw new Error("No file provided");
+  }
+  if (file.size > 5 * 1024 * 1024) {
+    throw new Error("Avatar must be 5 MB or smaller");
+  }
+  if (!file.type.startsWith("image/")) {
+    throw new Error("Avatar must be an image");
+  }
+
+  const admin = createAdminClient();
+  const ext = (file.name.split(".").pop() || "png")
+    .toLowerCase()
+    .replace(/[^a-z0-9]/g, "");
+  const path = `${session.userId}/avatar-${Date.now()}.${ext}`;
+
+  const bytes = Buffer.from(await file.arrayBuffer());
+  const { error: uploadError } = await admin.storage
+    .from("avatars")
+    .upload(path, bytes, {
+      contentType: file.type,
+      upsert: true,
+    });
+  if (uploadError) throw new Error(uploadError.message);
+
+  const { data: pub } = admin.storage.from("avatars").getPublicUrl(path);
+
+  // Store avatar URL in profiles table
+  const { error: updateError } = await admin
+    .from("profiles")
+    .update({ avatar_url: pub.publicUrl })
+    .eq("id", session.userId);
+  if (updateError) throw new Error(updateError.message);
+
+  revalidatePath("/dashboard/settings");
+  revalidatePath("/dashboard");
+
+  return pub.publicUrl;
+}
+
+/* ─── Session Actions ─── */
+
+export async function revokeSessionAction(
+  sessionId: string,
+): Promise<{ ok: boolean; error?: string }> {
+  const session = await requireSession();
+
+  try {
+    const { revokeSession } = await import("@/lib/session-tracker");
+    await revokeSession(session.userId, sessionId);
+    revalidatePath("/dashboard/settings");
+    return { ok: true };
+  } catch (err) {
+    return {
+      ok: false,
+      error: err instanceof Error ? err.message : "Failed to revoke session",
+    };
+  }
+}
+
+export async function revokeAllOtherSessionsAction(
+  currentSessionId: string,
+): Promise<{ ok: boolean; error?: string }> {
+  const session = await requireSession();
+
+  try {
+    const { revokeAllOtherSessions } = await import("@/lib/session-tracker");
+    await revokeAllOtherSessions(session.userId, currentSessionId);
+    revalidatePath("/dashboard/settings");
+    return { ok: true };
+  } catch (err) {
+    return {
+      ok: false,
+      error: err instanceof Error ? err.message : "Failed to revoke sessions",
+    };
+  }
+}
+
 /**
  * Permanently delete the user's account, workspace, and all associated data.
  * The confirmation phrase must match exactly to proceed.

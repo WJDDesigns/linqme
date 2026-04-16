@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import { createClient } from "@/lib/supabase/client";
 import RocketAnimation from "@/components/RocketAnimation";
 import AuthHeader from "@/components/AuthHeader";
 import Link from "next/link";
@@ -19,16 +18,18 @@ export default function ForgotPasswordPage() {
     setStatus("sending");
     setErrorMsg(null);
 
-    const supabase = createClient();
     const redirectTo = `${window.location.origin}/auth/reset-password`;
 
-    const { error } = await supabase.auth.resetPasswordForEmail(email, {
-      redirectTo,
+    const res = await fetch("/api/auth/forgot-password", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email, redirectTo }),
     });
+    const data = await res.json();
 
-    if (error) {
+    if (!res.ok) {
       setStatus("error");
-      setErrorMsg(error.message);
+      setErrorMsg(data.error ?? "Failed to send reset link.");
       return;
     }
 

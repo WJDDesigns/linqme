@@ -5,6 +5,7 @@ import Link from "next/link";
 import SidebarNav from "./SidebarNav";
 import ThemeToggle from "@/components/ThemeToggle";
 import SiteLaunchLogo from "@/components/SiteLaunchLogo";
+import NotificationBell from "@/components/NotificationBell";
 
 const STORAGE_KEY = "sl-sidebar-collapsed";
 
@@ -200,6 +201,10 @@ export default function DashboardShell({
 
       {/* Main */}
       <main className={`flex-1 ${mainMargin} min-h-screen transition-all duration-300`}>
+        {/* Top bar */}
+        <div className="sticky top-0 z-30 flex items-center justify-end px-6 py-3 bg-surface/80 backdrop-blur-md border-b border-on-surface/[0.04]">
+          <NotificationBell />
+        </div>
         {children}
       </main>
     </div>
