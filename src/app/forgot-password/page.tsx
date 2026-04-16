@@ -2,8 +2,8 @@
 
 import { useState } from "react";
 import { createClient } from "@/lib/supabase/client";
-import SiteLaunchLogo from "@/components/SiteLaunchLogo";
 import RocketAnimation from "@/components/RocketAnimation";
+import AuthHeader from "@/components/AuthHeader";
 import Link from "next/link";
 
 const INPUT_CLS =
@@ -36,16 +36,11 @@ export default function ForgotPasswordPage() {
   }
 
   return (
-    <main className="min-h-screen flex items-end justify-center px-6 pb-[8vh] pt-[42vh] relative overflow-hidden bg-surface">
-      {/* Rocket animation background */}
+    <main className="min-h-screen flex items-center justify-center px-6 pt-16 pb-8 relative overflow-hidden bg-surface">
       <RocketAnimation />
+      <AuthHeader />
 
-      <div className="relative z-10 w-full max-w-sm animate-scale-in">
-        {/* Logo */}
-        <Link href="/" className="flex items-center justify-center mb-8">
-          <SiteLaunchLogo className="h-14 w-auto text-primary" ringClassName="text-on-surface/60" />
-        </Link>
-
+      <div className="relative z-10 w-full max-w-sm animate-scale-in mt-[18vh]">
         <div className="gradient-border rounded-2xl">
           <div className="relative rounded-2xl p-8 bg-surface-container shadow-xl border border-outline-variant/10">
             <h1 className="text-2xl font-bold font-headline text-on-surface tracking-tight text-center">

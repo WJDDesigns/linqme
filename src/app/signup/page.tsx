@@ -1,8 +1,8 @@
 import { Suspense } from "react";
 import SignupForm from "./SignupForm";
 import OAuthSignup from "./OAuthSignup";
-import SiteLaunchLogo from "@/components/SiteLaunchLogo";
 import RocketAnimation from "@/components/RocketAnimation";
+import AuthHeader from "@/components/AuthHeader";
 import Link from "next/link";
 
 export default function SignupPage() {
@@ -12,16 +12,11 @@ export default function SignupPage() {
   );
 
   return (
-    <main className="min-h-screen flex items-end justify-center px-4 pb-[4vh] pt-[32vh] relative overflow-hidden bg-surface">
-      {/* Rocket animation background */}
+    <main className="min-h-screen flex items-center justify-center px-4 pt-16 pb-8 relative overflow-hidden bg-surface">
       <RocketAnimation />
+      <AuthHeader />
 
-      <div className="relative z-10 w-full max-w-lg space-y-6 animate-scale-in">
-        {/* Logo */}
-        <Link href="/" className="flex items-center justify-center mb-2">
-          <SiteLaunchLogo className="h-14 w-auto text-primary" ringClassName="text-on-surface/60" />
-        </Link>
-
+      <div className="relative z-10 w-full max-w-lg space-y-6 animate-scale-in mt-[14vh]">
         <div className="text-center">
           <h1 className="text-3xl font-bold tracking-tight font-headline text-on-surface">
             Start with SiteLaunch
