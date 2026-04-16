@@ -177,6 +177,7 @@ export async function verifyAndStoreRegistration(
       expectedChallenge,
       expectedOrigin: origins,
       expectedRPID: rpId,
+      requireUserVerification: false,
     });
   } catch (err) {
     const msg = err instanceof Error ? err.message : String(err);
@@ -277,6 +278,7 @@ export async function verifyAuthentication(
     expectedChallenge,
     expectedOrigin: getExpectedOrigins(requestOrigin),
     expectedRPID: getRpId(),
+    requireUserVerification: false,
     credential: {
       id: passkey.credentialId,
       publicKey: Buffer.from(passkey.publicKey, "base64url"),
