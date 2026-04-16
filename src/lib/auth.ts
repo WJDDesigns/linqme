@@ -3,6 +3,7 @@ import { cookies } from "next/headers";
 import { createClient } from "@/lib/supabase/server";
 
 export const IMPERSONATE_COOKIE = "sl_impersonate";
+export const CONTEXT_COOKIE = "sl_context";
 
 export type AppRole = "superadmin" | "partner_owner" | "partner_member" | "client";
 export type PlanType = "agency" | "agency_plus_partners";
@@ -13,6 +14,14 @@ export interface SessionContext {
   email: string;
   fullName: string | null;
   role: AppRole;
+}
+
+export interface AccountSwitchContext {
+  partnerId: string;
+  partnerName: string;
+  partnerSlug: string;
+  role: "partner_owner" | "partner_member";
+  isOwnAccount: boolean;
 }
 
 export interface AccountContext {
@@ -126,11 +135,68 @@ export async function getImpersonatingPartnerId(): Promise<string | null> {
 }
 
 /**
+ * Read the active account-context cookie (partner ID the user has selected).
+ * Returns null if unset.
+ */
+export async function getSelectedContextId(): Promise<string | null> {
+  try {
+    const cookieStore = await cookies();
+    return cookieStore.get(CONTEXT_COOKIE)?.value ?? null;
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Return every account context available to a user.
+ * Each partner_members row produces one context. The "own account" flag is
+ * true when the partner has no parent (root partner) and the membership role
+ * is partner_owner.
+ */
+export async function getAllAccountContexts(userId: string): Promise<AccountSwitchContext[]> {
+  const supabase = await createClient();
+
+  const { data: memberships } = await supabase
+    .from("partner_members")
+    .select("partner_id, role")
+    .eq("user_id", userId)
+    .order("created_at", { ascending: true });
+
+  if (!memberships || memberships.length === 0) return [];
+
+  const contexts: AccountSwitchContext[] = [];
+
+  for (const m of memberships) {
+    const { data: partner } = await supabase
+      .from("partners")
+      .select("id, slug, name, parent_partner_id")
+      .eq("id", m.partner_id)
+      .maybeSingle();
+    if (!partner) continue;
+
+    const isOwn = m.role === "partner_owner" && !partner.parent_partner_id;
+
+    contexts.push({
+      partnerId: partner.id,
+      partnerName: partner.name,
+      partnerSlug: partner.slug,
+      role: m.role as "partner_owner" | "partner_member",
+      isOwnAccount: isOwn,
+    });
+  }
+
+  return contexts;
+}
+
+/**
  * Resolve the current user's primary account — i.e. the top-level partner
  * tree they belong to. Superadmin users who don't own a partner return null.
  *
  * If the user is a superadmin with an active impersonation cookie, returns
  * the impersonated partner's context instead.
+ *
+ * If the user has selected a context via the sl_context cookie, that partner
+ * (or its root ancestor) is returned instead of the default first membership.
  */
 export async function getCurrentAccount(userId: string): Promise<AccountContext | null> {
   const supabase = await createClient();
@@ -163,6 +229,10 @@ export async function getCurrentAccount(userId: string): Promise<AccountContext 
     }
   }
 
+  // If the user has explicitly selected a context via the switcher cookie,
+  // honour it by placing that partner first in the list we walk.
+  const selectedContextId = await getSelectedContextId();
+
   const { data: memberships } = await supabase
     .from("partner_members")
     .select("partner_id, created_at")
@@ -171,9 +241,17 @@ export async function getCurrentAccount(userId: string): Promise<AccountContext 
 
   if (!memberships || memberships.length === 0) return null;
 
+  // If the user selected a context, move that membership to the front.
+  const ordered = selectedContextId
+    ? [
+        ...memberships.filter((m) => m.partner_id === selectedContextId),
+        ...memberships.filter((m) => m.partner_id !== selectedContextId),
+      ]
+    : memberships;
+
   // Walk to the top-level partner for each membership; pick the first one we
   // find. Most users will have exactly one.
-  for (const m of memberships) {
+  for (const m of ordered) {
     const { data: partner } = await supabase
       .from("partners")
       .select("id, slug, name, parent_partner_id, plan_type, plan_tier, submissions_monthly_limit")
@@ -219,6 +297,44 @@ export async function getPartnerMemberContext(userId: string): Promise<{
 } | null> {
   const supabase = await createClient();
 
+  // If the user has selected a specific context via the switcher, check if
+  // that context is a partner_member membership and return it directly.
+  const selectedContextId = await getSelectedContextId();
+
+  if (selectedContextId) {
+    const { data: selectedMembership } = await supabase
+      .from("partner_members")
+      .select("partner_id, role")
+      .eq("user_id", userId)
+      .eq("partner_id", selectedContextId)
+      .eq("role", "partner_member")
+      .maybeSingle();
+
+    if (selectedMembership) {
+      const { data: partner } = await supabase
+        .from("partners")
+        .select("id, name, slug, logo_url, allow_partner_form_editing")
+        .eq("id", selectedMembership.partner_id)
+        .maybeSingle();
+
+      if (partner) {
+        return {
+          partnerId: partner.id,
+          partnerName: partner.name,
+          partnerSlug: partner.slug,
+          partnerLogoUrl: partner.logo_url,
+          allowFormEditing: partner.allow_partner_form_editing ?? false,
+        };
+      }
+    }
+
+    // If the selected context is NOT a partner_member role (e.g. they
+    // switched to their own owner account), return null — they're not in
+    // partner_member mode.
+    return null;
+  }
+
+  // Default: pick the first partner_member membership
   const { data: membership } = await supabase
     .from("partner_members")
     .select("partner_id, role")

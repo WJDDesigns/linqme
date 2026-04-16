@@ -1,4 +1,5 @@
-import { requireSession, getCurrentAccount, getAccountUsage, getImpersonatingPartnerId, getPartnerMemberContext } from "@/lib/auth";
+import { requireSession, getCurrentAccount, getAccountUsage, getImpersonatingPartnerId, getPartnerMemberContext, getAllAccountContexts } from "@/lib/auth";
+import type { AccountSwitchContext } from "@/lib/auth";
 import { headers } from "next/headers";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { trackSession } from "@/lib/session-tracker";
@@ -35,16 +36,16 @@ const ADMIN_NAV = [
 
 /** Scoped nav for partner_member users — they only see their own partner's stuff */
 function getPartnerMemberNav(partnerId: string, allowFormEditing: boolean) {
-  const nav = [
+  const formsLink = allowFormEditing
+    ? { href: "/dashboard/form", label: "Form Builder", icon: "fa-pen-ruler" }
+    : { href: "/dashboard/forms", label: "Forms", icon: "fa-file-lines" };
+  return [
     { href: "/dashboard", label: "Dashboard", icon: "fa-table-cells" },
+    formsLink,
     { href: `/dashboard/partners/${partnerId}`, label: "Branding", icon: "fa-palette" },
     { href: "/dashboard/submissions", label: "Submissions", icon: "fa-inbox" },
     { href: "/dashboard/settings", label: "Profile", icon: "fa-user" },
   ];
-  if (allowFormEditing) {
-    nav.splice(2, 0, { href: "/dashboard/form", label: "Form Builder", icon: "fa-pen-ruler" });
-  }
-  return nav;
 }
 
 export default async function DashboardLayout({ children }: { children: React.ReactNode }) {
@@ -57,13 +58,20 @@ export default async function DashboardLayout({ children }: { children: React.Re
   trackSession(session.userId, ip, ua).catch(() => {});
 
   const isAdmin = session.role === "superadmin";
-  const isPartnerMember = session.role === "partner_member";
   const account = await getCurrentAccount(session.userId);
   const isPaid = account?.planTier !== "free";
   const showPartners = isAdmin || isPaid;
 
-  // Partner member scoped context
-  const partnerCtx = isPartnerMember ? await getPartnerMemberContext(session.userId) : null;
+  // Fetch all account contexts for context switching
+  const accountContexts: AccountSwitchContext[] = isAdmin
+    ? []
+    : await getAllAccountContexts(session.userId);
+
+  // Determine if the user is currently in a partner_member context.
+  // If the user has multiple contexts, the active context cookie decides;
+  // otherwise fall back to checking their profile role.
+  const partnerCtx = await getPartnerMemberContext(session.userId);
+  const isPartnerMember = !!partnerCtx;
   const partnerMemberNav = partnerCtx
     ? getPartnerMemberNav(partnerCtx.partnerId, partnerCtx.allowFormEditing)
     : null;
@@ -129,6 +137,8 @@ export default async function DashboardLayout({ children }: { children: React.Re
           usageRatio={usageRatio}
           showUsageBar={account?.submissionsMonthlyLimit !== null}
           hasImpersonation={!!impersonatingName}
+          accountContexts={accountContexts}
+          activePartnerId={partnerCtx?.partnerId ?? accountContexts.find((c) => c.isOwnAccount)?.partnerId ?? accountContexts[0]?.partnerId ?? null}
         >
           {/* Upgrade banner for free-tier users near their limit */}
           {account && usageLimit !== null && account.planTier === "free" && (

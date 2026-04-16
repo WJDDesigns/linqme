@@ -6,6 +6,7 @@ import SidebarNav from "./SidebarNav";
 import ThemeToggle from "@/components/ThemeToggle";
 import SiteLaunchLogo from "@/components/SiteLaunchLogo";
 import NotificationBell from "@/components/NotificationBell";
+import AccountSwitcher from "@/components/AccountSwitcher";
 
 const STORAGE_KEY = "sl-sidebar-collapsed";
 
@@ -38,6 +39,10 @@ interface Props {
   showUsageBar: boolean;
   /** Offset from top when impersonation banner is showing */
   hasImpersonation: boolean;
+  /** All account contexts for context switching */
+  accountContexts: { partnerId: string; partnerName: string; partnerSlug: string; role: "partner_owner" | "partner_member"; isOwnAccount: boolean }[];
+  /** Currently active partner ID */
+  activePartnerId: string | null;
   children: React.ReactNode;
 }
 
@@ -56,6 +61,8 @@ export default function DashboardShell({
   usageRatio,
   showUsageBar,
   hasImpersonation,
+  accountContexts,
+  activePartnerId,
   children,
 }: Props) {
   const [collapsed, setCollapsed] = useState(false);
@@ -129,6 +136,11 @@ export default function DashboardShell({
           adminItems={adminItems}
           collapsed={collapsed}
         />
+
+        {/* Account context switcher */}
+        {!collapsed && accountContexts.length >= 2 && activePartnerId && (
+          <AccountSwitcher contexts={accountContexts} activePartnerId={activePartnerId} />
+        )}
 
         {/* Usage meter */}
         {usageLine && !collapsed && (

@@ -39,7 +39,7 @@ export default async function PartnerDetailPage({ params }: PageProps) {
       .eq("partner_id", id)
       .eq("user_id", session.userId)
       .maybeSingle();
-    canEdit = membership?.role === "partner_owner";
+    canEdit = !!membership;
   }
 
   const rootHost = (process.env.NEXT_PUBLIC_ROOT_DOMAIN ?? "mysitelaunch.com").replace(/:\d+$/, "");

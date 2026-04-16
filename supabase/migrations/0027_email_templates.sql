@@ -302,7 +302,7 @@ insert into public.email_templates (slug, name, subject, description, variables,
   'Submission Confirmation (Client)',
   'We received your information!',
   'Sent to the client after they submit their onboarding form.',
-  ARRAY['client_name', 'partner_name'],
+  ARRAY['client_name', 'partner_name', 'form_summary'],
   '<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -345,6 +345,11 @@ insert into public.email_templates (slug, name, subject, description, variables,
                         </td>
                       </tr>
                     </table>
+                  </td>
+                </tr>
+                <tr>
+                  <td style="padding:0 0 24px;">
+                    {{form_summary}}
                   </td>
                 </tr>
                 <tr>

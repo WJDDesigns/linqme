@@ -208,7 +208,9 @@ export async function acceptPartnerInvite(args: {
   let userId: string;
 
   if (existingProfile) {
-    // Existing user — just add them to the partner
+    // Existing user — just add them to the partner.
+    // Do NOT overwrite their profile role; they may already be a partner_owner
+    // of their own account. The partner_members row is what grants access.
     userId = existingProfile.id;
   } else {
     // Create new user account
@@ -225,7 +227,7 @@ export async function acceptPartnerInvite(args: {
 
     userId = newUser.user.id;
 
-    // Update profile with name and role
+    // Update profile with name and role — only for brand-new users
     await admin
       .from("profiles")
       .update({ full_name: args.fullName, role: "partner_member" })
