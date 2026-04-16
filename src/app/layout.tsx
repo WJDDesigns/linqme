@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import { cookies } from "next/headers";
+import { Analytics } from "@vercel/analytics/next";
 import ThemeProvider from "@/components/ThemeProvider";
 import type { ThemeMode } from "@/components/ThemeProvider";
 import "./globals.css";
@@ -83,6 +84,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
         <ThemeProvider defaultMode={savedTheme}>
           {children}
         </ThemeProvider>
+        <Analytics />
         {/* Ambient background glows — multi-layered aurora */}
         <div className="fixed inset-0 pointer-events-none -z-10 overflow-hidden" aria-hidden="true">
           <div className="absolute top-[-15%] right-[-10%] w-[50%] h-[50%] bg-primary/[0.07] blur-[140px] rounded-full animate-glow-breathe" />
