@@ -21,6 +21,8 @@ export default function SignupForm({ rootHost }: { rootHost: string }) {
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
 
+  const [tosAccepted, setTosAccepted] = useState(false);
+
   // Step 1 field refs — we validate before advancing
   const [formData, setFormData] = useState({
     email: "",
@@ -64,6 +66,10 @@ export default function SignupForm({ rootHost }: { rootHost: string }) {
         setError("Workspace URL can only contain lowercase letters, numbers, and hyphens.");
         return false;
       }
+      if (!tosAccepted) {
+        setError("You must agree to the Terms of Service and Privacy Policy.");
+        return false;
+      }
     }
     if (step === 1) {
       if (!formData.phone || !formData.company_name) {
@@ -94,6 +100,7 @@ export default function SignupForm({ rootHost }: { rootHost: string }) {
     for (const [key, value] of Object.entries(formData)) {
       fd.set(key, value);
     }
+    fd.set("tos_accepted_at", new Date().toISOString());
 
     const result = await signupAction(fd);
 
@@ -232,6 +239,26 @@ export default function SignupForm({ rootHost }: { rootHost: string }) {
                 desc="You can spin up sub-partner workspaces, each with their own branding and team."
               />
             </fieldset>
+
+            {/* TOS Agreement */}
+            <label className="flex items-start gap-3 cursor-pointer group">
+              <input
+                type="checkbox"
+                checked={tosAccepted}
+                onChange={(e) => { setTosAccepted(e.target.checked); setError(null); }}
+                className="mt-0.5 h-4 w-4 accent-primary rounded"
+              />
+              <span className="text-xs text-on-surface-variant/70 leading-relaxed group-hover:text-on-surface-variant transition-colors">
+                I agree to the{" "}
+                <Link href="/terms" target="_blank" className="text-primary hover:underline font-medium">
+                  Terms of Service
+                </Link>{" "}
+                and{" "}
+                <Link href="/privacy" target="_blank" className="text-primary hover:underline font-medium">
+                  Privacy Policy
+                </Link>
+              </span>
+            </label>
           </div>
         )}
 

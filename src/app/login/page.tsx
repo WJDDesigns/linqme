@@ -142,6 +142,17 @@ export default function LoginPage() {
                   </label>
                 )}
 
+                {mode === "password" && (
+                  <div className="flex justify-end -mt-1">
+                    <Link
+                      href="/forgot-password"
+                      className="text-xs text-on-surface-variant/50 hover:text-primary transition-colors duration-300"
+                    >
+                      Forgot password?
+                    </Link>
+                  </div>
+                )}
+
                 <button
                   type="submit"
                   disabled={status === "sending"}

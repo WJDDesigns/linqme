@@ -551,8 +551,8 @@ export default function LandingPage() {
             <span className="text-sm font-bold text-on-surface font-headline">SiteLaunch</span>
           </Link>
           <div className="flex flex-wrap justify-center gap-8 text-xs text-on-surface-variant/40 uppercase tracking-widest font-label">
-            <a className="hover:text-primary transition-colors duration-300" href="#">Privacy Policy</a>
-            <a className="hover:text-primary transition-colors duration-300" href="#">Terms of Service</a>
+            <Link className="hover:text-primary transition-colors duration-300" href="/privacy">Privacy Policy</Link>
+            <Link className="hover:text-primary transition-colors duration-300" href="/terms">Terms of Service</Link>
             <Link className="hover:text-primary transition-colors duration-300" href="/pricing">Pricing</Link>
             <a className="hover:text-primary transition-colors duration-300" href="#">Contact</a>
           </div>

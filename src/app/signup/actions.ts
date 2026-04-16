@@ -44,6 +44,9 @@ export async function signupAction(formData: FormData): Promise<SignupResult> {
   const referralSource = String(formData.get("referral_source") ?? "").trim();
   const taxId = String(formData.get("tax_id") ?? "").trim();
 
+  // TOS acceptance
+  const tosAcceptedAt = String(formData.get("tos_accepted_at") ?? "").trim() || null;
+
   // Validation
   if (!email || !password || !companyName || !slug) {
     return { ok: false, error: "All fields are required." };
@@ -105,6 +108,14 @@ export async function signupAction(formData: FormData): Promise<SignupResult> {
   if (bootErr) {
     await admin.auth.admin.deleteUser(userId);
     return { ok: false, error: bootErr.message };
+  }
+
+  // 3b. Record TOS acceptance on the profile.
+  if (tosAcceptedAt) {
+    await admin
+      .from("profiles")
+      .update({ tos_accepted_at: tosAcceptedAt })
+      .eq("id", userId);
   }
 
   // 4. Sign them in so they land on the dashboard with a live session.
