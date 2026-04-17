@@ -75,6 +75,14 @@ export default async function FormEditorPage({ params }: PageProps) {
 
   const assignedPartnerIds = (assignments ?? []).map((a) => a.partner_id);
 
+  // Check if partner has any AI integration connected
+  const { data: aiIntegrations } = await admin
+    .from("ai_integrations")
+    .select("id")
+    .eq("partner_id", account.id)
+    .limit(1);
+  const hasAI = (aiIntegrations ?? []).length > 0;
+
   return (
     <div className="flex flex-col h-screen">
       <FormEditorShell
@@ -85,6 +93,7 @@ export default async function FormEditorPage({ params }: PageProps) {
         formId={formId}
         formName={pf.name}
         isActive={pf.is_active ?? true}
+        hasAI={hasAI}
         settingsSlot={
           <FormSettingsPanel
             formId={formId}

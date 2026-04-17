@@ -17,6 +17,7 @@ export default function FormEditorShell({
   formId,
   formName,
   isActive: initialIsActive,
+  hasAI,
   settingsSlot,
 }: {
   initialSchema: FormSchema | null;
@@ -26,6 +27,7 @@ export default function FormEditorShell({
   formId?: string;
   formName?: string;
   isActive?: boolean;
+  hasAI?: boolean;
   settingsSlot?: React.ReactNode;
 }) {
   const router = useRouter();
@@ -191,6 +193,7 @@ export default function FormEditorShell({
             initialSchema={initialSchema}
             onOpenTemplates={() => setShowTemplates(true)}
             formId={formId}
+            hasAI={hasAI}
           />
         ) : (
           <div className="h-full overflow-y-auto">

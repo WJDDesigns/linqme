@@ -14,6 +14,7 @@ import SessionsSection from "./SessionsSection";
 import ProfileSection from "./ProfileSection";
 import SettingsTabs from "./SettingsTabs";
 import IntegrationsSection from "./IntegrationsSection";
+import AIIntegrationsSection from "./AIIntegrationsSection";
 import SupportForm from "../../support/SupportForm";
 import {
   uploadWorkspaceLogoAction,
@@ -157,8 +158,16 @@ export default async function SettingsPage() {
     .select("id, provider, account_email, connected_at")
     .eq("partner_id", account.id);
 
+  const { data: aiIntegrationRows } = await admin
+    .from("ai_integrations")
+    .select("id, provider, model_preference, connected_at")
+    .eq("partner_id", account.id);
+
   const integrationsContent = (
-    <IntegrationsSection integrations={cloudIntegrations ?? []} />
+    <>
+      <IntegrationsSection integrations={cloudIntegrations ?? []} />
+      <AIIntegrationsSection aiIntegrations={aiIntegrationRows ?? []} />
+    </>
   );
 
   return (

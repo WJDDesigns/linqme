@@ -272,7 +272,7 @@ const INPUT_CLS =
 
 /* ── Main editor ───────────────────────────────────────────── */
 
-export default function FormEditor({ initialSchema, onOpenTemplates, formId }: { initialSchema: FormSchema; onOpenTemplates?: () => void; formId?: string }) {
+export default function FormEditor({ initialSchema, onOpenTemplates, formId, hasAI }: { initialSchema: FormSchema; onOpenTemplates?: () => void; formId?: string; hasAI?: boolean }) {
   const [schema, setSchemaRaw] = useState<FormSchema>(initialSchema);
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState<{ kind: "ok" | "err"; text: string } | null>(null);
@@ -838,6 +838,7 @@ export default function FormEditor({ initialSchema, onOpenTemplates, formId }: {
                 onUpdate={(patch) => updateField(selectedStepId!, selectedFieldId!, patch)}
                 onClose={clearSelection}
                 allFields={schema.steps.flatMap((s) => s.fields)}
+                hasAI={hasAI}
               />
             ) : selectedStep && !selectedFieldId ? (
               <StepSettingsPanel
@@ -986,11 +987,12 @@ function FieldPalette({ onDragStart, onClickAdd }: {
 
 /* ── Field settings panel ──────────────────────────────────── */
 
-function FieldSettingsPanel({ field, onUpdate, onClose, allFields }: {
+function FieldSettingsPanel({ field, onUpdate, onClose, allFields, hasAI }: {
   field: FieldDef;
   onUpdate: (patch: Partial<FieldDef>) => void;
   onClose: () => void;
   allFields: FieldDef[];
+  hasAI?: boolean;
 }) {
   return (
     <div>
@@ -1376,22 +1378,37 @@ function FieldSettingsPanel({ field, onUpdate, onClose, allFields }: {
               <span className="text-[11px] font-medium text-on-surface-variant mb-1 block">Placeholder URL</span>
               <input value={field.competitorAnalyzerConfig.placeholder ?? ""} onChange={e => onUpdate({ competitorAnalyzerConfig: { ...field.competitorAnalyzerConfig!, placeholder: e.target.value } })} className={INPUT_CLS} placeholder="https://competitor.com" />
             </div>
-            <div className="flex items-center justify-between p-3 bg-surface-container rounded-lg">
-              <span className="text-xs font-medium text-on-surface">Auto-Fetch Site Data</span>
-              <label className="relative cursor-pointer">
-                <input type="checkbox" checked={!!field.competitorAnalyzerConfig.autoFetch} onChange={e => onUpdate({ competitorAnalyzerConfig: { ...field.competitorAnalyzerConfig!, autoFetch: e.target.checked } })} className="sr-only peer" />
-                <div className="w-8 h-4 bg-surface-container-highest rounded-full peer-checked:bg-primary transition-colors" />
-                <div className="absolute left-0.5 top-0.5 w-3 h-3 bg-on-surface-variant rounded-full peer-checked:translate-x-4 peer-checked:bg-on-primary transition-all" />
-              </label>
-            </div>
-            <div className="flex items-center justify-between p-3 bg-surface-container rounded-lg">
-              <span className="text-xs font-medium text-on-surface">AI Summary</span>
-              <label className="relative cursor-pointer">
-                <input type="checkbox" checked={!!field.competitorAnalyzerConfig.aiSummary} onChange={e => onUpdate({ competitorAnalyzerConfig: { ...field.competitorAnalyzerConfig!, aiSummary: e.target.checked } })} className="sr-only peer" />
-                <div className="w-8 h-4 bg-surface-container-highest rounded-full peer-checked:bg-primary transition-colors" />
-                <div className="absolute left-0.5 top-0.5 w-3 h-3 bg-on-surface-variant rounded-full peer-checked:translate-x-4 peer-checked:bg-on-primary transition-all" />
-              </label>
-            </div>
+            {hasAI ? (
+              <>
+                <div className="flex items-center justify-between p-3 bg-surface-container rounded-lg">
+                  <span className="text-xs font-medium text-on-surface">Auto-Fetch Site Data</span>
+                  <label className="relative cursor-pointer">
+                    <input type="checkbox" checked={!!field.competitorAnalyzerConfig.autoFetch} onChange={e => onUpdate({ competitorAnalyzerConfig: { ...field.competitorAnalyzerConfig!, autoFetch: e.target.checked } })} className="sr-only peer" />
+                    <div className="w-8 h-4 bg-surface-container-highest rounded-full peer-checked:bg-primary transition-colors" />
+                    <div className="absolute left-0.5 top-0.5 w-3 h-3 bg-on-surface-variant rounded-full peer-checked:translate-x-4 peer-checked:bg-on-primary transition-all" />
+                  </label>
+                </div>
+                <div className="flex items-center justify-between p-3 bg-surface-container rounded-lg">
+                  <span className="text-xs font-medium text-on-surface">AI Summary</span>
+                  <label className="relative cursor-pointer">
+                    <input type="checkbox" checked={!!field.competitorAnalyzerConfig.aiSummary} onChange={e => onUpdate({ competitorAnalyzerConfig: { ...field.competitorAnalyzerConfig!, aiSummary: e.target.checked } })} className="sr-only peer" />
+                    <div className="w-8 h-4 bg-surface-container-highest rounded-full peer-checked:bg-primary transition-colors" />
+                    <div className="absolute left-0.5 top-0.5 w-3 h-3 bg-on-surface-variant rounded-full peer-checked:translate-x-4 peer-checked:bg-on-primary transition-all" />
+                  </label>
+                </div>
+              </>
+            ) : (
+              <div className="rounded-lg border border-amber-500/20 bg-amber-500/5 p-3">
+                <div className="flex items-center gap-2 mb-1.5">
+                  <i className="fa-solid fa-lock text-xs text-amber-500" />
+                  <span className="text-xs font-bold text-amber-500">AI Features Locked</span>
+                </div>
+                <p className="text-[11px] text-on-surface-variant leading-relaxed">
+                  To enable auto-fetch and AI summary, connect an AI provider (OpenAI, Anthropic, or Google AI) in{" "}
+                  <a href="/dashboard/settings" className="text-primary underline underline-offset-2">Settings &rarr; Integrations</a>.
+                </p>
+              </div>
+            )}
           </section>
         )}
 

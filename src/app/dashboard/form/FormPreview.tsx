@@ -595,7 +595,7 @@ function PreviewField({ field, primaryColor, isPhone }: { field: FieldDef; prima
         <div className="rounded-2xl border-2 border-outline-variant/20 overflow-hidden bg-surface-container-lowest">
           {/* Mock nav preview */}
           <div className="px-4 py-3 border-b border-outline-variant/15 bg-surface-container/30">
-            <div className="flex items-center gap-4 text-xs text-on-surface-variant/60">
+            <div className="inline-flex items-center gap-4 text-xs text-on-surface-variant/60">
               <i className="fa-solid fa-bars text-sm" style={{ color: primaryColor }} />
               {starterPages.slice(0, 5).map((p) => (
                 <span key={p.id} className="font-medium hover:text-on-surface transition-colors cursor-default">{p.name}</span>

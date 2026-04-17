@@ -766,7 +766,7 @@ function SiteStructureField({ field, value, error, onChange, primaryColor }: {
           <i className="fa-solid fa-desktop text-xs" style={{ color: primaryColor }} />
           <span className="text-[10px] font-bold uppercase tracking-wider" style={{ color: primaryColor }}>Navigation Preview</span>
         </div>
-        <div className="bg-surface-container rounded-lg p-1.5 flex items-center gap-0.5 flex-wrap min-h-[2.5rem]">
+        <div className="bg-surface-container rounded-lg p-1.5 inline-flex items-center gap-0.5 flex-wrap min-h-[2.5rem]">
           {tree.filter(n => !n.offMenu).length > 0 ? renderMenuItems(tree) : (
             <span className="text-xs text-on-surface-variant/40 italic px-2">Add pages to preview navigation</span>
           )}
