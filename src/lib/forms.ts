@@ -18,14 +18,19 @@ export type FieldType =
   | "files"
   | "package"
   | "repeater"
-  | "consent";
+  | "consent"
+  | "asset_collection"
+  | "site_structure"
+  | "feature_selector"
+  | "goal_builder"
+  | "approval";
 
-/* ── Package Selector types ─────────────────────────────── */
+/* ââ Package Selector types âââââââââââââââââââââââââââââââ */
 
 export interface PackageFeature {
   /** Feature label shown in the grid, e.g. "Custom Domain" */
   label: string;
-  /** Value per package keyed by package id — true/false for checkmarks, or a string for text */
+  /** Value per package keyed by package id â true/false for checkmarks, or a string for text */
   values: Record<string, boolean | string>;
 }
 
@@ -77,7 +82,7 @@ export interface PackageConfig {
   showFeaturesTable?: boolean;
 }
 
-/* ── Repeater (nested entries) types ────────────────────── */
+/* ââ Repeater (nested entries) types ââââââââââââââââââââââ */
 
 /** A sub-field inside a repeater entry */
 export interface RepeaterSubField {
@@ -113,6 +118,104 @@ export interface RepeaterConfig {
   summaryFields?: string[];
 }
 
+/* ââ Asset Collection types ââââââââââââââââââââââââââââââââââ */
+
+export type AssetCategory = "logos" | "colors" | "fonts" | "documents" | "images" | "other";
+
+export interface AssetCollectionConfig {
+  /** Which asset categories to show (default all) */
+  categories?: AssetCategory[];
+  /** Max total files allowed */
+  maxFiles?: number;
+  /** Allow connecting cloud storage (Google Drive, Dropbox) */
+  allowCloudConnect?: boolean;
+}
+
+/* ââ Site Structure Builder types ââââââââââââââââââââââââââââ */
+
+export interface SiteStructurePage {
+  id: string;
+  name: string;
+  /** Nested children for sub-pages */
+  children?: SiteStructurePage[];
+}
+
+export interface SiteStructureConfig {
+  /** Pre-populated starter pages */
+  starterPages?: SiteStructurePage[];
+  /** Max pages allowed */
+  maxPages?: number;
+  /** Allow nesting / sub-pages */
+  allowNesting?: boolean;
+}
+
+/* ââ Feature Selector types âââââââââââââââââââââââââââââââââ */
+
+export interface FeatureOption {
+  id: string;
+  name: string;
+  description?: string;
+  icon?: string;
+  /** Complexity label (e.g. "Simple", "Medium", "Complex") */
+  complexity?: string;
+  /** Price impact string (e.g. "+$500", "Included") */
+  priceImpact?: string;
+  /** Category grouping */
+  category?: string;
+}
+
+export interface FeatureSelectorConfig {
+  features: FeatureOption[];
+  /** Max features a client can select (0 = unlimited) */
+  maxSelections?: number;
+  /** Show price/complexity indicators */
+  showPriceImpact?: boolean;
+  showComplexity?: boolean;
+}
+
+/* ââ Goal Builder types âââââââââââââââââââââââââââââââââââââ */
+
+export interface GoalOption {
+  id: string;
+  label: string;
+  icon?: string;
+  /** Refinement questions shown when this goal is selected */
+  refinements?: GoalRefinement[];
+}
+
+export interface GoalRefinement {
+  id: string;
+  label: string;
+  type: "select" | "number" | "text" | "range";
+  options?: string[];
+  placeholder?: string;
+  /** For range type */
+  min?: number;
+  max?: number;
+  step?: number;
+  prefix?: string;
+  suffix?: string;
+}
+
+export interface GoalBuilderConfig {
+  goals: GoalOption[];
+  /** Allow selecting multiple primary goals */
+  allowMultiple?: boolean;
+}
+
+/* ââ Approval / Sign-off types ââââââââââââââââââââââââââââââ */
+
+export interface ApprovalConfig {
+  /** Text/scope to approve (HTML or plain text) */
+  scopeText?: string;
+  /** Require a typed signature */
+  requireSignature?: boolean;
+  /** Require typing full name to confirm */
+  requireFullName?: boolean;
+  /** Custom approval button label */
+  approveLabel?: string;
+}
+
 /** Condition to show/hide a field or step based on another field's value */
 export interface ShowCondition {
   /** ID of the field to evaluate (from any step) */
@@ -133,18 +236,28 @@ export interface FieldDef {
   rows?: number;
   accept?: string;
   hint?: string;
-  /** For heading fields — rich text / description content */
+  /** For heading fields â rich text / description content */
   content?: string;
-  /** For checkbox fields — max selections allowed */
+  /** For checkbox fields â max selections allowed */
   maxSelections?: number;
-  /** For package fields — full package configuration */
+  /** For package fields â full package configuration */
   packageConfig?: PackageConfig;
-  /** For repeater fields — sub-fields and entry config */
+  /** For repeater fields â sub-fields and entry config */
   repeaterConfig?: RepeaterConfig;
-  /** For consent fields — the scrollable agreement text (plain text or HTML) */
+  /** For consent fields â the scrollable agreement text (plain text or HTML) */
   consentText?: string;
-  /** For consent fields — label next to the checkbox, e.g. "I agree to the terms above" */
+  /** For consent fields â label next to the checkbox, e.g. "I agree to the terms above" */
   consentCheckboxLabel?: string;
+  /** For asset_collection fields â asset upload configuration */
+  assetCollectionConfig?: AssetCollectionConfig;
+  /** For site_structure fields â sitemap builder configuration */
+  siteStructureConfig?: SiteStructureConfig;
+  /** For feature_selector fields â feature toggle configuration */
+  featureSelectorConfig?: FeatureSelectorConfig;
+  /** For goal_builder fields â goal picker configuration */
+  goalBuilderConfig?: GoalBuilderConfig;
+  /** For approval fields â sign-off configuration */
+  approvalConfig?: ApprovalConfig;
   /** Show this field only when the condition is met */
   showCondition?: ShowCondition;
   /** For file/files fields: optional cloud storage destination */
@@ -219,14 +332,14 @@ export function validateStepData(
 ): { ok: true } | { ok: false; errors: Record<string, string> } {
   const errors: Record<string, string> = {};
   for (const f of step.fields) {
-    // Skip hidden fields — they should not be validated
+    // Skip hidden fields â they should not be validated
     if (f.showCondition && !evaluateCondition(f.showCondition, allData ?? data)) continue;
     // File fields are validated separately (upload state lives in submission_files).
     if (f.type === "file" || f.type === "files") continue;
     // Heading fields are display-only, never validated.
     if (f.type === "heading") continue;
     const v = data[f.id];
-    // Repeater entries are validated inline — the component handles required sub-fields.
+    // Repeater entries are validated inline â the component handles required sub-fields.
     if (f.type === "repeater") {
       if (f.required && f.repeaterConfig?.minEntries) {
         try {
@@ -234,11 +347,11 @@ export function validateStepData(
           if (entries.length < f.repeaterConfig.minEntries) {
             errors[f.id] = `At least ${f.repeaterConfig.minEntries} ${f.repeaterConfig.entryLabel?.toLowerCase() || "entry"}(s) required`;
           }
-        } catch { /* malformed JSON — let it pass */ }
+        } catch { /* malformed JSON â let it pass */ }
       }
       continue;
     }
-    // Package fields store selected package id — validated as required if set.
+    // Package fields store selected package id â validated as required if set.
     if (f.type === "package") {
       if (f.required && (!v || v === "")) errors[f.id] = "Please select a package";
       continue;
