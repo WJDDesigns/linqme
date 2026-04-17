@@ -308,7 +308,7 @@ export interface ShowCondition {
   /** ID of the field to evaluate (from any step) */
   fieldId: string;
   /** Comparison operator */
-  operator: "equals" | "not_equals" | "contains" | "not_empty" | "is_empty";
+  operator: "equals" | "not_equals" | "contains" | "not_empty" | "is_empty" | "greater_than" | "less_than";
   /** Value to compare against (not used for not_empty / is_empty) */
   value?: string;
 }
@@ -408,6 +408,16 @@ export function evaluateCondition(
       return fieldVal.trim() !== "";
     case "is_empty":
       return fieldVal.trim() === "";
+    case "greater_than": {
+      const num = parseFloat(fieldVal);
+      const cmp = parseFloat(condition.value ?? "0");
+      return !isNaN(num) && !isNaN(cmp) && num > cmp;
+    }
+    case "less_than": {
+      const num = parseFloat(fieldVal);
+      const cmp = parseFloat(condition.value ?? "0");
+      return !isNaN(num) && !isNaN(cmp) && num < cmp;
+    }
     default:
       return true;
   }

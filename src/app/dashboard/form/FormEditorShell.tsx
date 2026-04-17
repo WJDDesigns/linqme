@@ -8,6 +8,7 @@ import { toggleFormActiveAction } from "./form-actions";
 import FormEditor from "./FormEditor";
 import FormPreview from "./FormPreview";
 import TemplatePicker from "./TemplatePicker";
+import ConditionalFlowCanvas from "./ConditionalFlowCanvas";
 
 export default function FormEditorShell({
   initialSchema,
@@ -32,7 +33,7 @@ export default function FormEditorShell({
 }) {
   const router = useRouter();
   const [showTemplates, setShowTemplates] = useState(!hasForm);
-  const [mode, setMode] = useState<"editor" | "preview">("editor");
+  const [mode, setMode] = useState<"editor" | "preview" | "logic">("editor");
   const [liveSchema, setLiveSchema] = useState<FormSchema | null>(initialSchema);
   const [copied, setCopied] = useState(false);
   const [isActive, setIsActive] = useState(initialIsActive ?? true);
@@ -104,6 +105,17 @@ export default function FormEditorShell({
           >
             <i className="fa-solid fa-pen-ruler text-[10px] mr-1.5" />
             Editor
+          </button>
+          <button
+            onClick={() => setMode("logic")}
+            className={`px-3 py-1.5 text-xs font-bold uppercase tracking-widest rounded-md transition-all ${
+              mode === "logic"
+                ? "bg-primary text-on-primary"
+                : "text-on-surface-variant/60 hover:text-on-surface"
+            }`}
+          >
+            <i className="fa-solid fa-diagram-project text-[10px] mr-1.5" />
+            Logic
           </button>
           <button
             onClick={() => {
@@ -195,9 +207,22 @@ export default function FormEditorShell({
             formId={formId}
             hasAI={hasAI}
           />
+        ) : mode === "logic" ? (
+          <ConditionalFlowCanvas
+            schema={liveSchema ?? initialSchema}
+            onChange={(updated) => {
+              setLiveSchema(updated);
+              // Auto-save via the same action the editor uses
+              if (formId) {
+                import("./actions").then(({ saveFormSchemaAction }) => {
+                  saveFormSchemaAction(JSON.stringify(updated), formId);
+                });
+              }
+            }}
+          />
         ) : (
           <div className="h-full overflow-y-auto">
-            <FormPreview schema={initialSchema} primaryColor={primaryColor} />
+            <FormPreview schema={liveSchema ?? initialSchema} primaryColor={primaryColor} />
           </div>
         )}
       </div>

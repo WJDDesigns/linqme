@@ -2132,6 +2132,8 @@ const CONDITION_OPERATORS: { value: ShowCondition["operator"]; label: string }[]
   { value: "contains", label: "Contains" },
   { value: "not_empty", label: "Is not empty" },
   { value: "is_empty", label: "Is empty" },
+  { value: "greater_than", label: "Greater than" },
+  { value: "less_than", label: "Less than" },
 ];
 
 function ConditionBuilder({

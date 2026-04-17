@@ -1,7 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useMemo, useEffect } from "react";
 import type { FormSchema, FieldDef } from "@/lib/forms";
+import { evaluateCondition } from "@/lib/forms";
 import { isLightColor } from "@/lib/color-utils";
 
 type DeviceSize = "desktop" | "tablet" | "phone";
@@ -18,8 +19,30 @@ export default function FormPreview({ schema, primaryColor }: Props) {
   const [stepIdx, setStepIdx] = useState(0);
   const [visitedSteps, setVisitedSteps] = useState<Set<number>>(new Set([0]));
   const [device, setDevice] = useState<DeviceSize>("desktop");
-  const step = schema.steps[stepIdx];
+  const [previewData, setPreviewData] = useState<Record<string, unknown>>({});
+
+  // Filter steps and fields by conditions using preview data
+  const visibleSteps = useMemo(
+    () => schema.steps.filter((s) => evaluateCondition(s.showCondition, previewData)),
+    [schema.steps, previewData],
+  );
+  const safeIdx = Math.min(stepIdx, Math.max(0, visibleSteps.length - 1));
+  const step = visibleSteps[safeIdx];
+  const visibleFields = useMemo(
+    () => step?.fields.filter((f) => evaluateCondition(f.showCondition, previewData)) ?? [],
+    [step, previewData],
+  );
   const lightBg = isLightColor(primaryColor);
+
+  // Count conditions in the schema
+  const conditionCount = useMemo(() => {
+    let count = 0;
+    schema.steps.forEach((s) => {
+      if (s.showCondition?.fieldId) count++;
+      s.fields.forEach((f) => { if (f.showCondition?.fieldId) count++; });
+    });
+    return count;
+  }, [schema]);
 
   if (!step) {
     return (
@@ -113,14 +136,14 @@ export default function FormPreview({ schema, primaryColor }: Props) {
                   <div className="flex items-center justify-between mb-1.5">
                     <span className="text-[9px] font-bold uppercase tracking-widest text-on-surface-variant/60">Progress</span>
                     <span className="text-[10px] font-bold font-headline" style={{ color: primaryColor }}>
-                      {Math.round(((Math.max(0, stepIdx)) / schema.steps.length) * 100)}%
+                      {Math.round(((Math.max(0, safeIdx)) / visibleSteps.length) * 100)}%
                     </span>
                   </div>
                   <div className="h-1 w-full bg-surface-container-highest rounded-full overflow-hidden">
                     <div
                       className="h-full transition-all duration-500 ease-out rounded-full"
                       style={{
-                        width: `${(stepIdx / schema.steps.length) * 100}%`,
+                        width: `${(safeIdx / visibleSteps.length) * 100}%`,
                         backgroundColor: primaryColor,
                       }}
                     />
@@ -129,9 +152,9 @@ export default function FormPreview({ schema, primaryColor }: Props) {
 
                 {/* Step list */}
                 <nav className="flex-1 px-3 py-3 space-y-0.5">
-                  {schema.steps.map((s, i) => {
-                    const isCurrent = i === stepIdx;
-                    const isCompleted = i < stepIdx;
+                  {visibleSteps.map((s, i) => {
+                    const isCurrent = i === safeIdx;
+                    const isCompleted = i < safeIdx;
                     const isVisited = visitedSteps.has(i);
                     return (
                       <button
@@ -194,7 +217,7 @@ export default function FormPreview({ schema, primaryColor }: Props) {
 
                 <div className="px-5 py-3 border-t border-outline-variant/10">
                   <p className="text-[9px] text-on-surface-variant/40 uppercase tracking-widest">
-                    Step {stepIdx + 1} of {schema.steps.length}
+                    Step {safeIdx + 1} of {visibleSteps.length}
                   </p>
                 </div>
               </aside>
@@ -216,16 +239,16 @@ export default function FormPreview({ schema, primaryColor }: Props) {
                   </div>
                   {/* Progress dots */}
                   <div className="flex items-center gap-1.5">
-                    {schema.steps.map((_, i) => (
+                    {visibleSteps.map((_, i) => (
                       <button
                         key={i}
                         type="button"
                         onClick={() => goToStep(i)}
                         className="h-1.5 rounded-full transition-all duration-300"
                         style={{
-                          width: i === stepIdx ? "24px" : "8px",
-                          backgroundColor: i <= stepIdx ? primaryColor : "var(--color-outline-variant)",
-                          opacity: i <= stepIdx ? 1 : 0.3,
+                          width: i === safeIdx ? "24px" : "8px",
+                          backgroundColor: i <= safeIdx ? primaryColor : "var(--color-outline-variant)",
+                          opacity: i <= safeIdx ? 1 : 0.3,
                         }}
                       />
                     ))}
@@ -245,14 +268,29 @@ export default function FormPreview({ schema, primaryColor }: Props) {
                 </div>
 
                 {/* Fields */}
+                {/* Conditions active banner */}
+                {conditionCount > 0 && (
+                  <div className="mb-4 px-3 py-2 rounded-lg bg-amber-500/10 border border-amber-500/20 flex items-center gap-2 text-[10px] text-amber-400 font-bold uppercase tracking-wider">
+                    <i className="fa-solid fa-bolt text-[9px]" />
+                    {conditionCount} conditional rule{conditionCount !== 1 ? "s" : ""} active — interact with fields below to test logic
+                  </div>
+                )}
+
                 <div className="space-y-5">
-                  {step.fields.map((field) => (
-                    <PreviewField key={field.id} field={field} primaryColor={primaryColor} isPhone={isPhone} />
+                  {visibleFields.map((field) => (
+                    <PreviewField
+                      key={field.id}
+                      field={field}
+                      primaryColor={primaryColor}
+                      isPhone={isPhone}
+                      previewValue={previewData[field.id]}
+                      onPreviewChange={(v) => setPreviewData((prev) => ({ ...prev, [field.id]: v }))}
+                    />
                   ))}
 
-                  {step.fields.length === 0 && (
+                  {visibleFields.length === 0 && (
                     <div className="text-center py-8 text-sm text-on-surface-variant/40 border-2 border-dashed border-outline-variant/20 rounded-xl">
-                      This step has no fields yet.
+                      {step?.fields.length === 0 ? "This step has no fields yet." : "All fields on this step are hidden by conditions."}
                     </div>
                   )}
                 </div>
@@ -260,21 +298,21 @@ export default function FormPreview({ schema, primaryColor }: Props) {
                 {/* Navigation buttons */}
                 <div className={`flex items-center justify-between mt-8 pt-5 border-t border-on-surface/10 ${isPhone ? "gap-3" : ""}`}>
                   <button
-                    onClick={() => goToStep(Math.max(0, stepIdx - 1))}
-                    disabled={stepIdx === 0}
+                    onClick={() => goToStep(Math.max(0, safeIdx - 1))}
+                    disabled={safeIdx === 0}
                     className="flex items-center gap-2 text-on-surface-variant hover:text-on-surface disabled:opacity-0 transition-all text-sm uppercase tracking-widest font-label"
                   >
                     <i className="fa-solid fa-chevron-left text-xs" /> {!isPhone && "Previous"}
                   </button>
                   <button
-                    onClick={() => goToStep(Math.min(schema.steps.length - 1, stepIdx + 1))}
-                    disabled={stepIdx === schema.steps.length - 1}
+                    onClick={() => goToStep(Math.min(visibleSteps.length - 1, safeIdx + 1))}
+                    disabled={safeIdx === visibleSteps.length - 1}
                     className={`flex items-center gap-2 font-headline font-bold rounded-xl shadow-[0_10px_30px_rgba(192,193,255,0.2)] hover:shadow-[0_15px_40px_rgba(192,193,255,0.35)] hover:-translate-y-1 transition-all disabled:opacity-60 ${
                       isPhone ? "px-5 py-3 text-sm flex-1 justify-center" : "px-8 py-3.5"
                     }`}
                     style={{ backgroundColor: primaryColor, color: lightBg ? "#1a1c25" : "#ffffff" }}
                   >
-                    {stepIdx === schema.steps.length - 1 ? (
+                    {safeIdx === visibleSteps.length - 1 ? (
                       <>Submit <i className="fa-solid fa-check text-xs ml-1" /></>
                     ) : (
                       <>Next Step <i className="fa-solid fa-chevron-right text-xs ml-1" /></>
@@ -299,10 +337,18 @@ export default function FormPreview({ schema, primaryColor }: Props) {
 
 /* ── Interactive preview field ───────────────────────────────── */
 
-function PreviewField({ field, primaryColor, isPhone }: { field: FieldDef; primaryColor: string; isPhone: boolean }) {
-  const [value, setValue] = useState<string>("");
+function PreviewField({ field, primaryColor, isPhone, previewValue, onPreviewChange }: {
+  field: FieldDef; primaryColor: string; isPhone: boolean;
+  previewValue?: unknown; onPreviewChange?: (v: unknown) => void;
+}) {
+  const [value, setValue] = useState<string>((typeof previewValue === "string" ? previewValue : "") || "");
   const [selectedPkg, setSelectedPkg] = useState<string>("");
   const [checkedOptions, setCheckedOptions] = useState<Set<string>>(new Set());
+
+  // Sync value changes up for condition evaluation
+  useEffect(() => {
+    onPreviewChange?.(value);
+  }, [value]);
   const lightBg = isLightColor(primaryColor);
   const focusRing = { "--tw-ring-color": primaryColor + "66" } as React.CSSProperties;
 

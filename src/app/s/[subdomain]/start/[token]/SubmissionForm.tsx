@@ -84,9 +84,17 @@ export default function SubmissionForm({
     [schema.steps, data],
   );
 
-  const step = visibleSteps[stepIdx];
-  const isLast = stepIdx === visibleSteps.length - 1;
-  const progress = ((stepIdx) / visibleSteps.length) * 100;
+  // Auto-correct stepIdx if current step becomes hidden due to condition changes
+  const safeStepIdx = Math.min(stepIdx, visibleSteps.length - 1);
+  useEffect(() => {
+    if (safeStepIdx !== stepIdx && visibleSteps.length > 0) {
+      setStepIdx(safeStepIdx);
+    }
+  }, [safeStepIdx, stepIdx, visibleSteps.length]);
+
+  const step = visibleSteps[safeStepIdx];
+  const isLast = safeStepIdx === visibleSteps.length - 1;
+  const progress = ((safeStepIdx) / visibleSteps.length) * 100;
   const lightBg = isLightColor(primaryColor);
 
   // Compute visible fields for current step based on conditions
