@@ -693,6 +693,233 @@ function evaluatePackageRules(
   return defaultId ?? null;
 }
 
+
+/* ââ Site Structure Field ââ standalone component with drag-drop tree + menu preview */
+function SiteStructureField({ field, value, error, onChange, primaryColor }: {
+  field: FieldDef; value: unknown; error?: string; onChange: (v: unknown) => void; primaryColor: string;
+}) {
+  const cfg = field.siteStructureConfig!;
+  type PageEntry = { id: string; name: string; depth: number; offMenu?: boolean };
+  type TreeNode = PageEntry & { children: TreeNode[] };
+  const INPUT_CLS = "w-full rounded-xl border-2 border-outline-variant bg-surface-container-lowest/50 px-4 py-3 text-sm text-on-surface placeholder:text-on-surface-variant/40 transition-all duration-200 focus:outline-none";
+  const focusRing = { "--tw-ring-color": primaryColor + "60" } as React.CSSProperties;
+  const errBorder = error ? "var(--color-error)" : "";
+  const pages: PageEntry[] = (() => {
+    try {
+      if (typeof value === "string" && value) { const p = JSON.parse(value); return Array.isArray(p) ? p : []; }
+      if (Array.isArray(value)) return value as PageEntry[];
+      return (cfg.starterPages ?? []).map((p: { id: string; name: string }) => ({ id: p.id, name: p.name, depth: 0, offMenu: false }));
+    } catch { return []; }
+  })();
+  const uid = () => Math.random().toString(36).slice(2, 10);
+  const update = (next: PageEntry[]) => onChange(JSON.stringify(next));
+  const canAdd = !cfg.maxPages || pages.length < cfg.maxPages;
+  const [dragIdx, setDragIdx] = useState<number | null>(null);
+  const [overIdx, setOverIdx] = useState<number | null>(null);
+  const toTree = (list: PageEntry[]): TreeNode[] => {
+    const roots: TreeNode[] = [];
+    const stack: TreeNode[] = [];
+    for (const p of list) {
+      const node: TreeNode = { ...p, children: [] };
+      while (stack.length > 0 && stack[stack.length - 1].depth >= p.depth) stack.pop();
+      if (stack.length === 0) roots.push(node);
+      else stack[stack.length - 1].children.push(node);
+      stack.push(node);
+    }
+    return roots;
+  };
+  const canIndent = (i: number) => i > 0 && pages[i].depth <= pages[i - 1].depth;
+  const canOutdent = (i: number) => pages[i].depth > 0;
+  const indent = (i: number) => { if (!canIndent(i)) return; const n = [...pages]; n[i] = { ...n[i], depth: n[i].depth + 1 }; update(n); };
+  const outdent = (i: number) => { if (!canOutdent(i)) return; const n = [...pages]; n[i] = { ...n[i], depth: n[i].depth - 1 }; update(n); };
+  const handleDrop = (from: number, to: number) => { if (from === to) return; const n = [...pages]; const [m] = n.splice(from, 1); n.splice(to, 0, m); update(n); };
+  const tree = toTree(pages);
+  const renderMenuItems = (nodes: TreeNode[]) => nodes.filter(n => !n.offMenu).map(node => {
+    const kids = (node.children || []).filter(c => !c.offMenu);
+    return (
+      <div key={node.id} className="relative group/mi">
+        <div className="px-3 py-1.5 text-xs font-medium rounded-md hover:bg-surface-container-high transition-colors flex items-center gap-1 cursor-default whitespace-nowrap"
+          style={{ color: node.name ? "var(--color-on-surface)" : "var(--color-on-surface-variant)" }}>
+          {node.name || "Untitled"}
+          {kids.length > 0 && <i className="fa-solid fa-chevron-down text-[8px] text-on-surface-variant/50 ml-0.5" />}
+        </div>
+        {kids.length > 0 && (
+          <div className="hidden group-hover/mi:block absolute top-full left-0 mt-0.5 bg-surface-container-high rounded-lg shadow-xl border border-outline-variant/30 py-1 z-10 min-w-[130px]">
+            {kids.map(c => (
+              <div key={c.id} className="px-3 py-1.5 text-xs text-on-surface-variant hover:bg-surface-container transition-colors whitespace-nowrap">
+                {c.name || "Untitled"}
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+    );
+  });
+  return (
+    <div className="group">
+      <label className="block text-xs font-semibold text-on-surface-variant uppercase tracking-widest mb-1.5 ml-1">
+        {field.label}{field.required && <span className="ml-1" style={{ color: primaryColor }}>*</span>}
+      </label>
+      {field.hint && <p className="text-xs text-on-surface-variant/60 mb-2 ml-1">{field.hint}</p>}
+      <div className="rounded-xl border-2 p-3 mb-3" style={{ borderColor: primaryColor + "30", backgroundColor: primaryColor + "05" }}>
+        <div className="flex items-center gap-1.5 mb-2">
+          <i className="fa-solid fa-desktop text-xs" style={{ color: primaryColor }} />
+          <span className="text-[10px] font-bold uppercase tracking-wider" style={{ color: primaryColor }}>Navigation Preview</span>
+        </div>
+        <div className="bg-surface-container rounded-lg p-1.5 flex items-center gap-0.5 flex-wrap min-h-[2.5rem]">
+          {tree.filter(n => !n.offMenu).length > 0 ? renderMenuItems(tree) : (
+            <span className="text-xs text-on-surface-variant/40 italic px-2">Add pages to preview navigation</span>
+          )}
+        </div>
+        {pages.some(p => p.offMenu) && (
+          <div className="mt-2 flex items-center gap-1.5 flex-wrap">
+            <span className="text-[10px] text-on-surface-variant/40"><i className="fa-solid fa-eye-slash text-[8px] mr-1" />Off-menu:</span>
+            {pages.filter(p => p.offMenu).map(p => (
+              <span key={p.id} className="text-[10px] text-on-surface-variant/40 bg-surface-container px-1.5 py-0.5 rounded">{p.name || "Untitled"}</span>
+            ))}
+          </div>
+        )}
+      </div>
+      <div className="space-y-1">
+        {pages.map((page, i) => (
+          <div key={page.id} draggable
+            onDragStart={() => setDragIdx(i)}
+            onDragOver={(e) => { e.preventDefault(); setOverIdx(i); }}
+            onDrop={(e) => { e.preventDefault(); if (dragIdx !== null) handleDrop(dragIdx, i); setDragIdx(null); setOverIdx(null); }}
+            onDragEnd={() => { setDragIdx(null); setOverIdx(null); }}
+            className={`flex items-center gap-1.5 py-1 rounded-lg transition-all group/row ${dragIdx !== null && overIdx === i && dragIdx !== i ? "ring-2 ring-current" : ""}`}
+            style={{ paddingLeft: page.depth * 24 + 4, paddingRight: 4, ...(dragIdx !== null && overIdx === i && dragIdx !== i ? { color: primaryColor } : {}) }}>
+            <div className="cursor-grab active:cursor-grabbing text-on-surface-variant/30 hover:text-on-surface-variant/60 px-0.5 shrink-0">
+              <i className="fa-solid fa-grip-vertical text-[10px]" />
+            </div>
+            {page.depth > 0 && <i className="fa-solid fa-turn-up fa-rotate-90 text-[10px] text-on-surface-variant/25 shrink-0" />}
+            <input value={page.name}
+              onChange={(e) => { const n = [...pages]; n[i] = { ...n[i], name: e.target.value }; update(n); }}
+              placeholder={page.depth > 0 ? "Subpage name" : "Page name (e.g. About Us)"}
+              className={INPUT_CLS + " flex-1 !py-2 !text-sm"} style={{ ...focusRing, borderColor: errBorder }} />
+            <div className="flex shrink-0 opacity-0 group-hover/row:opacity-100 transition-opacity">
+              <button type="button" onClick={() => outdent(i)} disabled={!canOutdent(i)}
+                className="p-1 rounded text-on-surface-variant/40 hover:text-on-surface-variant disabled:opacity-20 disabled:cursor-not-allowed transition-colors" title="Outdent">
+                <i className="fa-solid fa-outdent text-[10px]" />
+              </button>
+              <button type="button" onClick={() => indent(i)} disabled={!canIndent(i)}
+                className="p-1 rounded text-on-surface-variant/40 hover:text-on-surface-variant disabled:opacity-20 disabled:cursor-not-allowed transition-colors" title="Indent (make child page)">
+                <i className="fa-solid fa-indent text-[10px]" />
+              </button>
+            </div>
+            <button type="button" onClick={() => { const n = [...pages]; n[i] = { ...n[i], offMenu: !n[i].offMenu }; update(n); }}
+              className="p-1 rounded-lg shrink-0 transition-all" title={page.offMenu ? "Hidden from nav" : "Shown in nav"}
+              style={{ color: page.offMenu ? "var(--color-on-surface-variant)" : primaryColor, opacity: page.offMenu ? 0.35 : 0.7 }}>
+              <i className={`fa-solid ${page.offMenu ? "fa-eye-slash" : "fa-eye"} text-[10px]`} />
+            </button>
+            <button type="button" onClick={() => update(pages.filter((_, j) => j !== i))}
+              className="p-1 rounded-lg text-on-surface-variant/30 hover:text-error hover:bg-error/10 transition-all shrink-0 opacity-0 group-hover/row:opacity-100">
+              <i className="fa-solid fa-xmark text-xs" />
+            </button>
+          </div>
+        ))}
+      </div>
+      {canAdd && (
+        <button type="button" onClick={() => update([...pages, { id: uid(), name: "", depth: 0, offMenu: false }])}
+          className="w-full mt-3 py-3 border-2 border-dashed rounded-xl text-sm font-medium transition-all flex items-center justify-center gap-2 hover:shadow-sm"
+          style={{ borderColor: primaryColor + "40", color: primaryColor }}>
+          <i className="fa-solid fa-plus text-xs" /> Add Page
+        </button>
+      )}
+      <div className="flex items-center justify-between mt-1.5 ml-1 gap-2">
+        {cfg.maxPages && cfg.maxPages > 0 ? (
+          <p className="text-xs text-on-surface-variant/60">{pages.length} / {cfg.maxPages} pages</p>
+        ) : <div />}
+        <p className="text-[10px] text-on-surface-variant/40 text-right">
+          Drag to reorder Â· <i className="fa-solid fa-indent text-[8px]" /> nest as child Â· <i className="fa-solid fa-eye-slash text-[8px]" /> hide from nav
+        </p>
+      </div>
+      {error && <p className="text-sm text-error mt-1.5 sl-fade-up flex items-center gap-1.5"><i className="fa-solid fa-circle-exclamation text-xs flex-shrink-0" />{error}</p>}
+    </div>
+  );
+}
+
+/* ââ Signature Pad Canvas ââ draw-to-sign like DocuSign */
+function SignaturePadCanvas({ value, onChange, primaryColor }: {
+  value: string; onChange: (dataUrl: string) => void; primaryColor: string;
+}) {
+  const canvasRef = useRef<HTMLCanvasElement | null>(null);
+  const ctxRef = useRef<CanvasRenderingContext2D | null>(null);
+  const drawing = useRef(false);
+  const last = useRef<{ x: number; y: number } | null>(null);
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const setup = () => {
+      const rect = canvas.getBoundingClientRect();
+      const dpr = window.devicePixelRatio || 1;
+      canvas.width = rect.width * dpr;
+      canvas.height = rect.height * dpr;
+      const ctx = canvas.getContext("2d");
+      if (ctx) { ctx.scale(dpr, dpr); ctxRef.current = ctx; }
+      if (value && ctx) {
+        const img = new Image();
+        img.onload = () => ctx.drawImage(img, 0, 0, rect.width, rect.height);
+        img.src = value;
+      }
+    };
+    setup();
+    const ro = new ResizeObserver(setup);
+    ro.observe(canvas);
+    return () => ro.disconnect();
+  }, []);
+  const getPos = (e: React.MouseEvent | React.TouchEvent) => {
+    const rect = canvasRef.current!.getBoundingClientRect();
+    if ("touches" in e) { const t = e.touches[0] || e.changedTouches[0]; return { x: t.clientX - rect.left, y: t.clientY - rect.top }; }
+    return { x: (e as React.MouseEvent).clientX - rect.left, y: (e as React.MouseEvent).clientY - rect.top };
+  };
+  const startDraw = (e: React.MouseEvent | React.TouchEvent) => {
+    e.preventDefault(); drawing.current = true; last.current = getPos(e);
+    const ctx = ctxRef.current;
+    if (ctx) { ctx.strokeStyle = "#1e293b"; ctx.lineWidth = 2.5; ctx.lineCap = "round"; ctx.lineJoin = "round"; ctx.beginPath(); ctx.moveTo(last.current.x, last.current.y); }
+  };
+  const onDraw = (e: React.MouseEvent | React.TouchEvent) => {
+    if (!drawing.current) return; e.preventDefault();
+    const ctx = ctxRef.current; const pos = getPos(e);
+    if (ctx && last.current) {
+      const mid = { x: (last.current.x + pos.x) / 2, y: (last.current.y + pos.y) / 2 };
+      ctx.quadraticCurveTo(last.current.x, last.current.y, mid.x, mid.y);
+      ctx.stroke(); ctx.beginPath(); ctx.moveTo(mid.x, mid.y);
+    }
+    last.current = pos;
+  };
+  const endDraw = () => {
+    if (!drawing.current) return; drawing.current = false; last.current = null;
+    const canvas = canvasRef.current;
+    if (canvas) onChange(canvas.toDataURL("image/png"));
+  };
+  const clear = () => {
+    const canvas = canvasRef.current; const ctx = ctxRef.current;
+    if (canvas && ctx) { const r = canvas.getBoundingClientRect(); ctx.clearRect(0, 0, r.width * (window.devicePixelRatio || 1), r.height * (window.devicePixelRatio || 1)); onChange(""); }
+  };
+  return (
+    <div>
+      <div className="flex items-center justify-between mb-1">
+        <label className="block text-xs font-medium text-on-surface-variant">Signature</label>
+        <button type="button" onClick={clear} className="text-[10px] font-semibold px-2 py-0.5 rounded-md hover:bg-surface-container transition-colors" style={{ color: primaryColor }}>
+          Clear
+        </button>
+      </div>
+      <div className="relative rounded-xl border-2 overflow-hidden" style={{ borderColor: primaryColor + "30", backgroundColor: "rgba(255,255,255,0.97)" }}>
+        <canvas ref={canvasRef} className="w-full touch-none" style={{ height: 150, cursor: "crosshair" }}
+          onMouseDown={startDraw} onMouseMove={onDraw} onMouseUp={endDraw} onMouseLeave={endDraw}
+          onTouchStart={startDraw} onTouchMove={onDraw} onTouchEnd={endDraw} />
+        {!value && (
+          <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none select-none">
+            <i className="fa-solid fa-signature text-2xl mb-1" style={{ color: "#d1d5db" }} />
+            <span className="text-xs" style={{ color: "#9ca3af" }}>Sign here with mouse or finger</span>
+          </div>
+        )}
+        <div className="absolute bottom-4 left-6 right-6 border-b" style={{ borderColor: "rgba(0,0,0,0.1)" }} />
+      </div>
+    </div>
+  );
+}
 function CelestialField({
   field, value, error, onChange, primaryColor, allData,
 }: {
@@ -1074,55 +1301,9 @@ function CelestialField({
 
   /* ââ Site Structure Builder ââ */
   if (field.type === "site_structure" && field.siteStructureConfig) {
-    const cfg = field.siteStructureConfig;
-    type PageEntry = { id: string; name: string; path?: string };
-    const pages: PageEntry[] = (() => {
-      try { return Array.isArray(value) ? value as PageEntry[] : typeof value === "string" && value ? JSON.parse(value) : (cfg.starterPages ?? []).map((p: { id: string; name: string }) => ({ ...p })); }
-      catch { return []; }
-    })();
-    const uid = () => Math.random().toString(36).slice(2, 10);
-    const update = (next: PageEntry[]) => onChange(JSON.stringify(next));
-    const canAdd = !cfg.maxPages || pages.length < cfg.maxPages;
-    return (
-      <div className="group">
-        <label className="block text-xs font-semibold text-on-surface-variant uppercase tracking-widest mb-1.5 ml-1">
-          {field.label}{field.required && <span className="ml-1" style={{ color: primaryColor }}>*</span>}
-        </label>
-        {field.hint && <p className="text-xs text-on-surface-variant/60 mb-2 ml-1">{field.hint}</p>}
-        <div className="space-y-2">
-          {pages.map((page, i) => (
-            <div key={page.id} className="flex items-center gap-2 group/row">
-              <div className="w-6 h-6 rounded-lg flex items-center justify-center text-xs font-bold shrink-0" style={{ backgroundColor: primaryColor + "18", color: primaryColor }}>
-                {i + 1}
-              </div>
-              <input
-                value={page.name}
-                onChange={(e) => { const next = [...pages]; next[i] = { ...next[i], name: e.target.value }; update(next); }}
-                placeholder="Page name (e.g. About Us)"
-                className={INPUT_CLS + " flex-1"}
-                style={{ ...focusRing, borderColor: errBorder }}
-              />
-              <button type="button" onClick={() => update(pages.filter((_, j) => j !== i))}
-                className="p-2 rounded-lg text-on-surface-variant/40 hover:text-error hover:bg-error/10 transition-all opacity-0 group-hover/row:opacity-100">
-                <i className="fa-solid fa-xmark text-xs" />
-              </button>
-            </div>
-          ))}
-        </div>
-        {canAdd && (
-          <button type="button" onClick={() => update([...pages, { id: uid(), name: "" }])}
-            className="w-full mt-3 py-3 border-2 border-dashed rounded-xl text-sm font-medium transition-all flex items-center justify-center gap-2 hover:shadow-sm"
-            style={{ borderColor: primaryColor + "40", color: primaryColor }}>
-            <i className="fa-solid fa-plus text-xs" /> Add Page
-          </button>
-        )}
-        {cfg.maxPages && cfg.maxPages > 0 && (
-          <p className="text-xs text-on-surface-variant/60 mt-1.5 ml-1">{pages.length} / {cfg.maxPages} pages</p>
-        )}
-        {error && <p className="text-sm text-error mt-1.5 sl-fade-up flex items-center gap-1.5"><i className="fa-solid fa-circle-exclamation text-xs flex-shrink-0" />{error}</p>}
-      </div>
-    );
+    return <SiteStructureField field={field} value={value} error={error} onChange={onChange} primaryColor={primaryColor} />;
   }
+
 
   /* ââ Asset Collection ââ */
   if (field.type === "asset_collection" && field.assetCollectionConfig) {
@@ -1344,18 +1525,17 @@ function CelestialField({
           {cfg.requireFullName && (
             <div>
               <label className="block text-xs font-medium text-on-surface-variant mb-1">Full Name</label>
-              <input type="text" value={data.fullName ?? ""} placeholder="Type your full name"
+              <input type="text" value={data.fullName ?? ""} placeholder="Type your full legal name"
                 onChange={(e) => updateApproval({ fullName: e.target.value })}
                 className={INPUT_CLS} style={{ ...focusRing, borderColor: errBorder }} />
             </div>
           )}
           {cfg.requireSignature && (
-            <div>
-              <label className="block text-xs font-medium text-on-surface-variant mb-1">Signature</label>
-              <input type="text" value={data.signature ?? ""} placeholder="Type your signature"
-                onChange={(e) => updateApproval({ signature: e.target.value })}
-                className={`${INPUT_CLS} italic font-serif text-lg`} style={{ ...focusRing, borderColor: errBorder }} />
-            </div>
+            <SignaturePadCanvas
+              value={data.signature ?? ""}
+              onChange={(sig: string) => updateApproval({ signature: sig })}
+              primaryColor={primaryColor}
+            />
           )}
           <button type="button"
             onClick={() => updateApproval({ approved: !data.approved, timestamp: !data.approved ? new Date().toISOString() : undefined })}
@@ -1370,7 +1550,8 @@ function CelestialField({
         {error && <p className="text-sm text-error mt-1.5 sl-fade-up flex items-center gap-1.5"><i className="fa-solid fa-circle-exclamation text-xs flex-shrink-0" />{error}</p>}
       </div>
     );
-  }  const isMultiCheckbox = field.type === "checkbox" && field.options && field.options.length > 0;
+  }
+  const isMultiCheckbox = field.type === "checkbox" && field.options && field.options.length > 0;
   /* Parse multi-checkbox value as array */
   const checkedValues: string[] = isMultiCheckbox
     ? (Array.isArray(value) ? value as string[] : typeof value === "string" && value ? value.split("||") : [])
