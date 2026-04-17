@@ -19,7 +19,7 @@ export default function SignupPage() {
       <div className="relative z-10 w-full max-w-lg space-y-6 animate-scale-in">
         <div className="text-center">
           <h1 className="text-3xl font-bold tracking-tight font-headline text-on-surface">
-            Start with LinqMe
+            Start with linqme
           </h1>
           <p className="text-sm text-on-surface-variant/70 mt-1">
             Free forever for one submission a month. Upgrade whenever you&apos;re ready.

@@ -7,10 +7,10 @@ import type { ThemeMode } from "@/components/ThemeProvider";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: { default: "LinqMe | Client Onboarding for Agencies", template: "%s · LinqMe" },
+  title: { default: "linqme | Client Onboarding for Agencies", template: "%s · linqme" },
   description:
-    "Collect client content, files, and approvals in one branded workspace. LinqMe replaces scattered emails with a clean onboarding portal your clients will love.",
-  applicationName: "LinqMe",
+    "Collect client content, files, and approvals in one branded workspace. linqme replaces scattered emails with a clean onboarding portal your clients will love.",
+  applicationName: "linqme",
   manifest: "/manifest.webmanifest",
   metadataBase: new URL(process.env.NEXT_PUBLIC_MARKETING_URL || "https://linqme.io"),
   keywords: ["client onboarding", "agency tools", "content collection", "white-label portal", "SaaS"],
@@ -19,8 +19,8 @@ export const metadata: Metadata = {
   openGraph: {
     type: "website",
     locale: "en_US",
-    siteName: "LinqMe",
-    title: "LinqMe | Client Onboarding for Agencies",
+    siteName: "linqme",
+    title: "linqme | Client Onboarding for Agencies",
     description:
       "Collect client content, files, and approvals in one branded workspace. Replace scattered emails with a clean onboarding portal.",
     url: "/",
@@ -29,13 +29,13 @@ export const metadata: Metadata = {
         url: "/og-image.png",
         width: 1200,
         height: 630,
-        alt: "LinqMe - Client onboarding, launched.",
+        alt: "linqme - Client onboarding, launched.",
       },
     ],
   },
   twitter: {
     card: "summary_large_image",
-    title: "LinqMe | Client Onboarding for Agencies",
+    title: "linqme | Client Onboarding for Agencies",
     description:
       "Collect client content, files, and approvals in one branded workspace.",
     images: ["/og-image.png"],

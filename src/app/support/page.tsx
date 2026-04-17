@@ -3,8 +3,8 @@ import LinqMeLogo from "@/components/LinqMeLogo";
 import SupportForm from "./SupportForm";
 
 export const metadata = {
-  title: "Support | LinqMe",
-  description: "Get help with LinqMe. Contact our support team.",
+  title: "Support | linqme",
+  description: "Get help with linqme. Contact our support team.",
 };
 
 export default function SupportPage() {
@@ -17,7 +17,7 @@ export default function SupportPage() {
       <div className="relative max-w-3xl mx-auto px-6 md:px-10 py-16">
         {/* Header */}
         <Link href="/" className="inline-flex items-center gap-2 mb-12">
-          <LinqMeLogo className="h-8 w-auto text-primary" ringClassName="text-on-surface/60" />
+          <LinqMeLogo className="h-8 w-auto text-primary" />
         </Link>
 
         <div className="glass-panel rounded-2xl border border-outline-variant/15 p-8 md:p-12">

@@ -34,7 +34,7 @@ export default async function TeamPage() {
           Team Management
         </h1>
         <p className="text-sm text-on-surface-variant mt-1">
-          Manage your LinqMe team members and their permissions.
+          Manage your linqme team members and their permissions.
         </p>
       </header>
 

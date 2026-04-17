@@ -1,4 +1,4 @@
-# LinqMe
+# linqme
 
 Multi-tenant client onboarding platform. Next.js 15 + Supabase + PWA.
 

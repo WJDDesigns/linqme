@@ -11,7 +11,7 @@ import type {
 } from "@simplewebauthn/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 
-const RP_NAME = "LinqMe";
+const RP_NAME = "linqme";
 
 /**
  * Derive the WebAuthn Relying Party ID.

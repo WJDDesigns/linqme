@@ -2,7 +2,7 @@ import Link from "next/link";
 import LinqMeLogo from "@/components/LinqMeLogo";
 
 /**
- * Top-left header bar for auth pages — logo + "LinqMe" text.
+ * Top-left header bar for auth pages — logo + "linqme" text.
  * Rendered at fixed top position, overlays the rocket animation.
  */
 export default function AuthHeader() {
@@ -11,11 +11,8 @@ export default function AuthHeader() {
       <Link href="/" className="inline-flex items-center gap-2.5 group">
         <LinqMeLogo
           className="h-8 w-auto text-primary"
-          ringClassName="text-on-surface/60"
+         
         />
-        <span className="text-base font-bold font-headline text-on-surface tracking-tight group-hover:text-primary transition-colors duration-300">
-          LinqMe
-        </span>
       </Link>
     </header>
   );

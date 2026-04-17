@@ -129,7 +129,7 @@ export async function ensureStripeProducts(): Promise<Record<string, string | nu
       product = existing.data[0];
     } else {
       product = await stripe.products.create({
-        name: `LinqMe ${plan.name}`,
+        name: `linqme ${plan.name}`,
         metadata: { linqme_tier: plan.tier },
       });
     }

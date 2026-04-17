@@ -1,5 +1,5 @@
 /**
- * Centralized cache manager for LinqMe.
+ * Centralized cache manager for linqme.
  *
  * Provides a registry of all in-memory caches and a way to flush them
  * from the admin Speed page. Also exposes cache status (entry counts,

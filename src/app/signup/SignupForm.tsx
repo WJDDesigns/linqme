@@ -380,7 +380,7 @@ export default function SignupForm({ rootHost }: { rootHost: string }) {
         {/* Step 3: Usage & Preferences */}
         {step === 2 && (
           <div className="space-y-4 animate-fade-in">
-            <Field label="Team size" hint="How many people will use LinqMe?">
+            <Field label="Team size" hint="How many people will use linqme?">
               <select
                 className={SELECT_CLS}
                 value={formData.team_size}

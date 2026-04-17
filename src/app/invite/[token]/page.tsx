@@ -21,7 +21,7 @@ export default async function InvitePage({ params }: Props) {
 
         <div className="relative w-full max-w-md text-center space-y-6">
           <Link href="/" className="inline-block">
-            <LinqMeLogo className="h-14 w-auto text-primary mx-auto" ringClassName="text-on-surface/60" />
+            <LinqMeLogo className="h-14 w-auto text-primary mx-auto" />
           </Link>
           <div className="glass-panel rounded-2xl border border-outline-variant/15 p-8">
             <div className="w-14 h-14 rounded-full bg-error/10 flex items-center justify-center mx-auto mb-4">
@@ -77,7 +77,7 @@ export default async function InvitePage({ params }: Props) {
 
       <div className="relative w-full max-w-md space-y-6 animate-scale-in">
         <Link href="/" className="flex items-center justify-center">
-          <LinqMeLogo className="h-14 w-auto text-primary" ringClassName="text-on-surface/60" />
+          <LinqMeLogo className="h-14 w-auto text-primary" />
         </Link>
 
         <div className="text-center">

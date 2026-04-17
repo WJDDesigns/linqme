@@ -374,7 +374,7 @@ export default async function AdminBillingPage() {
           Stripe Configuration
         </h2>
         <p className="text-xs text-on-surface-variant/60 mb-4">
-          Initialize Stripe products and prices. Run this once per Stripe account to create the LinqMe subscription products.
+          Initialize Stripe products and prices. Run this once per Stripe account to create the linqme subscription products.
         </p>
         <SetupStripeButton />
       </section>

@@ -94,9 +94,9 @@ export default async function SubmissionPage({ params }: Props) {
             {footerText ? (
               <p className="text-xs text-on-surface/60">{footerText}</p>
             ) : null}
-            <span className="text-sm font-bold text-on-surface font-headline">LinqMe</span>
+            <span className="text-sm font-bold text-on-surface font-headline">linqme</span>
             <p className="text-[10px] uppercase tracking-[0.3em] text-on-surface/40">
-              &copy; {new Date().getFullYear()} LinqMe &middot; WJD Designs
+              &copy; {new Date().getFullYear()} linqme &middot; WJD Designs
             </p>
           </>
         )}

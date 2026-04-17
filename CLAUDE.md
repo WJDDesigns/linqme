@@ -5,6 +5,6 @@
 - Wayne is the sole author of all commits.
 
 ## Project
-- LinqMe (linqme.io) — multi-tenant SaaS for client onboarding
+- linqme (linqme.io) — multi-tenant SaaS for client onboarding
 - Next.js 15+ App Router, Supabase, Tailwind CSS, TypeScript
 - Owner: Wayne (wayne@wjddesigns.com)

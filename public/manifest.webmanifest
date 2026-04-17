@@ -1,6 +1,6 @@
 {
-  "name": "LinqMe",
-  "short_name": "LinqMe",
+  "name": "linqme",
+  "short_name": "linqme",
   "description": "Client onboarding, launched.",
   "start_url": "/dashboard",
   "display": "standalone",

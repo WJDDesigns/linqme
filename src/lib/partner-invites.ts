@@ -95,9 +95,9 @@ export async function createPartnerInvite(args: {
     <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; max-width: 560px; margin: 0 auto;">
       <!-- Header -->
       <div style="background: linear-gradient(135deg, #0b1326 0%, #1a1f3a 100%); border-radius: 16px 16px 0 0; padding: 40px 32px; text-align: center;">
-        <img src="https://linqme.io/email-logo.png" alt="LinqMe" width="60" height="77" style="display: block; margin: 0 auto 8px; border: 0;" />
+        <img src="https://linqme.io/email-logo.png" alt="linqme" width="60" height="77" style="display: block; margin: 0 auto 8px; border: 0;" />
         <div style="font-size: 22px; font-weight: 800; color: #ffffff; letter-spacing: -0.5px;">
-          LinqMe
+          linqme
         </div>
         <div style="font-size: 12px; color: rgba(255,255,255,0.5); text-transform: uppercase; letter-spacing: 2px; margin-top: 4px;">
           Partner Invitation
@@ -111,7 +111,7 @@ export async function createPartnerInvite(args: {
         </h2>
         <p style="margin: 0 0 24px; color: #64748b; font-size: 15px; line-height: 1.6;">
           <strong style="color: #0f172a;">${escapeHtml(args.invitedByName)}</strong> has invited you to
-          manage <strong style="color: #0f172a;">${escapeHtml(args.partnerName)}</strong> on LinqMe,
+          manage <strong style="color: #0f172a;">${escapeHtml(args.partnerName)}</strong> on linqme,
           the client onboarding platform for agencies.
         </p>
 
@@ -147,7 +147,7 @@ export async function createPartnerInvite(args: {
       <div style="background: #f8fafc; border-radius: 0 0 16px 16px; padding: 20px 32px; text-align: center;
                   border: 1px solid #e2e8f0; border-top: none;">
         <p style="margin: 0; color: #94a3b8; font-size: 11px;">
-          Sent from LinqMe &middot; Client onboarding for agencies
+          Sent from linqme &middot; Client onboarding for agencies
         </p>
       </div>
     </div>
@@ -155,7 +155,7 @@ export async function createPartnerInvite(args: {
 
   await sendMail({
     to: args.email,
-    subject: dbEmail?.subject ?? `You're invited to join ${args.partnerName} on LinqMe`,
+    subject: dbEmail?.subject ?? `You're invited to join ${args.partnerName} on linqme`,
     html: dbEmail?.html ?? fallbackHtml,
   });
 

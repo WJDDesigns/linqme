@@ -29,7 +29,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
   return {
     title: `${formSlug} | ${partner.name}`,
-    description: `Complete the ${formSlug} form for ${partner.name}. Powered by LinqMe.`,
+    description: `Complete the ${formSlug} form for ${partner.name}. Powered by linqme.`,
     openGraph: {
       title: `${partner.name} | ${formSlug}`,
       description: `Complete the ${formSlug} form for ${partner.name}.`,
@@ -160,11 +160,11 @@ export default async function FormSlugPage({ params }: Props) {
           <>
             {footerText && <p className="text-xs text-on-surface/60">{footerText}</p>}
             <Link href="/" className="flex items-center gap-2">
-              <LinqMeLogo className="h-5 w-auto text-primary" ringClassName="text-on-surface/50" />
-              <span className="text-sm font-bold text-on-surface font-headline">LinqMe</span>
+              <LinqMeLogo className="h-5 w-auto text-primary" />
+              <span className="text-sm font-bold text-on-surface font-headline">linqme</span>
             </Link>
             <p className="text-[10px] uppercase tracking-[0.3em] text-on-surface/30">
-              &copy; {new Date().getFullYear()} LinqMe &middot; WJD Designs
+              &copy; {new Date().getFullYear()} linqme &middot; WJD Designs
             </p>
           </>
         )}

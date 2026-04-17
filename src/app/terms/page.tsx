@@ -2,8 +2,8 @@ import Link from "next/link";
 import LinqMeLogo from "@/components/LinqMeLogo";
 
 export const metadata = {
-  title: "Terms of Service | LinqMe",
-  description: "Terms of Service for LinqMe, the client onboarding platform.",
+  title: "Terms of Service | linqme",
+  description: "Terms of Service for linqme, the client onboarding platform.",
 };
 
 export default function TermsPage() {
@@ -18,7 +18,7 @@ export default function TermsPage() {
       <div className="relative max-w-3xl mx-auto px-6 md:px-10 py-16">
         {/* Header */}
         <Link href="/" className="inline-flex items-center gap-2 mb-12">
-          <LinqMeLogo className="h-8 w-auto text-primary" ringClassName="text-on-surface/60" />
+          <LinqMeLogo className="h-8 w-auto text-primary" />
         </Link>
 
         <div className="glass-panel rounded-2xl border border-outline-variant/15 p-8 md:p-12">
@@ -33,7 +33,7 @@ export default function TermsPage() {
             <section>
               <h2 className="text-base font-bold text-on-surface mb-3">1. Acceptance of Terms</h2>
               <p>
-                By accessing or using the LinqMe platform (&quot;Service&quot;), operated by WJD Designs
+                By accessing or using the linqme platform (&quot;Service&quot;), operated by WJD Designs
                 (&quot;Company,&quot; &quot;we,&quot; &quot;us,&quot; or &quot;our&quot;), you agree to be bound by
                 these Terms of Service (&quot;Terms&quot;). If you do not agree to all of these Terms, you may
                 not access or use the Service.
@@ -43,7 +43,7 @@ export default function TermsPage() {
             <section>
               <h2 className="text-base font-bold text-on-surface mb-3">2. Description of Service</h2>
               <p>
-                LinqMe is a multi-tenant SaaS platform that enables businesses to create branded
+                linqme is a multi-tenant SaaS platform that enables businesses to create branded
                 client onboarding experiences, collect information through customizable forms, and
                 manage client submissions. The Service includes web-based tools, APIs, and related
                 services.

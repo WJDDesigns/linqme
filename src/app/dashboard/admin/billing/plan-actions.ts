@@ -52,7 +52,7 @@ export async function savePlanAction(formData: FormData) {
         // If product exists, update it
         if (stripeProductId) {
           await stripe.products.update(stripeProductId, {
-            name: `LinqMe ${name}`,
+            name: `linqme ${name}`,
             metadata: { linqme_tier: slug },
           });
 
@@ -82,7 +82,7 @@ export async function savePlanAction(formData: FormData) {
       // If no Stripe product yet, create one
       if (!stripeProductId) {
         const product = await stripe.products.create({
-          name: `LinqMe ${name}`,
+          name: `linqme ${name}`,
           metadata: { linqme_tier: slug },
         });
         stripeProductId = product.id;

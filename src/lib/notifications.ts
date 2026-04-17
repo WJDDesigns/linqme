@@ -39,7 +39,7 @@ export async function sendVerificationEmail(args: {
     heading: "Verify your email",
     body: `
       <p style="margin: 0 0 8px;">
-        Hi ${escapeHtml(args.companyName)}, thanks for signing up for LinqMe!
+        Hi ${escapeHtml(args.companyName)}, thanks for signing up for linqme!
       </p>
       <p style="margin: 0 0 0;">
         Click the button below to verify your email address and get started.
@@ -51,7 +51,7 @@ export async function sendVerificationEmail(args: {
 
   await sendMail({
     to: args.to,
-    subject: dbEmail?.subject ?? "Verify your email - LinqMe",
+    subject: dbEmail?.subject ?? "Verify your email - linqme",
     html,
   });
 }
@@ -99,7 +99,7 @@ export async function resendVerificationEmail(args: {
     heading: "Verify your email",
     body: `
       <p style="margin: 0 0 8px;">
-        Hi ${escapeHtml(companyName)}, here's a new verification link for your LinqMe account.
+        Hi ${escapeHtml(companyName)}, here's a new verification link for your linqme account.
       </p>
       <p style="margin: 0 0 0;">
         Click the button below to verify your email address. This link will expire in 24 hours.
@@ -110,7 +110,7 @@ export async function resendVerificationEmail(args: {
 
   await sendMail({
     to: args.email,
-    subject: dbEmail?.subject ?? "Verify your email - LinqMe",
+    subject: dbEmail?.subject ?? "Verify your email - linqme",
     html,
   });
 }
@@ -149,7 +149,7 @@ export async function sendWelcomeEmail(args: {
   });
 
   const html = dbEmail?.html ?? emailTemplate({
-    heading: `Welcome to LinqMe, ${args.companyName}!`,
+    heading: `Welcome to linqme, ${args.companyName}!`,
     body: `
       <p style="margin: 0 0 8px;">${escapeHtml(planLine)}</p>
       <p style="margin: 0 0 0;">
@@ -162,7 +162,7 @@ export async function sendWelcomeEmail(args: {
 
   await sendMail({
     to: args.to,
-    subject: dbEmail?.subject ?? "Welcome to LinqMe",
+    subject: dbEmail?.subject ?? "Welcome to linqme",
     html,
   });
 }
