@@ -1,5 +1,4 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createClient } from "@/lib/supabase/server";
 
 /**
  * POST /api/competitor-analyze
@@ -7,17 +6,12 @@ import { createClient } from "@/lib/supabase/server";
  *
  * Fetches a competitor website, extracts key information, and optionally
  * generates an AI summary. Used by the Competitor Analyzer form field.
+ *
+ * This endpoint is intentionally public (no auth) because it is called from
+ * the public-facing submission form on client subdomains. It only fetches and
+ * parses publicly-available HTML — no user data is accessed.
  */
 export async function POST(req: NextRequest) {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  if (!user) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
-
   let body: { url: string };
   try {
     body = await req.json();
