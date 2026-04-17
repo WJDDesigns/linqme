@@ -52,7 +52,7 @@ export default async function AdminDashboardPage() {
   ];
 
   return (
-    <div className="max-w-5xl mx-auto px-6 md:px-10 py-8 space-y-8">
+    <div className="max-w-5xl mx-auto px-4 sm:px-6 md:px-10 py-8 space-y-8">
       <header>
         <h1 className="text-3xl font-extrabold font-headline tracking-tight text-on-surface">
           Platform Overview

@@ -117,7 +117,7 @@ export default async function AdminAnalyticsPage() {
   const conversionRate = totalStarts > 0 ? Math.round((totalCompletes / totalStarts) * 100) : 0;
 
   return (
-    <div className="max-w-5xl mx-auto px-6 md:px-10 py-8 space-y-8">
+    <div className="max-w-5xl mx-auto px-4 sm:px-6 md:px-10 py-8 space-y-8">
       <header>
         <h1 className="text-3xl font-extrabold font-headline tracking-tight text-on-surface">Platform Analytics</h1>
         <p className="text-on-surface-variant mt-1">

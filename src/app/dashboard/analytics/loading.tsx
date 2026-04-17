@@ -2,7 +2,7 @@ import { SkeletonBlock, SkeletonText } from "@/components/Skeleton";
 
 export default function AnalyticsLoading() {
   return (
-    <div className="max-w-5xl mx-auto px-6 md:px-10 py-8 space-y-8">
+    <div className="max-w-5xl mx-auto px-4 sm:px-6 md:px-10 py-8 space-y-8">
       <header>
         <SkeletonText className="h-8 w-32 mb-2" />
         <SkeletonText className="h-4 w-64" />

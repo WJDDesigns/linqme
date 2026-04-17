@@ -10,7 +10,7 @@ function SkeletonPanel({ children, className = "" }: { children: React.ReactNode
 
 export default function SettingsLoading() {
   return (
-    <div className="max-w-5xl mx-auto px-6 md:px-10 py-8 space-y-8">
+    <div className="max-w-5xl mx-auto px-4 sm:px-6 md:px-10 py-8 space-y-8">
       {/* Header */}
       <header>
         <SkeletonText className="h-8 w-36 mb-2" />

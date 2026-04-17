@@ -17,7 +17,7 @@ export default async function FormEditorPage({ params }: PageProps) {
 
   if (!account) {
     return (
-      <div className="max-w-5xl mx-auto px-6 md:px-10 py-8">
+      <div className="max-w-5xl mx-auto px-4 sm:px-6 md:px-10 py-8">
         <h1 className="text-3xl font-headline font-bold tracking-tight text-on-surface">Form editor</h1>
         <p className="text-sm text-on-surface-variant mt-2">
           No workspace is associated with your account yet.

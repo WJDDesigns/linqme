@@ -33,7 +33,7 @@ function SkeletonRow() {
 
 export default function SubmissionsLoading() {
   return (
-    <div className="max-w-5xl mx-auto px-6 md:px-10 py-8 space-y-8">
+    <div className="max-w-5xl mx-auto px-4 sm:px-6 md:px-10 py-8 space-y-8">
       {/* Header */}
       <header>
         <SkeletonText className="h-8 w-56 mb-2" />

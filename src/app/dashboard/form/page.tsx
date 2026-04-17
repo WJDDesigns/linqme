@@ -14,7 +14,7 @@ export default async function FormsListPage() {
 
   if (!account) {
     return (
-      <div className="max-w-5xl mx-auto px-6 md:px-10 py-8">
+      <div className="max-w-5xl mx-auto px-4 sm:px-6 md:px-10 py-8">
         <h1 className="text-3xl font-headline font-bold tracking-tight text-on-surface">Forms</h1>
         <p className="text-sm text-on-surface-variant mt-2">
           No workspace is associated with your account yet.
@@ -89,19 +89,21 @@ export default async function FormsListPage() {
     .map((p) => ({ id: p.id, name: p.name }));
 
   return (
-    <div className="max-w-5xl mx-auto px-6 md:px-10 py-8 space-y-8">
+    <div className="max-w-5xl mx-auto px-4 sm:px-6 md:px-10 py-6 md:py-8 space-y-6 md:space-y-8">
       <header>
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-3xl font-extrabold font-headline tracking-tight text-on-surface">Forms</h1>
-            <p className="text-on-surface-variant mt-1">
+        <div className="flex items-start sm:items-center justify-between gap-3">
+          <div className="min-w-0">
+            <h1 className="text-2xl sm:text-3xl font-extrabold font-headline tracking-tight text-on-surface">Forms</h1>
+            <p className="text-sm text-on-surface-variant mt-1">
               Create and manage onboarding forms for your clients.
               {formsLimit !== null && (
                 <span className="text-on-surface-variant/60"> ({formsList.length} / {formsLimit} used)</span>
               )}
             </p>
           </div>
-          <CreateFormButton canCreate={canCreateMore} formsLimit={formsLimit} />
+          <div className="shrink-0">
+            <CreateFormButton canCreate={canCreateMore} formsLimit={formsLimit} />
+          </div>
         </div>
       </header>
 
@@ -140,36 +142,35 @@ export default async function FormsListPage() {
                 key={form.id}
                 className="bg-surface-container rounded-2xl border border-outline-variant/[0.06] overflow-hidden shadow-lg shadow-black/10 hover:border-primary/20 transition-all group"
               >
-                <div className="p-6">
-                  <div className="flex items-start justify-between gap-4">
-                    <div className="flex items-center gap-4">
-                      <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center shrink-0">
-                        <i className="fa-solid fa-file-lines text-primary" />
-                      </div>
-                      <div>
-                        <div className="flex items-center gap-2">
-                          <h3 className="text-lg font-bold text-on-surface group-hover:text-primary transition-colors">
-                            {form.name}
-                          </h3>
-                          {form.is_default && (
-                            <span className="text-[10px] font-bold uppercase tracking-widest px-2 py-0.5 rounded-full bg-primary/10 text-primary border border-primary/20">
-                              Default
-                            </span>
-                          )}
-                          {!form.is_active && (
-                            <span className="text-[10px] font-bold uppercase tracking-widest px-2 py-0.5 rounded-full bg-surface-container-high text-on-surface-variant/60 border border-outline-variant/15">
-                              Inactive
-                            </span>
-                          )}
-                        </div>
-                        {form.description && (
-                          <p className="text-xs text-on-surface-variant/60 mt-0.5">{form.description}</p>
-                        )}
-                        <p className="text-xs text-on-surface-variant/40 font-mono mt-1">/{form.slug}</p>
-                      </div>
+                <div className="p-4 sm:p-6">
+                  {/* Title row */}
+                  <div className="flex items-start gap-3 sm:gap-4">
+                    <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-primary/10 flex items-center justify-center shrink-0">
+                      <i className="fa-solid fa-file-lines text-primary text-sm sm:text-base" />
                     </div>
-
-                    <div className="flex items-center gap-2 shrink-0">
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <h3 className="text-base sm:text-lg font-bold text-on-surface group-hover:text-primary transition-colors truncate">
+                          {form.name}
+                        </h3>
+                        {form.is_default && (
+                          <span className="text-[10px] font-bold uppercase tracking-widest px-2 py-0.5 rounded-full bg-primary/10 text-primary border border-primary/20 shrink-0">
+                            Default
+                          </span>
+                        )}
+                        {!form.is_active && (
+                          <span className="text-[10px] font-bold uppercase tracking-widest px-2 py-0.5 rounded-full bg-surface-container-high text-on-surface-variant/60 border border-outline-variant/15 shrink-0">
+                            Inactive
+                          </span>
+                        )}
+                      </div>
+                      {form.description && (
+                        <p className="text-xs text-on-surface-variant/60 mt-0.5 truncate">{form.description}</p>
+                      )}
+                      <p className="text-xs text-on-surface-variant/40 font-mono mt-1">/{form.slug}</p>
+                    </div>
+                    {/* Actions — icon-only on mobile, full on desktop */}
+                    <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
                       <FormSettingsPanel
                         formId={form.id}
                         formName={form.name}
@@ -189,34 +190,34 @@ export default async function FormsListPage() {
                         href={formUrl}
                         target="_blank"
                         rel="noreferrer"
-                        className="px-3 py-2 text-xs font-bold text-on-surface-variant/60 border border-outline-variant/15 rounded-lg hover:border-primary/30 hover:text-primary transition-all"
+                        className="w-8 h-8 sm:w-auto sm:h-auto sm:px-3 sm:py-2 flex items-center justify-center text-xs font-bold text-on-surface-variant/60 border border-outline-variant/15 rounded-lg hover:border-primary/30 hover:text-primary transition-all"
                         title="Preview form"
                       >
                         <i className="fa-solid fa-arrow-up-right-from-square text-[10px]" />
                       </a>
                       <Link
                         href={`/dashboard/form/${form.id}`}
-                        className="px-4 py-2 text-xs font-bold text-primary border border-primary/20 rounded-lg hover:bg-primary/5 transition-all"
+                        className="px-3 sm:px-4 py-1.5 sm:py-2 text-xs font-bold text-primary border border-primary/20 rounded-lg hover:bg-primary/5 transition-all whitespace-nowrap"
                       >
                         Edit
                       </Link>
                     </div>
                   </div>
 
-                  <div className="flex items-center gap-6 mt-4 pt-4 border-t border-outline-variant/[0.06]">
-                    <div className="flex items-center gap-2">
+                  {/* Stats */}
+                  <div className="flex items-center gap-4 sm:gap-6 mt-3 sm:mt-4 pt-3 sm:pt-4 border-t border-outline-variant/[0.06]">
+                    <div className="flex items-center gap-1.5">
                       <i className="fa-solid fa-layer-group text-[10px] text-on-surface-variant/40" />
                       <span className="text-xs text-on-surface-variant">
                         {stepCount} step{stepCount !== 1 ? "s" : ""}
                       </span>
                     </div>
-                    <div className="flex items-center gap-2">
-                      <i className="fa-solid fa-input-text text-[10px] text-on-surface-variant/40" />
+                    <div className="flex items-center gap-1.5 hidden xs:flex">
                       <span className="text-xs text-on-surface-variant">
                         {fieldCount} field{fieldCount !== 1 ? "s" : ""}
                       </span>
                     </div>
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-1.5">
                       <i className="fa-solid fa-inbox text-[10px] text-on-surface-variant/40" />
                       <span className="text-xs text-on-surface-variant">
                         {subCount} submission{subCount !== 1 ? "s" : ""}

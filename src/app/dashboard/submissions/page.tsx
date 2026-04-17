@@ -65,7 +65,7 @@ export default async function MyCustomersPage() {
   const isSuperadmin = session.role === "superadmin";
 
   return (
-    <div className="max-w-5xl mx-auto px-6 md:px-10 py-8 space-y-8">
+    <div className="max-w-5xl mx-auto px-4 sm:px-6 md:px-10 py-8 space-y-8">
       <header>
         <h1 className="text-3xl font-extrabold font-headline tracking-tight text-on-surface">My Customers</h1>
         <p className="text-on-surface-variant mt-1">

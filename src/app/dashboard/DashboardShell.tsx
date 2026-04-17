@@ -125,8 +125,14 @@ export default function DashboardShell({
       >
         {/* Logo + collapse toggle */}
         <div className={`flex items-center ${collapsed ? "justify-center px-2" : "justify-between px-5"} py-4 mb-1`}>
-            <Link href="/dashboard" className="flex items-center shrink-0">
-              <LinqMeLogo variant="light" className="h-6 w-auto text-primary shrink-0" />
+            <Link href="/dashboard" className="flex items-center shrink-0" title="Dashboard">
+              {collapsed ? (
+                <div className="w-8 h-8 rounded-lg bg-primary/15 flex items-center justify-center">
+                  <span className="text-sm font-black text-primary tracking-tight">lq</span>
+                </div>
+              ) : (
+                <LinqMeLogo variant="light" className="h-6 w-auto text-primary shrink-0" />
+              )}
             </Link>
             {!collapsed && (
               <span className="text-[10px] text-primary/60 uppercase tracking-widest font-semibold">
@@ -319,41 +325,47 @@ export default function DashboardShell({
       )}
 
       {/* ── Mobile bottom tab bar ── */}
-      <nav className="fixed bottom-0 left-0 right-0 z-40 md:hidden bg-background/90 backdrop-blur-xl border-t border-on-surface/[0.06] safe-area-bottom">
+      <nav className="fixed bottom-0 left-0 right-0 z-40 md:hidden bg-background/90 backdrop-blur-xl border-t border-on-surface/[0.06]" style={{ paddingBottom: "env(safe-area-inset-bottom, 0px)" }}>
         <div className="flex items-stretch justify-around h-14">
           {(workspaceItems.slice(0, 4)).map((item) => {
             const isActive = item.href === "/dashboard"
               ? pathname === "/dashboard"
               : pathname.startsWith(item.href);
+            // Short labels for mobile tab bar
+            const shortLabel = item.label
+              .replace("Form Builder", "Forms")
+              .replace("My Customers", "Customers")
+              .replace("Submissions", "Inbox")
+              .replace("Dashboard", "Home");
             return (
               <Link key={item.href} href={item.href}
-                className={`flex flex-col items-center justify-center flex-1 gap-0.5 text-[10px] font-semibold transition-colors ${
+                className={`flex flex-col items-center justify-center flex-1 gap-0.5 transition-colors ${
                   isActive ? "text-primary" : "text-on-surface-variant/50"
                 }`}>
-                <i className={`fa-solid ${item.icon} text-base`} />
-                <span className="truncate max-w-[64px]">{item.label}</span>
+                <i className={`fa-solid ${item.icon} text-lg`} />
+                <span className="text-[9px] font-semibold leading-none truncate max-w-[56px]">{shortLabel}</span>
               </Link>
             );
           })}
           {/* More / hamburger for full sidebar */}
           <button
             onClick={() => setMobileDrawerOpen(true)}
-            className="flex flex-col items-center justify-center flex-1 gap-0.5 text-[10px] font-semibold text-on-surface-variant/50 transition-colors"
+            className="flex flex-col items-center justify-center flex-1 gap-0.5 text-on-surface-variant/50 transition-colors"
           >
-            <i className="fa-solid fa-bars text-base" />
-            <span>More</span>
+            <i className="fa-solid fa-bars text-lg" />
+            <span className="text-[9px] font-semibold leading-none">More</span>
           </button>
         </div>
       </nav>
 
       {/* Main */}
-      <main className={`flex-1 ${mainMargin} min-h-screen pb-16 md:pb-0 transition-all duration-300`}>
+      <main className={`flex-1 ${mainMargin} min-h-screen pb-20 md:pb-0 transition-all duration-300 overflow-x-hidden`}>
         {/* Top bar with announcements + notification */}
-        <div className="sticky top-0 z-30 flex items-stretch bg-surface/80 backdrop-blur-md border-b border-on-surface/[0.04]">
+        <div className="sticky top-0 z-30 flex items-stretch bg-surface/80 backdrop-blur-md border-b border-on-surface/[0.04] min-h-[44px]">
           {/* Mobile hamburger in top bar */}
           <button
             onClick={() => setMobileDrawerOpen(true)}
-            className="md:hidden shrink-0 px-4 flex items-center text-on-surface-variant/60 hover:text-primary transition-colors"
+            className="md:hidden shrink-0 px-3 flex items-center text-on-surface-variant/60 hover:text-primary transition-colors"
           >
             <i className="fa-solid fa-bars text-lg" />
           </button>
@@ -362,7 +374,7 @@ export default function DashboardShell({
               <AnnouncementBanner announcements={announcements} />
             )}
           </div>
-          <div className="shrink-0 px-5 flex items-center">
+          <div className="shrink-0 px-3 md:px-5 flex items-center">
             <NotificationBell />
           </div>
         </div>

@@ -28,7 +28,7 @@ function SkeletonPartnerCard() {
 
 export default function PartnersLoading() {
   return (
-    <div className="max-w-5xl mx-auto px-6 md:px-10 py-8 space-y-8">
+    <div className="max-w-5xl mx-auto px-4 sm:px-6 md:px-10 py-8 space-y-8">
       {/* Header */}
       <header>
         <div className="flex items-center justify-between">

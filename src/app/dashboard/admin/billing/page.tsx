@@ -138,7 +138,7 @@ export default async function AdminBillingPage() {
   };
 
   return (
-    <div className="max-w-5xl mx-auto px-6 md:px-10 py-8 space-y-8">
+    <div className="max-w-5xl mx-auto px-4 sm:px-6 md:px-10 py-8 space-y-8">
       <header>
         <Link href="/dashboard/admin" className="text-xs text-on-surface-variant/60 hover:text-primary transition-colors">
           <i className="fa-solid fa-arrow-left text-[10px] mr-1" /> Platform

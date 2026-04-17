@@ -73,7 +73,7 @@ export default async function FormEntriesPage({ params }: PageProps) {
   const primaryColor = partner?.primary_color || "#c0c1ff";
 
   return (
-    <div className="max-w-6xl mx-auto px-6 md:px-10 py-8 space-y-6">
+    <div className="max-w-6xl mx-auto px-4 sm:px-6 md:px-10 py-8 space-y-6">
       <header className="flex items-center gap-4 flex-wrap">
         <Link
           href={`/dashboard/form/${formId}`}

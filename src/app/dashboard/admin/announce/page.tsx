@@ -14,7 +14,7 @@ export default async function AnnouncePage() {
     .order("created_at", { ascending: false });
 
   return (
-    <div className="max-w-3xl mx-auto px-6 md:px-10 py-8 space-y-8">
+    <div className="max-w-3xl mx-auto px-4 sm:px-6 md:px-10 py-8 space-y-8">
       <header>
         <h1 className="text-3xl font-extrabold font-headline tracking-tight text-on-surface">
           <i className="fa-solid fa-bullhorn text-primary mr-3" />
