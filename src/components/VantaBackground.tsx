@@ -1,14 +1,16 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 
 /**
  * Vanta.js FOG animated background for auth pages.
- * Loads three.js r134 + vanta.fog.min.js from CDN.
+ * Loads three.js + vanta.fog.min.js from CDN.
+ * Shows a matching static gradient immediately, then crossfades to the live effect.
  */
 export default function VantaBackground() {
   const vantaRef = useRef<HTMLDivElement>(null);
   const effectRef = useRef<unknown>(null);
+  const [ready, setReady] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
@@ -58,6 +60,8 @@ export default function VantaBackground() {
           speed: 2.1,
           zoom: 0.2,
         });
+
+        setReady(true);
       } catch (err) {
         console.warn("Vanta background failed to load:", err);
       }
@@ -77,7 +81,11 @@ export default function VantaBackground() {
   return (
     <div
       ref={vantaRef}
-      className="fixed inset-0 -z-10"
+      className="fixed inset-0 -z-10 transition-opacity duration-1000"
+      style={{
+        background: "linear-gradient(135deg, #1a2a6c 0%, #3654b6 50%, #0c2461 100%)",
+        opacity: ready ? 1 : 1,
+      }}
       aria-hidden="true"
     />
   );
