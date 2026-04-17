@@ -1088,7 +1088,7 @@ function FieldSettingsPanel({ field, onUpdate, onClose, allFields }: {
             <div>
               <span className="text-[11px] font-medium text-on-surface-variant mb-1 block">Categories</span>
               <div className="space-y-1.5">
-                {field.assetCollectionConfig.categories.map((cat, i) => (
+                {field.assetCollectionConfig.categories?.map((cat, i) => (
                   <div key={i} className="flex items-center gap-2">
                     <input value={cat} onChange={e => { const cats = [...field.assetCollectionConfig!.categories]; cats[i] = e.target.value; onUpdate({ assetCollectionConfig: { ...field.assetCollectionConfig!, categories: cats } }); }} className={INPUT_CLS} />
                     <button onClick={() => { const cats = field.assetCollectionConfig!.categories.filter((_, j) => j !== i); onUpdate({ assetCollectionConfig: { ...field.assetCollectionConfig!, categories: cats } }); }} className="p-1 text-on-surface-variant/40 hover:text-error text-xs transition-colors shrink-0"><i className="fa-solid fa-xmark" /></button>
@@ -1119,7 +1119,7 @@ function FieldSettingsPanel({ field, onUpdate, onClose, allFields }: {
             <div>
               <span className="text-[11px] font-medium text-on-surface-variant mb-1 block">Starter Pages</span>
               <div className="space-y-1.5">
-                {field.siteStructureConfig.starterPages.map((page, i) => (
+                {field.siteStructureConfig.starterPages?.map((page, i) => (
                   <div key={page.id} className="flex items-center gap-2">
                     <input value={page.name} onChange={e => { const pages = [...field.siteStructureConfig!.starterPages]; pages[i] = { ...pages[i], name: e.target.value }; onUpdate({ siteStructureConfig: { ...field.siteStructureConfig!, starterPages: pages } }); }} className={INPUT_CLS} placeholder="Page name" />
                     <button onClick={() => { const pages = field.siteStructureConfig!.starterPages.filter((_, j) => j !== i); onUpdate({ siteStructureConfig: { ...field.siteStructureConfig!, starterPages: pages } }); }} className="p-1 text-on-surface-variant/40 hover:text-error text-xs transition-colors shrink-0"><i className="fa-solid fa-xmark" /></button>
@@ -1158,7 +1158,7 @@ function FieldSettingsPanel({ field, onUpdate, onClose, allFields }: {
             <div>
               <span className="text-[11px] font-medium text-on-surface-variant mb-1 block">Features</span>
               <div className="space-y-2">
-                {field.featureSelectorConfig.features.map((feat, i) => (
+                {field.featureSelectorConfig.features?.map((feat, i) => (
                   <div key={feat.id} className="p-2.5 bg-surface-container rounded-lg space-y-1.5">
                     <div className="flex items-center gap-2">
                       <input value={feat.name} onChange={e => { const features = [...field.featureSelectorConfig!.features]; features[i] = { ...features[i], name: e.target.value }; onUpdate({ featureSelectorConfig: { ...field.featureSelectorConfig!, features } }); }} className={INPUT_CLS} placeholder="Feature name" />
@@ -1200,7 +1200,7 @@ function FieldSettingsPanel({ field, onUpdate, onClose, allFields }: {
             <div>
               <span className="text-[11px] font-medium text-on-surface-variant mb-1 block">Goals</span>
               <div className="space-y-2">
-                {field.goalBuilderConfig.goals.map((goal, gi) => (
+                {field.goalBuilderConfig.goals?.map((goal, gi) => (
                   <div key={goal.id} className="p-2.5 bg-surface-container rounded-lg space-y-1.5">
                     <div className="flex items-center gap-2">
                       <input value={goal.icon} onChange={e => { const goals = [...field.goalBuilderConfig!.goals]; goals[gi] = { ...goals[gi], icon: e.target.value }; onUpdate({ goalBuilderConfig: { ...field.goalBuilderConfig!, goals } }); }} className={INPUT_CLS} placeholder="Icon (fa-...)" style={{ maxWidth: 100 }} />
@@ -1209,7 +1209,7 @@ function FieldSettingsPanel({ field, onUpdate, onClose, allFields }: {
                     </div>
                     <div className="pl-3 border-l border-outline-variant/20 space-y-1.5 mt-1">
                       <span className="text-[10px] font-medium text-on-surface-variant/60 uppercase tracking-wider">Refinements</span>
-                      {goal.refinements.map((ref, ri) => (
+                      {goal.refinements?.map((ref, ri) => (
                         <div key={ref.id} className="flex items-start gap-2">
                           <div className="flex-1 space-y-1">
                             <input value={ref.label} onChange={e => { const goals = [...field.goalBuilderConfig!.goals]; const refs = [...goals[gi].refinements]; refs[ri] = { ...refs[ri], label: e.target.value }; goals[gi] = { ...goals[gi], refinements: refs }; onUpdate({ goalBuilderConfig: { ...field.goalBuilderConfig!, goals } }); }} className={INPUT_CLS} placeholder="Refinement label" />
