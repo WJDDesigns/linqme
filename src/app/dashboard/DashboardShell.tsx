@@ -116,7 +116,7 @@ export default function DashboardShell({
         {/* Logo + collapse toggle */}
         <div className={`flex items-center ${collapsed ? "justify-center px-2" : "px-6"} py-6 mb-2`}>
           <Link href="/dashboard" className={`flex items-center ${collapsed ? "justify-center" : "gap-3"}`}>
-            <LinqMeLogo className="h-10 w-auto text-primary shrink-0" />
+            <LinqMeLogo variant="light" className="h-10 w-auto text-primary shrink-0" />
             {!collapsed && (
               <div className="min-w-0">
                 <h2 className="text-lg font-bold text-on-surface font-headline tracking-tight truncate">

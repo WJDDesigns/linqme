@@ -13,8 +13,7 @@ export default async function LandingPage() {
       {/* Top Nav */}
       <nav className="fixed top-0 w-full z-50 flex justify-between items-center px-6 md:px-8 py-4 bg-background/70 backdrop-blur-2xl border-b border-on-surface/[0.04]">
         <Link href="/" className="flex items-center gap-2.5">
-          <LinqMeLogo className="h-7 w-auto text-primary" />
-          <span className="text-lg font-bold font-headline text-on-surface tracking-tight">linqme</span>
+          <LinqMeLogo variant="light" className="h-7 w-auto text-primary" />
         </Link>
         <div className="hidden md:flex items-center gap-8">
           <a className="text-sm text-on-surface-variant hover:text-on-surface transition-colors duration-300" href="#features">Features</a>
@@ -573,8 +572,7 @@ export default async function LandingPage() {
       <footer className="w-full py-12 px-8 border-t border-on-surface/[0.06]">
         <div className="max-w-6xl mx-auto flex flex-col md:flex-row items-center justify-between gap-6">
           <Link href="/" className="flex items-center gap-2.5">
-            <LinqMeLogo className="h-5 w-auto text-primary" />
-            <span className="text-sm font-bold text-on-surface font-headline">linqme</span>
+            <LinqMeLogo variant="light" className="h-5 w-auto text-primary" />
           </Link>
           <div className="flex flex-wrap justify-center gap-8 text-xs text-on-surface-variant/40 uppercase tracking-widest font-label">
             <Link className="hover:text-primary transition-colors duration-300" href="/privacy">Privacy Policy</Link>
