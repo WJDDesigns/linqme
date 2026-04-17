@@ -287,6 +287,8 @@ export default function FormEditor({ initialSchema, onOpenTemplates, formId, has
   const dragPayload = useRef<DragPayload | null>(null);
   const [dropTarget, setDropTarget] = useState<{ stepId: string; index: number } | null>(null);
   const [stepDropTarget, setStepDropTarget] = useState<number | null>(null);
+  const [isDragging, setIsDragging] = useState(false);
+  const autoExpandTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   /* ── Undo / Redo history ───────────────────────────────── */
   const MAX_HISTORY = 50;
@@ -463,9 +465,11 @@ export default function FormEditor({ initialSchema, onOpenTemplates, formId, has
   /* ── Drag handlers ─────────────────────────────────────── */
   function startDragPalette(type: FieldType, label: string) {
     dragPayload.current = { kind: "palette", fieldType: type, label };
+    setIsDragging(true);
   }
   function startDragField(stepId: string, fieldId: string) {
     dragPayload.current = { kind: "field", sourceStepId: stepId, fieldId };
+    setIsDragging(true);
   }
   function handleDragOverField(e: React.DragEvent, stepId: string, index: number) {
     e.preventDefault();
@@ -480,12 +484,45 @@ export default function FormEditor({ initialSchema, onOpenTemplates, formId, has
   }
   function startDragStep(stepId: string) {
     dragPayload.current = { kind: "step", stepId };
+    setIsDragging(true);
   }
   function handleDragOverStepSlot(e: React.DragEvent, index: number) {
-    if (dragPayload.current?.kind !== "step") return;
+    const kind = dragPayload.current?.kind;
+    if (!kind) return;
     e.preventDefault();
     e.dataTransfer.dropEffect = "move";
-    setStepDropTarget(index);
+    if (kind === "step") {
+      setStepDropTarget(index);
+    } else {
+      // Palette or field drag over step header — auto-expand + set field drop target
+      const step = schema.steps[index];
+      if (step) {
+        // Auto-expand after 400ms hover
+        if (!expandedSteps.has(step.id)) {
+          if (autoExpandTimer.current) clearTimeout(autoExpandTimer.current);
+          autoExpandTimer.current = setTimeout(() => {
+            setExpandedSteps((prev) => new Set(prev).add(step.id));
+          }, 400);
+        }
+        setDropTarget({ stepId: step.id, index: step.fields.length });
+      }
+    }
+  }
+  function handleDragOverStepHeader(e: React.DragEvent, stepId: string) {
+    const kind = dragPayload.current?.kind;
+    if (!kind || kind === "step") return;
+    e.preventDefault();
+    e.dataTransfer.dropEffect = "move";
+    const step = schema.steps.find((s) => s.id === stepId);
+    if (!step) return;
+    // Auto-expand collapsed step on hover
+    if (!expandedSteps.has(stepId)) {
+      if (autoExpandTimer.current) clearTimeout(autoExpandTimer.current);
+      autoExpandTimer.current = setTimeout(() => {
+        setExpandedSteps((prev) => new Set(prev).add(stepId));
+      }, 400);
+    }
+    setDropTarget({ stepId, index: step.fields.length });
   }
   function handleDropStep(e: React.DragEvent, index: number) {
     e.preventDefault();
@@ -502,11 +539,15 @@ export default function FormEditor({ initialSchema, onOpenTemplates, formId, has
     });
     dragPayload.current = null;
     setStepDropTarget(null);
+    setIsDragging(false);
+    if (autoExpandTimer.current) { clearTimeout(autoExpandTimer.current); autoExpandTimer.current = null; }
   }
   function handleDragEnd() {
     dragPayload.current = null;
     setDropTarget(null);
     setStepDropTarget(null);
+    setIsDragging(false);
+    if (autoExpandTimer.current) { clearTimeout(autoExpandTimer.current); autoExpandTimer.current = null; }
   }
   function handleDrop(e: React.DragEvent, stepId: string, index: number) {
     e.preventDefault();
@@ -553,6 +594,8 @@ export default function FormEditor({ initialSchema, onOpenTemplates, formId, has
 
     dragPayload.current = null;
     setDropTarget(null);
+    setIsDragging(false);
+    if (autoExpandTimer.current) { clearTimeout(autoExpandTimer.current); autoExpandTimer.current = null; }
   }
 
   /* ── Export / Import ────────────────────────────────────── */
@@ -722,20 +765,36 @@ export default function FormEditor({ initialSchema, onOpenTemplates, formId, has
                 const isStepDropBefore = stepDropTarget === si;
                 return (
                   <div key={step.id} className="relative flex flex-col items-center">
-                    {/* Step drop indicator */}
+                    {/* Step drop indicator — full step ghost */}
                     {isStepDropBefore && (
-                      <div className="w-full h-1 bg-primary rounded-full mb-2" />
+                      <div className="w-full mb-2 px-4 py-3 rounded-2xl border-2 border-dashed border-primary/50 bg-primary/5 flex items-center justify-center">
+                        <span className="text-xs font-bold text-primary/70 uppercase tracking-widest">
+                          <i className="fa-solid fa-arrows-up-down text-[10px] mr-1.5" />
+                          Move step here
+                        </span>
+                      </div>
                     )}
                     <div
                       draggable
                       onDragStart={(e) => { e.dataTransfer.effectAllowed = "move"; startDragStep(step.id); }}
-                      onDragOver={(e) => handleDragOverStepSlot(e, si)}
-                      onDrop={(e) => handleDropStep(e, si)}
+                      onDragOver={(e) => {
+                        handleDragOverStepSlot(e, si);
+                        handleDragOverStepHeader(e, step.id);
+                      }}
+                      onDrop={(e) => {
+                        if (dragPayload.current?.kind === "step") {
+                          handleDropStep(e, si);
+                        } else {
+                          handleDrop(e, step.id, step.fields.length);
+                        }
+                      }}
                       onDragEnd={handleDragEnd}
                       className={`w-full bg-surface-container border rounded-2xl shadow-lg shadow-black/10 overflow-hidden transition-all ${
                         isStepSelected
                           ? "border-primary/40 ring-1 ring-primary/20"
-                          : "border-outline-variant/15"
+                          : isDragging && dragPayload.current?.kind !== "step" && dropTarget?.stepId === step.id
+                            ? "border-primary/40 ring-2 ring-primary/20 shadow-primary/10"
+                            : "border-outline-variant/15"
                       }`}
                     >
                       {/* Step header */}
@@ -773,20 +832,39 @@ export default function FormEditor({ initialSchema, onOpenTemplates, formId, has
                           onDragOver={(e) => handleDragOverStep(e, step.id)}
                           onDrop={(e) => handleDrop(e, step.id, step.fields.length)}
                         >
-                          {step.fields.length === 0 && !dropTarget && (
-                            <div className="text-center py-8 text-sm text-on-surface-variant border-2 border-dashed border-outline-variant/20 rounded-xl">
-                              Drag a field here or click one from the panel
+                          {step.fields.length === 0 && (
+                            <div className={`text-center py-8 text-sm rounded-xl transition-all ${
+                              dropTarget?.stepId === step.id
+                                ? "border-2 border-dashed border-primary/50 bg-primary/5 text-primary/70"
+                                : isDragging && dragPayload.current?.kind !== "step"
+                                  ? "border-2 border-dashed border-primary/30 bg-primary/[0.03] text-on-surface-variant/50"
+                                  : "border-2 border-dashed border-outline-variant/20 text-on-surface-variant"
+                            }`}>
+                              {isDragging && dragPayload.current?.kind !== "step" ? (
+                                <><i className="fa-solid fa-plus text-[10px] mr-1.5" />Drop field here</>
+                              ) : (
+                                "Drag a field here or click one from the panel"
+                              )}
                             </div>
                           )}
 
                           {step.fields.map((field, fi) => {
                             const isSelected = selectedStepId === step.id && selectedFieldId === field.id;
                             const isDropBefore = dropTarget?.stepId === step.id && dropTarget?.index === fi;
+                            // Get info about the dragged field for the ghost
+                            const dragInfo = dragPayload.current;
+                            const ghostLabel = dragInfo?.kind === "palette" ? dragInfo.label : dragInfo?.kind === "field" ? schema.steps.flatMap((s) => s.fields).find((f) => f.id === dragInfo.fieldId)?.label ?? "Field" : "Field";
+                            const ghostIcon = dragInfo?.kind === "palette" ? iconFor(dragInfo.fieldType) : dragInfo?.kind === "field" ? iconFor(schema.steps.flatMap((s) => s.fields).find((f) => f.id === dragInfo.fieldId)?.type ?? "text") : "fa-question";
 
                             return (
                               <div key={field.id}>
                                 {isDropBefore && (
-                                  <div className="h-0.5 bg-primary rounded-full mx-2 my-1" />
+                                  <div className="flex items-center gap-3 px-3 sm:px-4 py-3 rounded-xl border-2 border-dashed border-primary/50 bg-primary/5 my-1 transition-all">
+                                    <div className="w-8 h-8 rounded-lg bg-primary/15 flex items-center justify-center text-sm text-primary/60 shrink-0">
+                                      <FaIcon name={ghostIcon} />
+                                    </div>
+                                    <span className="text-sm font-medium text-primary/60 truncate">{ghostLabel}</span>
+                                  </div>
                                 )}
                                 <div
                                   draggable
@@ -826,9 +904,19 @@ export default function FormEditor({ initialSchema, onOpenTemplates, formId, has
                             );
                           })}
 
-                          {dropTarget?.stepId === step.id && dropTarget?.index === step.fields.length && step.fields.length > 0 && (
-                            <div className="h-0.5 bg-primary rounded-full mx-2 my-1" />
-                          )}
+                          {dropTarget?.stepId === step.id && dropTarget?.index === step.fields.length && step.fields.length > 0 && (() => {
+                            const dragInfo = dragPayload.current;
+                            const ghostLabel = dragInfo?.kind === "palette" ? dragInfo.label : dragInfo?.kind === "field" ? schema.steps.flatMap((s) => s.fields).find((f) => f.id === dragInfo.fieldId)?.label ?? "Field" : "Field";
+                            const ghostIcon = dragInfo?.kind === "palette" ? iconFor(dragInfo.fieldType) : dragInfo?.kind === "field" ? iconFor(schema.steps.flatMap((s) => s.fields).find((f) => f.id === dragInfo.fieldId)?.type ?? "text") : "fa-question";
+                            return (
+                              <div className="flex items-center gap-3 px-3 sm:px-4 py-3 rounded-xl border-2 border-dashed border-primary/50 bg-primary/5 my-1 transition-all">
+                                <div className="w-8 h-8 rounded-lg bg-primary/15 flex items-center justify-center text-sm text-primary/60 shrink-0">
+                                  <FaIcon name={ghostIcon} />
+                                </div>
+                                <span className="text-sm font-medium text-primary/60 truncate">{ghostLabel}</span>
+                              </div>
+                            );
+                          })()}
                         </div>
                       )}
                     </div>
@@ -842,7 +930,12 @@ export default function FormEditor({ initialSchema, onOpenTemplates, formId, has
 
               {/* Drop zone after last step */}
               {stepDropTarget === schema.steps.length && (
-                <div className="w-full h-1 bg-primary rounded-full" />
+                <div className="w-full px-4 py-3 rounded-2xl border-2 border-dashed border-primary/50 bg-primary/5 flex items-center justify-center">
+                  <span className="text-xs font-bold text-primary/70 uppercase tracking-widest">
+                    <i className="fa-solid fa-arrows-up-down text-[10px] mr-1.5" />
+                    Move step here
+                  </span>
+                </div>
               )}
               <div
                 onDragOver={(e) => handleDragOverStepSlot(e, schema.steps.length)}
