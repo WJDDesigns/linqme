@@ -30,7 +30,7 @@ export default function VantaBackground() {
     (async () => {
       try {
         await loadScript(
-          "https://cdnjs.cloudflare.com/ajax/libs/three.js/r134/three.min.js"
+          "https://cdn.jsdelivr.net/npm/three@0.134.0/build/three.min.js"
         );
         await loadScript(
           "https://cdn.jsdelivr.net/npm/vanta@latest/dist/vanta.fog.min.js"
