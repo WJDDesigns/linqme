@@ -118,18 +118,16 @@ export default function DashboardShell({
         style={topStyle}
       >
         {/* Logo + collapse toggle */}
-        <div className={`flex items-center ${collapsed ? "justify-center px-2" : "px-5"} py-4 mb-1`}>
-          <Link href="/dashboard" className={`flex items-center ${collapsed ? "justify-center" : "gap-3"}`}>
-            <LinqMeLogo variant="light" className="h-6 w-auto text-primary shrink-0" />
+        <div className={`flex items-center ${collapsed ? "justify-center px-2" : "justify-between px-5"} py-4 mb-1`}>
+            <Link href="/dashboard" className="flex items-center shrink-0">
+              <LinqMeLogo variant="light" className="h-6 w-auto text-primary shrink-0" />
+            </Link>
             {!collapsed && (
-              <div className="min-w-0">
-                                <p className="text-[10px] text-primary/60 uppercase tracking-widest font-semibold">
-                  {sidebarLabel}
-                </p>
-              </div>
+              <span className="text-[10px] text-primary/60 uppercase tracking-widest font-semibold">
+                {sidebarLabel}
+              </span>
             )}
-          </Link>
-        </div>
+          </div>
 
         {/* Nav */}
         <SidebarNav
@@ -233,13 +231,13 @@ export default function DashboardShell({
       {/* Main */}
       <main className={`flex-1 ${mainMargin} min-h-screen transition-all duration-300`}>
         {/* Top bar with announcements + notification */}
-        <div className="sticky top-0 z-30 flex items-center bg-surface/80 backdrop-blur-md border-b border-on-surface/[0.04]">
+        <div className="sticky top-0 z-30 flex items-stretch bg-surface/80 backdrop-blur-md border-b border-on-surface/[0.04]">
           <div className="flex-1 min-w-0 overflow-hidden">
             {announcements.length > 0 && (
               <AnnouncementBanner announcements={announcements} />
             )}
           </div>
-          <div className="shrink-0 px-5 py-3">
+          <div className="shrink-0 px-5 flex items-center">
             <NotificationBell />
           </div>
         </div>

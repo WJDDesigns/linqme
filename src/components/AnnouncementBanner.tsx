@@ -61,13 +61,13 @@ export default function AnnouncementBanner({ announcements }: Props) {
   }
 
   return (
-    <div className="space-y-0">
+    <div className="h-full flex flex-col">
       {visible.map((a) => {
         const style = TYPE_STYLES[a.type] ?? TYPE_STYLES.info;
         return (
           <div
             key={a.id}
-            className={`flex items-center gap-3 px-5 py-2 ${style.bg} ${style.border} ${style.text} animate-in fade-in slide-in-from-top-2 duration-300`}
+            className={`flex items-center gap-3 px-5 flex-1 ${style.bg} ${style.border} ${style.text} animate-in fade-in slide-in-from-top-2 duration-300`}
           >
             <i className={`fa-solid ${a.icon} text-sm shrink-0`} />
             <div className="flex-1 min-w-0 flex items-center gap-2">
