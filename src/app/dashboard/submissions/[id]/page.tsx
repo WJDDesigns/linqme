@@ -173,10 +173,134 @@ export default async function SubmissionDetailPage({ params }: Props) {
                       );
                     }
                     const v = data[f.id];
+
+                    /* ── Competitor Analyzer — rich rendering ── */
+                    if (f.type === "competitor_analyzer") {
+                      let competitors: { url: string; notes?: string; analysis?: {
+                        title?: string | null; description?: string | null;
+                        techStack?: string[]; socialLinks?: string[];
+                        features?: Record<string, boolean>;
+                        aiSnapshot?: string | null; navLinks?: string[];
+                      }}[] = [];
+                      try {
+                        const raw = typeof v === "string" && v ? JSON.parse(v) : v;
+                        competitors = Array.isArray(raw) ? raw : [];
+                      } catch { /* empty */ }
+
+                      if (competitors.length === 0) {
+                        return (
+                          <div key={f.id} className="grid grid-cols-3 gap-4">
+                            <dt className="text-xs text-on-surface-variant/60">{f.label}</dt>
+                            <dd className="col-span-2 text-sm text-on-surface-variant/40">&mdash;</dd>
+                          </div>
+                        );
+                      }
+
+                      const featureLabels: Record<string, string> = {
+                        contactForm: "Contact Form", callToAction: "CTA", liveChat: "Live Chat",
+                        blog: "Blog", testimonials: "Testimonials", video: "Video", mobileResponsive: "Mobile Ready",
+                      };
+
+                      return (
+                        <div key={f.id}>
+                          <dt className="text-xs text-on-surface-variant/60 mb-3">{f.label}</dt>
+                          <dd className="space-y-4">
+                            {competitors.map((comp, ci) => (
+                              <div key={ci} className="rounded-xl border border-outline-variant/15 bg-surface-container-low/50 overflow-hidden">
+                                {/* Competitor header */}
+                                <div className="px-5 py-3 border-b border-outline-variant/10 flex items-center gap-3">
+                                  <div className="w-7 h-7 rounded-lg flex items-center justify-center text-[10px] font-bold text-on-surface-variant/60 bg-surface-container">
+                                    {ci + 1}
+                                  </div>
+                                  <div className="min-w-0 flex-1">
+                                    <p className="text-sm font-semibold text-on-surface truncate">
+                                      {comp.analysis?.title || comp.url}
+                                    </p>
+                                    <a href={comp.url} target="_blank" rel="noreferrer"
+                                      className="text-xs text-primary hover:underline truncate block">
+                                      {comp.url} <i className="fa-solid fa-arrow-up-right-from-square text-[8px] ml-0.5" />
+                                    </a>
+                                  </div>
+                                </div>
+
+                                <div className="px-5 py-4 space-y-3">
+                                  {/* Description */}
+                                  {comp.analysis?.description && (
+                                    <p className="text-sm text-on-surface-variant leading-relaxed">{comp.analysis.description}</p>
+                                  )}
+
+                                  {/* Tech stack + social pills */}
+                                  {((comp.analysis?.techStack && comp.analysis.techStack.length > 0) || (comp.analysis?.socialLinks && comp.analysis.socialLinks.length > 0)) && (
+                                    <div className="flex flex-wrap gap-1.5">
+                                      {comp.analysis?.techStack?.map((t, i) => (
+                                        <span key={`t-${i}`} className="text-[10px] px-2 py-0.5 rounded-md font-semibold bg-primary/10 text-primary">{t}</span>
+                                      ))}
+                                      {comp.analysis?.socialLinks?.map((s, i) => (
+                                        <span key={`s-${i}`} className="text-[10px] px-2 py-0.5 rounded-md bg-surface-container text-on-surface-variant">{s}</span>
+                                      ))}
+                                    </div>
+                                  )}
+
+                                  {/* Feature badges */}
+                                  {comp.analysis?.features && Object.values(comp.analysis.features).some(Boolean) && (
+                                    <div className="flex flex-wrap gap-1.5">
+                                      {Object.entries(comp.analysis.features).filter(([, v]) => v).map(([key]) => (
+                                        <span key={key} className="text-[10px] px-2 py-0.5 rounded-md bg-emerald-500/10 text-emerald-400 font-medium flex items-center gap-1">
+                                          <i className="fa-solid fa-check text-[7px]" />
+                                          {featureLabels[key] ?? key}
+                                        </span>
+                                      ))}
+                                    </div>
+                                  )}
+
+                                  {/* AI Snapshot */}
+                                  {comp.analysis?.aiSnapshot && (
+                                    <div className="rounded-lg bg-surface-container/50 p-4 border border-outline-variant/10">
+                                      <div className="flex items-center gap-1.5 mb-2">
+                                        <i className="fa-solid fa-wand-magic-sparkles text-[9px] text-primary" />
+                                        <span className="text-[10px] font-bold uppercase tracking-wider text-primary">AI Analysis</span>
+                                      </div>
+                                      <div className="text-sm text-on-surface leading-relaxed whitespace-pre-line"
+                                        dangerouslySetInnerHTML={{
+                                          __html: comp.analysis.aiSnapshot
+                                            .replace(/\*\*([^*]+)\*\*/g, '<strong class="font-semibold">$1</strong>')
+                                        }}
+                                      />
+                                    </div>
+                                  )}
+
+                                  {/* Nav links (when no AI) */}
+                                  {!comp.analysis?.aiSnapshot && comp.analysis?.navLinks && comp.analysis.navLinks.length > 0 && (
+                                    <div>
+                                      <span className="text-[10px] font-semibold text-on-surface-variant/60 uppercase tracking-wider">Navigation</span>
+                                      <div className="flex flex-wrap gap-1 mt-1">
+                                        {comp.analysis.navLinks.map((l, i) => (
+                                          <span key={i} className="text-[10px] px-2 py-0.5 rounded-md bg-surface-container text-on-surface-variant">{l}</span>
+                                        ))}
+                                      </div>
+                                    </div>
+                                  )}
+
+                                  {/* Client notes */}
+                                  {comp.notes && (
+                                    <div className="pt-2 border-t border-outline-variant/10">
+                                      <span className="text-[10px] font-semibold text-on-surface-variant/60 uppercase tracking-wider">Client Notes</span>
+                                      <p className="text-sm text-on-surface mt-0.5 whitespace-pre-wrap">{comp.notes}</p>
+                                    </div>
+                                  )}
+                                </div>
+                              </div>
+                            ))}
+                          </dd>
+                        </div>
+                      );
+                    }
+
+                    /* ── Default field rendering ── */
                     const display =
                       v === undefined || v === null || v === ""
                         ? "\u2014"
-                        : String(v);
+                        : typeof v === "object" ? JSON.stringify(v) : String(v);
                     return (
                       <div key={f.id} className="grid grid-cols-3 gap-4">
                         <dt className="text-xs text-on-surface-variant/60">{f.label}</dt>

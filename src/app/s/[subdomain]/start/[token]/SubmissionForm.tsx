@@ -1048,7 +1048,10 @@ function CompetitorAnalyzerField({ field, value, error, onChange, primaryColor, 
   const [expandedIdx, setExpandedIdx] = useState<number | null>(null);
   const [analyzing, setAnalyzing] = useState<number | null>(null);
   const [analyzeError, setAnalyzeError] = useState<string | null>(null);
+  const [expandedAnalysis, setExpandedAnalysis] = useState<Set<number>>(new Set());
   const debounceRef = useRef<Record<number, ReturnType<typeof setTimeout>>>({});
+  const valueRef = useRef(value);
+  valueRef.current = value;
 
   const update = (next: CompetitorEntry[]) => onChange(JSON.stringify(next));
   const canAdd = !cfg.maxCompetitors || entries.length < cfg.maxCompetitors;
@@ -1075,14 +1078,14 @@ function CompetitorAnalyzerField({ field, value, error, onChange, primaryColor, 
       });
       if (res.ok) {
         const data = await res.json();
-        // Re-parse current value to get latest entries
+        // Re-parse current value via ref to get latest entries (avoids stale closure)
         let current: CompetitorEntry[] = [];
         try {
-          const raw = typeof value === "string" && value ? JSON.parse(value) : [];
+          const raw = typeof valueRef.current === "string" && valueRef.current ? JSON.parse(valueRef.current) : [];
           current = Array.isArray(raw) ? raw : [];
         } catch { current = []; }
         if (current[idx]) {
-          const next = current.map((e, i) => i === idx ? { ...e, analysis: { title: data.title, description: data.description, headings: data.headings, navLinks: data.navLinks, techStack: data.techStack, socialLinks: data.socialLinks, features: data.features, aiSnapshot: data.aiSnapshot, fetchedAt: data.fetchedAt } } : e);
+          const next = current.map((e, i) => i === idx ? { ...e, url: i === idx ? (e.url || finalUrl) : e.url, analysis: { title: data.title, description: data.description, headings: data.headings, navLinks: data.navLinks, techStack: data.techStack, socialLinks: data.socialLinks, features: data.features, aiSnapshot: data.aiSnapshot, fetchedAt: data.fetchedAt } } : e);
           onChange(JSON.stringify(next));
         }
       } else {
@@ -1093,7 +1096,7 @@ function CompetitorAnalyzerField({ field, value, error, onChange, primaryColor, 
       setAnalyzeError("Could not reach the analysis service. Please try again.");
     }
     setAnalyzing(null);
-  }, [value, onChange]);
+  }, [onChange, partnerId]);
 
   const addEntry = () => {
     if (!canAdd) return;
@@ -1166,80 +1169,109 @@ function CompetitorAnalyzerField({ field, value, error, onChange, primaryColor, 
                 <i className="fa-solid fa-trash-can text-xs" />
               </button>
             </div>
-            {/* Analysis results */}
-            {entry.analysis && (entry.analysis.title || entry.analysis.description || entry.analysis.aiSnapshot) && (
-              <div className="mt-2.5 rounded-lg p-3 border border-outline-variant/30 space-y-2.5" style={{ backgroundColor: primaryColor + "08" }}>
-                {/* Header */}
-                <div className="flex items-center gap-1.5">
-                  <i className="fa-solid fa-chart-line text-[9px]" style={{ color: primaryColor }} />
-                  <span className="text-[10px] font-bold uppercase tracking-wider" style={{ color: primaryColor }}>
-                    {entry.analysis.aiSnapshot ? "AI Competitive Snapshot" : "Site Analysis"}
-                  </span>
+            {/* Analysis results — collapsed by default */}
+            {entry.analysis && (entry.analysis.title || entry.analysis.description || entry.analysis.aiSnapshot) && (() => {
+              const isExpanded = expandedAnalysis.has(idx);
+              const toggleExpand = () => setExpandedAnalysis(prev => {
+                const next = new Set(prev);
+                if (next.has(idx)) next.delete(idx); else next.add(idx);
+                return next;
+              });
+              const hasMore = !!(entry.analysis.aiSnapshot || (entry.analysis.features && Object.values(entry.analysis.features).some(Boolean)));
+
+              return (
+                <div className="mt-2.5 rounded-lg p-3 border border-outline-variant/30" style={{ backgroundColor: primaryColor + "08" }}>
+                  {/* Header */}
+                  <div className="flex items-center justify-between mb-1.5">
+                    <div className="flex items-center gap-1.5">
+                      <i className="fa-solid fa-chart-line text-[9px]" style={{ color: primaryColor }} />
+                      <span className="text-[10px] font-bold uppercase tracking-wider" style={{ color: primaryColor }}>
+                        {entry.analysis.aiSnapshot ? "AI Competitive Snapshot" : "Site Analysis"}
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Always visible: title + description + tech/social pills */}
+                  {entry.analysis.title && <p className="text-xs font-semibold text-on-surface">{entry.analysis.title}</p>}
+                  {entry.analysis.description && <p className="text-[11px] text-on-surface-variant mt-0.5 leading-relaxed line-clamp-2">{entry.analysis.description}</p>}
+
+                  {((entry.analysis.techStack && entry.analysis.techStack.length > 0) || (entry.analysis.socialLinks && entry.analysis.socialLinks.length > 0)) && (
+                    <div className="flex flex-wrap gap-1 mt-2">
+                      {entry.analysis.techStack?.slice(0, 6).map((tech, i) => (
+                        <span key={`t-${i}`} className="text-[9px] px-1.5 py-0.5 rounded-md font-medium" style={{ backgroundColor: primaryColor + "18", color: primaryColor }}>{tech}</span>
+                      ))}
+                      {entry.analysis.socialLinks?.map((s, i) => (
+                        <span key={`s-${i}`} className="text-[9px] px-1.5 py-0.5 rounded-md bg-surface-container-high text-on-surface-variant">{s}</span>
+                      ))}
+                    </div>
+                  )}
+
+                  {/* Expanded content */}
+                  {isExpanded && (
+                    <div className="mt-2.5 space-y-2.5">
+                      {/* Feature badges */}
+                      {entry.analysis.features && (
+                        <div className="flex flex-wrap gap-1">
+                          {Object.entries(entry.analysis.features)
+                            .filter(([, v]) => v)
+                            .map(([key]) => {
+                              const labels: Record<string, string> = {
+                                contactForm: "Contact Form",
+                                callToAction: "CTA",
+                                liveChat: "Live Chat",
+                                blog: "Blog",
+                                testimonials: "Testimonials",
+                                video: "Video",
+                                mobileResponsive: "Mobile Ready",
+                              };
+                              return (
+                                <span key={key} className="text-[9px] px-1.5 py-0.5 rounded-md bg-tertiary/10 text-tertiary font-medium flex items-center gap-0.5">
+                                  <i className="fa-solid fa-check text-[7px]" />
+                                  {labels[key] ?? key}
+                                </span>
+                              );
+                            })}
+                        </div>
+                      )}
+
+                      {/* AI Snapshot */}
+                      {entry.analysis.aiSnapshot && (
+                        <div className="pt-2 border-t border-outline-variant/20">
+                          <div className="text-[11px] text-on-surface leading-relaxed whitespace-pre-line [&>p]:mb-1.5"
+                            dangerouslySetInnerHTML={{
+                              __html: entry.analysis.aiSnapshot
+                                .replace(/\*\*([^*]+)\*\*/g, '<strong class="text-on-surface font-semibold">$1</strong>')
+                            }}
+                          />
+                        </div>
+                      )}
+
+                      {/* Nav links (fallback when no AI) */}
+                      {!entry.analysis.aiSnapshot && entry.analysis.navLinks && entry.analysis.navLinks.length > 0 && (
+                        <div className="flex flex-wrap gap-1">
+                          {entry.analysis.navLinks.slice(0, 6).map((link, i) => (
+                            <span key={i} className="text-[9px] px-1.5 py-0.5 rounded-md bg-surface-container-high text-on-surface-variant">{link}</span>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  )}
+
+                  {/* Read more / Read less toggle */}
+                  {hasMore && (
+                    <button
+                      type="button"
+                      onClick={toggleExpand}
+                      className="mt-2 text-[10px] font-bold flex items-center gap-1 transition-colors hover:opacity-80"
+                      style={{ color: primaryColor }}
+                    >
+                      <i className={`fa-solid ${isExpanded ? "fa-chevron-up" : "fa-chevron-down"} text-[8px]`} />
+                      {isExpanded ? "Show less" : "Read more"}
+                    </button>
+                  )}
                 </div>
-
-                {/* Basic info */}
-                {entry.analysis.title && <p className="text-xs font-semibold text-on-surface">{entry.analysis.title}</p>}
-                {entry.analysis.description && <p className="text-[11px] text-on-surface-variant leading-relaxed line-clamp-2">{entry.analysis.description}</p>}
-
-                {/* Tech stack & social pills */}
-                {((entry.analysis.techStack && entry.analysis.techStack.length > 0) || (entry.analysis.socialLinks && entry.analysis.socialLinks.length > 0)) && (
-                  <div className="flex flex-wrap gap-1">
-                    {entry.analysis.techStack?.slice(0, 6).map((tech, i) => (
-                      <span key={`t-${i}`} className="text-[9px] px-1.5 py-0.5 rounded-md font-medium" style={{ backgroundColor: primaryColor + "18", color: primaryColor }}>{tech}</span>
-                    ))}
-                    {entry.analysis.socialLinks?.map((s, i) => (
-                      <span key={`s-${i}`} className="text-[9px] px-1.5 py-0.5 rounded-md bg-surface-container-high text-on-surface-variant">{s}</span>
-                    ))}
-                  </div>
-                )}
-
-                {/* Feature badges */}
-                {entry.analysis.features && (
-                  <div className="flex flex-wrap gap-1">
-                    {Object.entries(entry.analysis.features)
-                      .filter(([, v]) => v)
-                      .map(([key]) => {
-                        const labels: Record<string, string> = {
-                          contactForm: "Contact Form",
-                          callToAction: "CTA",
-                          liveChat: "Live Chat",
-                          blog: "Blog",
-                          testimonials: "Testimonials",
-                          video: "Video",
-                          mobileResponsive: "Mobile Ready",
-                        };
-                        return (
-                          <span key={key} className="text-[9px] px-1.5 py-0.5 rounded-md bg-tertiary/10 text-tertiary font-medium flex items-center gap-0.5">
-                            <i className="fa-solid fa-check text-[7px]" />
-                            {labels[key] ?? key}
-                          </span>
-                        );
-                      })}
-                  </div>
-                )}
-
-                {/* AI Snapshot */}
-                {entry.analysis.aiSnapshot && (
-                  <div className="pt-2 border-t border-outline-variant/20">
-                    <div className="text-[11px] text-on-surface leading-relaxed whitespace-pre-line [&>p]:mb-1.5"
-                      dangerouslySetInnerHTML={{
-                        __html: entry.analysis.aiSnapshot
-                          .replace(/\*\*([^*]+)\*\*/g, '<strong class="text-on-surface font-semibold">$1</strong>')
-                      }}
-                    />
-                  </div>
-                )}
-
-                {/* Nav links */}
-                {!entry.analysis.aiSnapshot && entry.analysis.navLinks && entry.analysis.navLinks.length > 0 && (
-                  <div className="flex flex-wrap gap-1">
-                    {entry.analysis.navLinks.slice(0, 6).map((link, i) => (
-                      <span key={i} className="text-[9px] px-1.5 py-0.5 rounded-md bg-surface-container-high text-on-surface-variant">{link}</span>
-                    ))}
-                  </div>
-                )}
-              </div>
-            )}
+              );
+            })()}
             {expandedIdx === idx && (
               <div className="mt-2.5">
                 <textarea

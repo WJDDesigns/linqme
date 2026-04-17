@@ -47,7 +47,19 @@ function formatDate(iso: string | null) {
 
 function flattenValue(val: unknown): string {
   if (val === null || val === undefined) return "";
-  if (typeof val === "string") return val;
+  if (typeof val === "string") {
+    // Try to detect stringified competitor analyzer / complex JSON arrays
+    try {
+      const parsed = JSON.parse(val);
+      if (Array.isArray(parsed) && parsed.length > 0 && parsed[0]?.url) {
+        // Competitor analyzer entries — show URLs
+        return parsed.map((c: { url?: string; analysis?: { title?: string } }) =>
+          c.analysis?.title || c.url || ""
+        ).filter(Boolean).join(", ");
+      }
+    } catch { /* not JSON, return as-is */ }
+    return val;
+  }
   if (typeof val === "number" || typeof val === "boolean") return String(val);
   if (Array.isArray(val)) return val.map(flattenValue).join("; ");
   if (typeof val === "object") {
