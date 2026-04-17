@@ -1,39 +1,61 @@
 "use client";
 
 import { useState, useCallback, useRef, useEffect } from "react";
-import type { FormSchema, StepDef, FieldDef, FieldType, PackageConfig, PackageOption, PackageFeature, PackageRule, PackageLayout, RepeaterConfig, RepeaterSubField, ShowCondition } from "@/lib/forms";
+import type { FormSchema, StepDef, FieldDef, FieldType, PackageConfig, PackageOption, PackageFeature, PackageRule, PackageLayout, RepeaterConfig, RepeaterSubField, ShowCondition, AssetCollectionConfig, SiteStructureConfig, FeatureSelectorConfig, FeatureOption, GoalBuilderConfig, GoalOption, GoalRefinement, ApprovalConfig } from "@/lib/forms";
 import { PROVIDER_META, type CloudProvider } from "@/lib/cloud/providers";
 import CloudDestinationButton from "@/components/CloudDestinationButton";
 import { saveFormSchemaAction } from "./actions";
 
 /* ── Field type catalogue ──────────────────────────────────── */
 
+type FieldCategory = "general" | "web_design" | "marketing" | "smart" | "layout";
+
 interface FieldTypeInfo {
   type: FieldType;
   label: string;
   icon: string;
   group: "standard" | "advanced";
+  category: FieldCategory;
+  description?: string;
 }
 
+const FIELD_CATEGORIES: { id: FieldCategory; label: string; icon: string }[] = [
+  { id: "general", label: "General", icon: "fa-grip" },
+  { id: "smart", label: "Smart Fields", icon: "fa-wand-magic-sparkles" },
+  { id: "web_design", label: "Web Design", icon: "fa-globe" },
+  { id: "marketing", label: "Marketing", icon: "fa-bullhorn" },
+  { id: "layout", label: "Layout & Logic", icon: "fa-table-cells" },
+];
+
 const FIELD_CATALOGUE: FieldTypeInfo[] = [
-  { type: "text", label: "Short Text", icon: "fa-font", group: "standard" },
-  { type: "textarea", label: "Long Text", icon: "fa-align-left", group: "standard" },
-  { type: "email", label: "Email", icon: "fa-envelope", group: "standard" },
-  { type: "tel", label: "Phone", icon: "fa-phone", group: "standard" },
-  { type: "number", label: "Number", icon: "fa-hashtag", group: "standard" },
-  { type: "select", label: "Dropdown", icon: "fa-caret-down", group: "standard" },
-  { type: "radio", label: "Radio Choice", icon: "fa-circle-dot", group: "standard" },
-  { type: "checkbox", label: "Checkbox", icon: "fa-square-check", group: "standard" },
-  { type: "date", label: "Date Picker", icon: "fa-calendar", group: "standard" },
-  { type: "url", label: "URL", icon: "fa-link", group: "advanced" },
-  { type: "color", label: "Color Picker", icon: "fa-palette", group: "advanced" },
-  { type: "address", label: "Address", icon: "fa-location-dot", group: "advanced" },
-  { type: "heading", label: "Section Heading", icon: "fa-heading", group: "advanced" },
-  { type: "file", label: "File Upload", icon: "fa-paperclip", group: "advanced" },
-  { type: "files", label: "Multi-File", icon: "fa-folder-open", group: "advanced" },
-  { type: "package", label: "Package Selector", icon: "fa-box-open", group: "advanced" },
-  { type: "repeater", label: "Repeater / Pages", icon: "fa-layer-group", group: "advanced" },
-  { type: "consent", label: "Consent / Terms", icon: "fa-file-contract", group: "advanced" },
+  // General
+  { type: "text", label: "Short Text", icon: "fa-font", group: "standard", category: "general", description: "Single-line text input" },
+  { type: "textarea", label: "Long Text", icon: "fa-align-left", group: "standard", category: "general", description: "Multi-line text area" },
+  { type: "email", label: "Email", icon: "fa-envelope", group: "standard", category: "general", description: "Email with validation" },
+  { type: "tel", label: "Phone", icon: "fa-phone", group: "standard", category: "general", description: "Phone number input" },
+  { type: "number", label: "Number", icon: "fa-hashtag", group: "standard", category: "general", description: "Numeric input" },
+  { type: "select", label: "Dropdown", icon: "fa-caret-down", group: "standard", category: "general", description: "Single-choice dropdown" },
+  { type: "radio", label: "Radio Choice", icon: "fa-circle-dot", group: "standard", category: "general", description: "Single-choice radio buttons" },
+  { type: "checkbox", label: "Checkbox", icon: "fa-square-check", group: "standard", category: "general", description: "Multi-choice checkboxes" },
+  { type: "date", label: "Date Picker", icon: "fa-calendar", group: "standard", category: "general", description: "Date selector" },
+  { type: "url", label: "URL", icon: "fa-link", group: "advanced", category: "general", description: "Website URL with validation" },
+  { type: "color", label: "Color Picker", icon: "fa-palette", group: "advanced", category: "general", description: "Hex color selector" },
+  { type: "address", label: "Address", icon: "fa-location-dot", group: "advanced", category: "general", description: "Multi-line address" },
+  { type: "file", label: "File Upload", icon: "fa-paperclip", group: "advanced", category: "general", description: "Single file upload" },
+  { type: "files", label: "Multi-File", icon: "fa-folder-open", group: "advanced", category: "general", description: "Multiple file uploads" },
+  // Smart Fields
+  { type: "asset_collection", label: "Asset Collection", icon: "fa-images", group: "advanced", category: "smart", description: "Collect logos, colors, fonts & docs" },
+  { type: "goal_builder", label: "Goal Builder", icon: "fa-bullseye", group: "advanced", category: "smart", description: "Interactive goal picker with refinements" },
+  { type: "approval", label: "Approval / Sign-off", icon: "fa-signature", group: "advanced", category: "smart", description: "Digital signature & scope approval" },
+  { type: "package", label: "Package Selector", icon: "fa-box-open", group: "advanced", category: "smart", description: "Pricing & package comparison" },
+  // Web Design
+  { type: "site_structure", label: "Site Structure", icon: "fa-sitemap", group: "advanced", category: "web_design", description: "Visual sitemap builder" },
+  { type: "feature_selector", label: "Feature Selector", icon: "fa-puzzle-piece", group: "advanced", category: "web_design", description: "Toggle features with price impact" },
+  { type: "repeater", label: "Repeater / Pages", icon: "fa-layer-group", group: "advanced", category: "web_design", description: "Repeatable entry groups" },
+  // Marketing (placeholder — existing fields that fit)
+  // Layout & Logic
+  { type: "heading", label: "Section Heading", icon: "fa-heading", group: "advanced", category: "layout", description: "Display-only section header" },
+  { type: "consent", label: "Consent / Terms", icon: "fa-file-contract", group: "advanced", category: "layout", description: "Agreement with checkbox" },
 ];
 
 function iconFor(type: FieldType) {
@@ -98,6 +120,82 @@ function makeField(type: FieldType, label: string): FieldDef {
     base.required = true;
     base.consentText = "Please read and agree to our terms and conditions before proceeding.\n\nBy submitting this form you acknowledge that the information provided is accurate and complete to the best of your knowledge.";
     base.consentCheckboxLabel = "I have read and agree to the terms above";
+  }
+  if (type === "asset_collection") {
+    base.label = "Brand Assets";
+    base.assetCollectionConfig = {
+      categories: ["logos", "colors", "fonts", "documents", "images"],
+      maxFiles: 50,
+      allowCloudConnect: true,
+    };
+  }
+  if (type === "site_structure") {
+    base.label = "Website Structure";
+    base.siteStructureConfig = {
+      starterPages: [
+        { id: `pg_${uid()}`, name: "Home" },
+        { id: `pg_${uid()}`, name: "About" },
+        { id: `pg_${uid()}`, name: "Services" },
+        { id: `pg_${uid()}`, name: "Contact" },
+      ],
+      maxPages: 30,
+      allowNesting: true,
+    };
+  }
+  if (type === "feature_selector") {
+    base.label = "What features do you need?";
+    base.featureSelectorConfig = {
+      features: [
+        { id: `ft_${uid()}`, name: "Contact Form", description: "Let visitors reach out", icon: "fa-envelope", complexity: "Simple", priceImpact: "Included", category: "Core" },
+        { id: `ft_${uid()}`, name: "Blog / News", description: "Publish articles and updates", icon: "fa-newspaper", complexity: "Medium", priceImpact: "+$300", category: "Content" },
+        { id: `ft_${uid()}`, name: "E-commerce / Shop", description: "Sell products online", icon: "fa-cart-shopping", complexity: "Complex", priceImpact: "+$1,500", category: "Commerce" },
+        { id: `ft_${uid()}`, name: "Booking System", description: "Schedule appointments", icon: "fa-calendar-check", complexity: "Medium", priceImpact: "+$500", category: "Core" },
+        { id: `ft_${uid()}`, name: "Members Area", description: "Gated content for members", icon: "fa-users", complexity: "Complex", priceImpact: "+$800", category: "Commerce" },
+        { id: `ft_${uid()}`, name: "Photo Gallery", description: "Showcase images and portfolios", icon: "fa-images", complexity: "Simple", priceImpact: "+$200", category: "Content" },
+      ],
+      maxSelections: 0,
+      showPriceImpact: true,
+      showComplexity: true,
+    };
+  }
+  if (type === "goal_builder") {
+    base.label = "What are your primary goals?";
+    base.goalBuilderConfig = {
+      goals: [
+        {
+          id: `goal_${uid()}`, label: "Generate Leads", icon: "fa-magnet",
+          refinements: [
+            { id: `ref_${uid()}`, label: "Monthly lead target", type: "select", options: ["Under 50", "50-200", "200-500", "500+"] },
+            { id: `ref_${uid()}`, label: "Monthly budget", type: "range", min: 500, max: 10000, step: 500, prefix: "$" },
+          ],
+        },
+        {
+          id: `goal_${uid()}`, label: "Sell Products / Services", icon: "fa-cart-shopping",
+          refinements: [
+            { id: `ref_${uid()}`, label: "Monthly revenue target", type: "select", options: ["Under $5K", "$5K-$25K", "$25K-$100K", "$100K+"] },
+            { id: `ref_${uid()}`, label: "Number of products", type: "select", options: ["1-10", "11-50", "51-200", "200+"] },
+          ],
+        },
+        {
+          id: `goal_${uid()}`, label: "Build Brand Awareness", icon: "fa-bullhorn",
+          refinements: [
+            { id: `ref_${uid()}`, label: "Target audience size", type: "select", options: ["Local", "Regional", "National", "International"] },
+            { id: `ref_${uid()}`, label: "Timeline", type: "select", options: ["1-3 months", "3-6 months", "6-12 months", "Ongoing"] },
+          ],
+        },
+      ],
+      allowMultiple: false,
+    };
+  }
+  if (type === "approval") {
+    base.label = "Approve & Sign Off";
+    base.required = true;
+    base.approvalConfig = {
+      scopeText: "Please review the information above and confirm everything is accurate. By signing below, you approve the project scope as described.",
+      requireSignature: true,
+      requireFullName: true,
+      approveLabel: "I Approve",
+    };
   }
   return base;
 }
@@ -726,47 +824,108 @@ function FieldPalette({ onDragStart, onClickAdd }: {
   onDragStart: (type: FieldType, label: string) => void;
   onClickAdd: (type: FieldType, label: string) => void;
 }) {
-  const standard = FIELD_CATALOGUE.filter((f) => f.group === "standard");
-  const advanced = FIELD_CATALOGUE.filter((f) => f.group === "advanced");
+  const [search, setSearch] = useState("");
+  const [activeCategory, setActiveCategory] = useState<FieldCategory | "all">("all");
+
+  const filtered = FIELD_CATALOGUE.filter((f) => {
+    const matchesSearch = !search || f.label.toLowerCase().includes(search.toLowerCase()) || (f.description ?? "").toLowerCase().includes(search.toLowerCase());
+    const matchesCategory = activeCategory === "all" || f.category === activeCategory;
+    return matchesSearch && matchesCategory;
+  });
+
+  // Group by category for display
+  const grouped = FIELD_CATEGORIES.map((cat) => ({
+    ...cat,
+    fields: filtered.filter((f) => f.category === cat.id),
+  })).filter((g) => g.fields.length > 0);
 
   return (
     <div>
-      <h3 className="text-xs font-bold text-on-surface-variant uppercase tracking-widest mb-4">Field Types</h3>
-      <div className="space-y-2">
-        {standard.map((f) => (
+      {/* Search */}
+      <div className="relative mb-3">
+        <i className="fa-solid fa-search absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant/40 text-xs" />
+        <input
+          type="text"
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          placeholder="Search fields..."
+          className="w-full pl-9 pr-3 py-2 text-sm bg-surface-container-highest/50 border-0 rounded-lg text-on-surface placeholder:text-on-surface-variant/40 focus:ring-1 focus:ring-primary/50 outline-none transition-all"
+        />
+      </div>
+
+      {/* Category pills */}
+      <div className="flex flex-wrap gap-1.5 mb-4">
+        <button
+          onClick={() => setActiveCategory("all")}
+          className={`px-2.5 py-1 text-[11px] font-medium rounded-lg transition-all ${activeCategory === "all" ? "bg-primary text-on-primary" : "bg-surface-container-high/50 text-on-surface-variant/60 hover:text-on-surface"}`}
+        >
+          All
+        </button>
+        {FIELD_CATEGORIES.map((cat) => (
           <button
-            key={f.type}
-            draggable
-            onDragStart={(e) => { e.dataTransfer.effectAllowed = "move"; onDragStart(f.type, f.label); }}
-            onClick={() => onClickAdd(f.type, f.label)}
-            className="w-full p-2.5 bg-surface-container rounded-xl border border-outline-variant/10 cursor-grab hover:border-primary/40 hover:bg-surface-container-high transition-all flex items-center gap-3 group"
+            key={cat.id}
+            onClick={() => setActiveCategory(cat.id)}
+            className={`px-2.5 py-1 text-[11px] font-medium rounded-lg transition-all flex items-center gap-1.5 ${activeCategory === cat.id ? "bg-primary text-on-primary" : "bg-surface-container-high/50 text-on-surface-variant/60 hover:text-on-surface"}`}
           >
-            <div className="w-7 h-7 rounded-lg bg-surface-container-highest flex items-center justify-center text-primary group-hover:bg-primary/20 transition-colors text-sm shrink-0">
-              <FaIcon name={f.icon} />
-            </div>
-            <span className="text-sm font-medium text-on-surface truncate">{f.label}</span>
+            <FaIcon name={cat.icon} className="text-[9px]" />
+            {cat.label}
           </button>
         ))}
       </div>
-      <div className="mt-6 mb-3">
-        <h3 className="text-xs font-bold text-on-surface-variant uppercase tracking-widest">Advanced</h3>
-      </div>
-      <div className="space-y-2">
-        {advanced.map((f) => (
-          <button
-            key={f.type}
-            draggable
-            onDragStart={(e) => { e.dataTransfer.effectAllowed = "move"; onDragStart(f.type, f.label); }}
-            onClick={() => onClickAdd(f.type, f.label)}
-            className="w-full p-2.5 bg-surface-container rounded-xl border border-outline-variant/10 cursor-grab hover:border-primary/40 hover:bg-surface-container-high transition-all flex items-center gap-3 group"
-          >
-            <div className="w-7 h-7 rounded-lg bg-surface-container-highest flex items-center justify-center text-primary group-hover:bg-primary/20 transition-colors text-sm shrink-0">
-              <FaIcon name={f.icon} />
+
+      {/* Field list grouped by category */}
+      {activeCategory === "all" && !search ? (
+        grouped.map((group) => (
+          <div key={group.id} className="mb-4">
+            <h3 className="text-[10px] font-bold text-on-surface-variant/50 uppercase tracking-widest mb-2 flex items-center gap-1.5">
+              <FaIcon name={group.icon} className="text-[9px]" />
+              {group.label}
+            </h3>
+            <div className="space-y-1.5">
+              {group.fields.map((f) => (
+                <button
+                  key={f.type}
+                  draggable
+                  onDragStart={(e) => { e.dataTransfer.effectAllowed = "move"; onDragStart(f.type, f.label); }}
+                  onClick={() => onClickAdd(f.type, f.label)}
+                  className="w-full p-2 bg-surface-container rounded-xl border border-outline-variant/10 cursor-grab hover:border-primary/40 hover:bg-surface-container-high transition-all flex items-center gap-2.5 group"
+                >
+                  <div className="w-7 h-7 rounded-lg bg-surface-container-highest flex items-center justify-center text-primary group-hover:bg-primary/20 transition-colors text-xs shrink-0">
+                    <FaIcon name={f.icon} />
+                  </div>
+                  <div className="flex-1 min-w-0 text-left">
+                    <span className="text-sm font-medium text-on-surface block truncate">{f.label}</span>
+                    {f.description && <span className="text-[10px] text-on-surface-variant/50 block truncate">{f.description}</span>}
+                  </div>
+                </button>
+              ))}
             </div>
-            <span className="text-sm font-medium text-on-surface truncate">{f.label}</span>
-          </button>
-        ))}
-      </div>
+          </div>
+        ))
+      ) : (
+        <div className="space-y-1.5">
+          {filtered.length === 0 && (
+            <p className="text-xs text-on-surface-variant/50 text-center py-4">No fields match your search</p>
+          )}
+          {filtered.map((f) => (
+            <button
+              key={f.type}
+              draggable
+              onDragStart={(e) => { e.dataTransfer.effectAllowed = "move"; onDragStart(f.type, f.label); }}
+              onClick={() => onClickAdd(f.type, f.label)}
+              className="w-full p-2 bg-surface-container rounded-xl border border-outline-variant/10 cursor-grab hover:border-primary/40 hover:bg-surface-container-high transition-all flex items-center gap-2.5 group"
+            >
+              <div className="w-7 h-7 rounded-lg bg-surface-container-highest flex items-center justify-center text-primary group-hover:bg-primary/20 transition-colors text-xs shrink-0">
+                <FaIcon name={f.icon} />
+              </div>
+              <div className="flex-1 min-w-0 text-left">
+                <span className="text-sm font-medium text-on-surface block truncate">{f.label}</span>
+                {f.description && <span className="text-[10px] text-on-surface-variant/50 block truncate">{f.description}</span>}
+              </div>
+            </button>
+          ))}
+        </div>
+      )}
     </div>
   );
 }
