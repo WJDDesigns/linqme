@@ -1071,7 +1071,306 @@ function CelestialField({
   }
 
   /* Multi-option checkbox (when field has options array) */
-  const isMultiCheckbox = field.type === "checkbox" && field.options && field.options.length > 0;
+
+  /* ââ Site Structure Builder ââ */
+  if (field.type === "site_structure" && field.siteStructureConfig) {
+    const cfg = field.siteStructureConfig;
+    type PageEntry = { id: string; name: string; path?: string };
+    const pages: PageEntry[] = (() => {
+      try { return Array.isArray(value) ? value as PageEntry[] : typeof value === "string" && value ? JSON.parse(value) : (cfg.starterPages ?? []).map((p: { id: string; name: string }) => ({ ...p })); }
+      catch { return []; }
+    })();
+    const uid = () => Math.random().toString(36).slice(2, 10);
+    const update = (next: PageEntry[]) => onChange(JSON.stringify(next));
+    const canAdd = !cfg.maxPages || pages.length < cfg.maxPages;
+    return (
+      <div className="group">
+        <label className="block text-xs font-semibold text-on-surface-variant uppercase tracking-widest mb-1.5 ml-1">
+          {field.label}{field.required && <span className="ml-1" style={{ color: primaryColor }}>*</span>}
+        </label>
+        {field.hint && <p className="text-xs text-on-surface-variant/60 mb-2 ml-1">{field.hint}</p>}
+        <div className="space-y-2">
+          {pages.map((page, i) => (
+            <div key={page.id} className="flex items-center gap-2 group/row">
+              <div className="w-6 h-6 rounded-lg flex items-center justify-center text-xs font-bold shrink-0" style={{ backgroundColor: primaryColor + "18", color: primaryColor }}>
+                {i + 1}
+              </div>
+              <input
+                value={page.name}
+                onChange={(e) => { const next = [...pages]; next[i] = { ...next[i], name: e.target.value }; update(next); }}
+                placeholder="Page name (e.g. About Us)"
+                className={INPUT_CLS + " flex-1"}
+                style={{ ...focusRing, borderColor: errBorder }}
+              />
+              <button type="button" onClick={() => update(pages.filter((_, j) => j !== i))}
+                className="p-2 rounded-lg text-on-surface-variant/40 hover:text-error hover:bg-error/10 transition-all opacity-0 group-hover/row:opacity-100">
+                <i className="fa-solid fa-xmark text-xs" />
+              </button>
+            </div>
+          ))}
+        </div>
+        {canAdd && (
+          <button type="button" onClick={() => update([...pages, { id: uid(), name: "" }])}
+            className="w-full mt-3 py-3 border-2 border-dashed rounded-xl text-sm font-medium transition-all flex items-center justify-center gap-2 hover:shadow-sm"
+            style={{ borderColor: primaryColor + "40", color: primaryColor }}>
+            <i className="fa-solid fa-plus text-xs" /> Add Page
+          </button>
+        )}
+        {cfg.maxPages && cfg.maxPages > 0 && (
+          <p className="text-xs text-on-surface-variant/60 mt-1.5 ml-1">{pages.length} / {cfg.maxPages} pages</p>
+        )}
+        {error && <p className="text-sm text-error mt-1.5 sl-fade-up flex items-center gap-1.5"><i className="fa-solid fa-circle-exclamation text-xs flex-shrink-0" />{error}</p>}
+      </div>
+    );
+  }
+
+  /* ââ Asset Collection ââ */
+  if (field.type === "asset_collection" && field.assetCollectionConfig) {
+    const cfg = field.assetCollectionConfig;
+    const catIcons: Record<string, string> = { logos: "fa-swatchbook", colors: "fa-palette", fonts: "fa-font", documents: "fa-file-lines", images: "fa-images", other: "fa-folder-open" };
+    const catLabels: Record<string, string> = { logos: "Logos", colors: "Brand Colors", fonts: "Fonts", documents: "Documents", images: "Images", other: "Other" };
+    type AssetData = Record<string, string[]>;
+    const assets: AssetData = (() => {
+      try { return typeof value === "string" && value ? JSON.parse(value) : typeof value === "object" && value ? value as AssetData : {}; }
+      catch { return {}; }
+    })();
+    const categories = cfg.categories ?? ["logos", "colors", "fonts", "documents", "images"];
+    return (
+      <div className="group">
+        <label className="block text-xs font-semibold text-on-surface-variant uppercase tracking-widest mb-1.5 ml-1">
+          {field.label}{field.required && <span className="ml-1" style={{ color: primaryColor }}>*</span>}
+        </label>
+        {field.hint && <p className="text-xs text-on-surface-variant/60 mb-2 ml-1">{field.hint}</p>}
+        <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+          {categories.map((cat) => {
+            const icon = catIcons[cat] || "fa-folder";
+            const label = catLabels[cat] || cat.charAt(0).toUpperCase() + cat.slice(1);
+            const count = (assets[cat] ?? []).length;
+            return (
+              <label key={cat} className="relative flex flex-col items-center justify-center gap-2 p-5 rounded-xl border-2 cursor-pointer transition-all duration-200 hover:shadow-md"
+                style={{ borderColor: count > 0 ? primaryColor : "var(--color-outline-variant)", backgroundColor: count > 0 ? primaryColor + "08" : "transparent" }}>
+                <i className={`fa-solid ${icon} text-xl`} style={{ color: count > 0 ? primaryColor : "var(--color-on-surface-variant)" }} />
+                <span className="text-xs font-semibold text-on-surface">{label}</span>
+                {count > 0 && <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-full" style={{ backgroundColor: primaryColor + "20", color: primaryColor }}>{count} file{count !== 1 ? "s" : ""}</span>}
+                <input type="file" multiple className="absolute inset-0 opacity-0 cursor-pointer" onChange={(e) => {
+                  const files = Array.from(e.target.files ?? []).map(f => f.name);
+                  const next = { ...assets, [cat]: [...(assets[cat] ?? []), ...files] };
+                  onChange(JSON.stringify(next));
+                  e.target.value = "";
+                }} />
+              </label>
+            );
+          })}
+        </div>
+        {cfg.maxFiles && cfg.maxFiles > 0 && (
+          <p className="text-xs text-on-surface-variant/60 mt-1.5 ml-1">Max {cfg.maxFiles} files total</p>
+        )}
+        {error && <p className="text-sm text-error mt-1.5 sl-fade-up flex items-center gap-1.5"><i className="fa-solid fa-circle-exclamation text-xs flex-shrink-0" />{error}</p>}
+      </div>
+    );
+  }
+
+  /* ââ Feature Selector ââ */
+  if (field.type === "feature_selector" && field.featureSelectorConfig) {
+    const cfg = field.featureSelectorConfig;
+    const selected: string[] = (() => {
+      try { return typeof value === "string" && value ? value.split("||").filter(Boolean) : Array.isArray(value) ? value as string[] : []; }
+      catch { return []; }
+    })();
+    const toggle = (fid: string) => {
+      const next = selected.includes(fid) ? selected.filter(s => s !== fid) : [...selected, fid];
+      onChange(next.join("||"));
+    };
+    const features = cfg.features ?? [];
+    const atMax = cfg.maxSelections && cfg.maxSelections > 0 && selected.length >= cfg.maxSelections;
+    const complexityColors: Record<string, string> = { Simple: "#4caf50", Medium: "#ff9800", Complex: "#f44336" };
+    return (
+      <div className="group">
+        <label className="block text-xs font-semibold text-on-surface-variant uppercase tracking-widest mb-1.5 ml-1">
+          {field.label}{field.required && <span className="ml-1" style={{ color: primaryColor }}>*</span>}
+        </label>
+        {field.hint && <p className="text-xs text-on-surface-variant/60 mb-2 ml-1">{field.hint}</p>}
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          {features.map((feat) => {
+            const isSelected = selected.includes(feat.id);
+            const disabled = !isSelected && !!atMax;
+            return (
+              <button key={feat.id} type="button" disabled={disabled}
+                onClick={() => !disabled && toggle(feat.id)}
+                className={`text-left p-4 rounded-xl border-2 transition-all duration-200 ${disabled ? "opacity-40 cursor-not-allowed" : "cursor-pointer hover:shadow-md"}`}
+                style={{ borderColor: isSelected ? primaryColor : "var(--color-outline-variant)", backgroundColor: isSelected ? primaryColor + "08" : "transparent" }}>
+                <div className="flex items-start gap-3">
+                  {feat.icon && <i className={`fa-solid ${feat.icon} text-lg mt-0.5`} style={{ color: isSelected ? primaryColor : "var(--color-on-surface-variant)" }} />}
+                  <div className="flex-1 min-w-0">
+                    <div className="font-semibold text-sm text-on-surface">{feat.name}</div>
+                    {feat.description && <p className="text-xs text-on-surface-variant mt-0.5 leading-relaxed">{feat.description}</p>}
+                    <div className="flex items-center gap-2 mt-2 flex-wrap">
+                      {cfg.showComplexity && feat.complexity && (
+                        <span className="text-[10px] font-bold px-2 py-0.5 rounded-full" style={{ backgroundColor: (complexityColors[feat.complexity] ?? "#888") + "20", color: complexityColors[feat.complexity] ?? "#888" }}>
+                          {feat.complexity}
+                        </span>
+                      )}
+                      {cfg.showPriceImpact && feat.priceImpact && (
+                        <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-surface-container text-on-surface-variant">{feat.priceImpact}</span>
+                      )}
+                    </div>
+                  </div>
+                  <div className="w-5 h-5 rounded-full border-2 flex items-center justify-center shrink-0 mt-0.5 transition-all"
+                    style={{ borderColor: isSelected ? primaryColor : "var(--color-outline-variant)", backgroundColor: isSelected ? primaryColor : "transparent" }}>
+                    {isSelected && <i className="fa-solid fa-check text-[10px] text-white" />}
+                  </div>
+                </div>
+              </button>
+            );
+          })}
+        </div>
+        {cfg.maxSelections && cfg.maxSelections > 0 && (
+          <p className="text-xs text-on-surface-variant/60 mt-1.5 ml-1">{selected.length} / {cfg.maxSelections} selected</p>
+        )}
+        {error && <p className="text-sm text-error mt-1.5 sl-fade-up flex items-center gap-1.5"><i className="fa-solid fa-circle-exclamation text-xs flex-shrink-0" />{error}</p>}
+      </div>
+    );
+  }
+
+  /* ââ Goal Builder ââ */
+  if (field.type === "goal_builder" && field.goalBuilderConfig) {
+    const cfg = field.goalBuilderConfig;
+    type GoalData = { goalId: string; refinements: Record<string, string | number> };
+    const goalData: GoalData[] = (() => {
+      try { return typeof value === "string" && value ? JSON.parse(value) : Array.isArray(value) ? value as GoalData[] : []; }
+      catch { return []; }
+    })();
+    const goals = cfg.goals ?? [];
+    const isGoalSelected = (gid: string) => goalData.some(g => g.goalId === gid);
+    const toggleGoal = (gid: string) => {
+      if (isGoalSelected(gid)) {
+        onChange(JSON.stringify(goalData.filter(g => g.goalId !== gid)));
+      } else {
+        if (!cfg.allowMultiple) {
+          onChange(JSON.stringify([{ goalId: gid, refinements: {} }]));
+        } else {
+          onChange(JSON.stringify([...goalData, { goalId: gid, refinements: {} }]));
+        }
+      }
+    };
+    const updateRefinement = (gid: string, refId: string, val: string | number) => {
+      const next = goalData.map(g => g.goalId === gid ? { ...g, refinements: { ...g.refinements, [refId]: val } } : g);
+      onChange(JSON.stringify(next));
+    };
+    return (
+      <div className="group">
+        <label className="block text-xs font-semibold text-on-surface-variant uppercase tracking-widest mb-1.5 ml-1">
+          {field.label}{field.required && <span className="ml-1" style={{ color: primaryColor }}>*</span>}
+        </label>
+        {field.hint && <p className="text-xs text-on-surface-variant/60 mb-2 ml-1">{field.hint}</p>}
+        <div className="space-y-3">
+          {goals.map((goal) => {
+            const sel = isGoalSelected(goal.id);
+            const gd = goalData.find(g => g.goalId === goal.id);
+            return (
+              <div key={goal.id} className="rounded-xl border-2 transition-all duration-200 overflow-hidden"
+                style={{ borderColor: sel ? primaryColor : "var(--color-outline-variant)", backgroundColor: sel ? primaryColor + "06" : "transparent" }}>
+                <button type="button" onClick={() => toggleGoal(goal.id)}
+                  className="w-full flex items-center gap-3 p-4 text-left cursor-pointer">
+                  {goal.icon && <i className={`fa-solid ${goal.icon} text-xl`} style={{ color: sel ? primaryColor : "var(--color-on-surface-variant)" }} />}
+                  <span className="flex-1 font-semibold text-sm text-on-surface">{goal.label}</span>
+                  <div className="w-5 h-5 rounded-full border-2 flex items-center justify-center shrink-0 transition-all"
+                    style={{ borderColor: sel ? primaryColor : "var(--color-outline-variant)", backgroundColor: sel ? primaryColor : "transparent" }}>
+                    {sel && <i className="fa-solid fa-check text-[10px] text-white" />}
+                  </div>
+                </button>
+                {sel && goal.refinements && goal.refinements.length > 0 && (
+                  <div className="px-4 pb-4 pt-1 space-y-3 border-t" style={{ borderColor: primaryColor + "20" }}>
+                    {goal.refinements.map((ref) => (
+                      <div key={ref.id}>
+                        <label className="block text-xs font-medium text-on-surface-variant mb-1">{ref.label}</label>
+                        {ref.type === "select" ? (
+                          <select value={(gd?.refinements[ref.id] as string) ?? ""} onChange={(e) => updateRefinement(goal.id, ref.id, e.target.value)}
+                            className={INPUT_CLS} style={focusRing}>
+                            <option value="">Select...</option>
+                            {(ref.options ?? []).map(opt => <option key={opt} value={opt}>{opt}</option>)}
+                          </select>
+                        ) : ref.type === "range" ? (
+                          <div className="flex items-center gap-3">
+                            <input type="range" min={ref.min ?? 0} max={ref.max ?? 100} step={ref.step ?? 1}
+                              value={(gd?.refinements[ref.id] as number) ?? ref.min ?? 0}
+                              onChange={(e) => updateRefinement(goal.id, ref.id, +e.target.value)}
+                              className="flex-1 accent-current" style={{ color: primaryColor }} />
+                            <span className="text-sm font-semibold min-w-[3rem] text-right" style={{ color: primaryColor }}>
+                              {ref.prefix ?? ""}{(gd?.refinements[ref.id] as number) ?? ref.min ?? 0}{ref.suffix ?? ""}
+                            </span>
+                          </div>
+                        ) : (
+                          <input type="text" value={(gd?.refinements[ref.id] as string) ?? ""} placeholder={ref.placeholder}
+                            onChange={(e) => updateRefinement(goal.id, ref.id, e.target.value)}
+                            className={INPUT_CLS} style={focusRing} />
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            );
+          })}
+        </div>
+        {!cfg.allowMultiple && <p className="text-xs text-on-surface-variant/60 mt-1.5 ml-1">Select one primary goal</p>}
+        {error && <p className="text-sm text-error mt-1.5 sl-fade-up flex items-center gap-1.5"><i className="fa-solid fa-circle-exclamation text-xs flex-shrink-0" />{error}</p>}
+      </div>
+    );
+  }
+
+  /* ââ Approval / Sign-off ââ */
+  if (field.type === "approval" && field.approvalConfig) {
+    const cfg = field.approvalConfig;
+    type ApprovalData = { approved: boolean; signature?: string; fullName?: string; timestamp?: string };
+    const data: ApprovalData = (() => {
+      try { return typeof value === "string" && value ? JSON.parse(value) : typeof value === "object" && value ? value as ApprovalData : { approved: false }; }
+      catch { return { approved: false }; }
+    })();
+    const updateApproval = (patch: Partial<ApprovalData>) => onChange(JSON.stringify({ ...data, ...patch }));
+    return (
+      <div className="group">
+        <label className="block text-xs font-semibold text-on-surface-variant uppercase tracking-widest mb-1.5 ml-1">
+          {field.label}{field.required && <span className="ml-1" style={{ color: primaryColor }}>*</span>}
+        </label>
+        {field.hint && <p className="text-xs text-on-surface-variant/60 mb-2 ml-1">{field.hint}</p>}
+        <div className="space-y-4">
+          {cfg.scopeText && (
+            <div className="max-h-56 overflow-y-auto rounded-xl border-2 p-4 text-sm text-on-surface-variant leading-relaxed whitespace-pre-wrap bg-surface-container-lowest/50 custom-scrollbar"
+              style={{ borderColor: errBorder || "var(--color-outline-variant)" }}>
+              {cfg.scopeText}
+            </div>
+          )}
+          {cfg.requireFullName && (
+            <div>
+              <label className="block text-xs font-medium text-on-surface-variant mb-1">Full Name</label>
+              <input type="text" value={data.fullName ?? ""} placeholder="Type your full name"
+                onChange={(e) => updateApproval({ fullName: e.target.value })}
+                className={INPUT_CLS} style={{ ...focusRing, borderColor: errBorder }} />
+            </div>
+          )}
+          {cfg.requireSignature && (
+            <div>
+              <label className="block text-xs font-medium text-on-surface-variant mb-1">Signature</label>
+              <input type="text" value={data.signature ?? ""} placeholder="Type your signature"
+                onChange={(e) => updateApproval({ signature: e.target.value })}
+                className={`${INPUT_CLS} italic font-serif text-lg`} style={{ ...focusRing, borderColor: errBorder }} />
+            </div>
+          )}
+          <button type="button"
+            onClick={() => updateApproval({ approved: !data.approved, timestamp: !data.approved ? new Date().toISOString() : undefined })}
+            className={`w-full py-3.5 px-6 rounded-xl font-semibold text-sm transition-all duration-200 flex items-center justify-center gap-2 ${data.approved ? "text-white shadow-lg" : "border-2"}`}
+            style={data.approved
+              ? { backgroundColor: primaryColor }
+              : { borderColor: primaryColor, color: primaryColor }}>
+            <i className={`fa-solid ${data.approved ? "fa-check-circle" : "fa-circle"} text-base`} />
+            {data.approved ? "Approved" : (cfg.approveLabel || "I Approve")}
+          </button>
+        </div>
+        {error && <p className="text-sm text-error mt-1.5 sl-fade-up flex items-center gap-1.5"><i className="fa-solid fa-circle-exclamation text-xs flex-shrink-0" />{error}</p>}
+      </div>
+    );
+  }  const isMultiCheckbox = field.type === "checkbox" && field.options && field.options.length > 0;
   /* Parse multi-checkbox value as array */
   const checkedValues: string[] = isMultiCheckbox
     ? (Array.isArray(value) ? value as string[] : typeof value === "string" && value ? value.split("||") : [])
