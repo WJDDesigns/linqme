@@ -118,6 +118,13 @@ export default function FormEditorShell({
             Preview
           </button>
         </div>
+          {formId && (
+            <Link href={`/dashboard/form/${formId}/entries`}
+              className="px-3 py-1.5 text-xs font-bold uppercase tracking-widest rounded-md text-on-surface-variant/60 hover:text-primary hover:bg-primary/5 transition-all">
+              <i className="fa-solid fa-table-list text-[10px] mr-1.5" />
+              Entries
+            </Link>
+          )}
         </div>
 
         {/* Right: status badge + publish button + settings + public link */}

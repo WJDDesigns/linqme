@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
 import Image from "next/image";
+import { usePathname } from "next/navigation";
 import SidebarNav from "./SidebarNav";
 import ThemeToggle from "@/components/ThemeToggle";
 import LinqMeLogo from "@/components/LinqMeLogo";
@@ -74,6 +75,11 @@ export default function DashboardShell({
   children,
 }: Props) {
   const [collapsed, setCollapsed] = useState(false);
+  const [mobileDrawerOpen, setMobileDrawerOpen] = useState(false);
+  const pathname = usePathname();
+
+  // Close mobile drawer on navigation
+  useEffect(() => { setMobileDrawerOpen(false); }, [pathname]);
 
   // Hydrate from localStorage
   useEffect(() => {
@@ -228,10 +234,129 @@ export default function DashboardShell({
         </div>
       </aside>
 
+      {/* ── Mobile slide-out drawer ── */}
+      {mobileDrawerOpen && (
+        <div className="fixed inset-0 z-50 md:hidden" onClick={() => setMobileDrawerOpen(false)}>
+          <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" />
+          <aside
+            className="absolute left-0 top-0 bottom-0 w-72 bg-background border-r border-on-surface/[0.06] flex flex-col overflow-y-auto animate-slide-in-left"
+            onClick={(e) => e.stopPropagation()}
+            style={topStyle}
+          >
+            {/* Logo + close */}
+            <div className="flex items-center justify-between px-5 py-4 border-b border-on-surface/[0.06]">
+              <Link href="/dashboard" className="flex items-center shrink-0" onClick={() => setMobileDrawerOpen(false)}>
+                <LinqMeLogo variant="light" className="h-6 w-auto text-primary shrink-0" />
+              </Link>
+              <button onClick={() => setMobileDrawerOpen(false)} className="w-8 h-8 rounded-lg flex items-center justify-center text-on-surface-variant/60 hover:bg-on-surface/5 transition-colors">
+                <i className="fa-solid fa-xmark text-sm" />
+              </button>
+            </div>
+
+            {/* Nav */}
+            <div className="flex-1 px-3 py-3" onClick={() => setMobileDrawerOpen(false)}>
+              <SidebarNav
+                isAdmin={isAdmin}
+                isPartnerMember={isPartnerMember}
+                showPartners={showPartners}
+                accountName={accountName}
+                workspaceItems={workspaceItems}
+                adminItems={adminItems}
+                collapsed={false}
+              />
+            </div>
+
+            {/* Account switcher */}
+            {accountContexts.length >= 2 && activePartnerId && (
+              <div onClick={() => setMobileDrawerOpen(false)}>
+                <AccountSwitcher contexts={accountContexts} activePartnerId={activePartnerId} />
+              </div>
+            )}
+
+            {/* Usage meter */}
+            {usageLine && (
+              <div className="px-4 py-3 mx-3 mb-2 rounded-xl bg-surface-container-low/60 border border-outline-variant/[0.06]">
+                <div className="text-[10px] uppercase tracking-widest text-on-surface-variant/60 mb-1 font-label">Usage</div>
+                <div className="text-xs text-on-surface">{usageLine}</div>
+                {showUsageBar && (
+                  <div className="h-1.5 bg-surface-container-highest rounded-full overflow-hidden mt-2">
+                    <div className="h-full bg-gradient-to-r from-primary to-inverse-primary transition-all rounded-full" style={{ width: `${Math.round(usageRatio * 100)}%` }} />
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* Theme toggle */}
+            <div className="px-3 mb-2">
+              <ThemeToggle />
+            </div>
+
+            {/* User footer */}
+            <div className="border-t border-on-surface/[0.06] px-3 py-4 mt-auto">
+              <Link href="/dashboard/settings" className="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-primary/5 transition-colors" onClick={() => setMobileDrawerOpen(false)}>
+                {userAvatarUrl ? (
+                  <div className="relative w-8 h-8 rounded-full overflow-hidden ring-1 ring-primary/10 shrink-0">
+                    <Image src={userAvatarUrl} alt="" fill className="object-cover" sizes="32px" />
+                  </div>
+                ) : (
+                  <div className="w-8 h-8 rounded-full bg-gradient-to-br from-primary/20 to-tertiary/10 flex items-center justify-center text-[10px] font-bold text-primary ring-1 ring-primary/10 shrink-0">
+                    {(userName || userEmail).slice(0, 1).toUpperCase()}
+                  </div>
+                )}
+                <div className="flex-1 min-w-0">
+                  <p className="text-xs font-bold text-on-surface truncate">{userName || userEmail}</p>
+                  <p className="text-[10px] text-on-surface-variant/50 truncate">{userEmail}</p>
+                </div>
+              </Link>
+              <div className="px-3 mt-1">
+                <button onClick={handleSignOut} className="text-xs text-on-surface-variant/40 hover:text-primary transition-colors duration-300 uppercase tracking-widest">
+                  Sign out
+                </button>
+              </div>
+            </div>
+          </aside>
+        </div>
+      )}
+
+      {/* ── Mobile bottom tab bar ── */}
+      <nav className="fixed bottom-0 left-0 right-0 z-40 md:hidden bg-background/90 backdrop-blur-xl border-t border-on-surface/[0.06] safe-area-bottom">
+        <div className="flex items-stretch justify-around h-14">
+          {(workspaceItems.slice(0, 4)).map((item) => {
+            const isActive = item.href === "/dashboard"
+              ? pathname === "/dashboard"
+              : pathname.startsWith(item.href);
+            return (
+              <Link key={item.href} href={item.href}
+                className={`flex flex-col items-center justify-center flex-1 gap-0.5 text-[10px] font-semibold transition-colors ${
+                  isActive ? "text-primary" : "text-on-surface-variant/50"
+                }`}>
+                <i className={`fa-solid ${item.icon} text-base`} />
+                <span className="truncate max-w-[64px]">{item.label}</span>
+              </Link>
+            );
+          })}
+          {/* More / hamburger for full sidebar */}
+          <button
+            onClick={() => setMobileDrawerOpen(true)}
+            className="flex flex-col items-center justify-center flex-1 gap-0.5 text-[10px] font-semibold text-on-surface-variant/50 transition-colors"
+          >
+            <i className="fa-solid fa-bars text-base" />
+            <span>More</span>
+          </button>
+        </div>
+      </nav>
+
       {/* Main */}
-      <main className={`flex-1 ${mainMargin} min-h-screen transition-all duration-300`}>
+      <main className={`flex-1 ${mainMargin} min-h-screen pb-16 md:pb-0 transition-all duration-300`}>
         {/* Top bar with announcements + notification */}
         <div className="sticky top-0 z-30 flex items-stretch bg-surface/80 backdrop-blur-md border-b border-on-surface/[0.04]">
+          {/* Mobile hamburger in top bar */}
+          <button
+            onClick={() => setMobileDrawerOpen(true)}
+            className="md:hidden shrink-0 px-4 flex items-center text-on-surface-variant/60 hover:text-primary transition-colors"
+          >
+            <i className="fa-solid fa-bars text-lg" />
+          </button>
           <div className="flex-1 min-w-0 overflow-hidden">
             {announcements.length > 0 && (
               <AnnouncementBanner announcements={announcements} />

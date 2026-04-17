@@ -452,6 +452,18 @@ h1, h2, h3, h4, .headline {
   animation: scale-in 0.5s cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 
+/* Mobile nav drawer */
+@keyframes slide-in-left {
+  from { transform: translateX(-100%); }
+  to { transform: translateX(0); }
+}
+.animate-slide-in-left {
+  animation: slide-in-left 0.25s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+.safe-area-bottom {
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+
 /* Staggered delays */
 .delay-1 { animation-delay: 0.05s; }
 .delay-2 { animation-delay: 0.1s; }

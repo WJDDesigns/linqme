@@ -577,6 +577,185 @@ function PreviewField({ field, primaryColor, isPhone }: { field: FieldDef; prima
     );
   }
 
+  /* Site Structure Builder — preview */
+  if (field.type === "site_structure" && field.siteStructureConfig) {
+    const cfg = field.siteStructureConfig;
+    const starterPages = cfg.starterPages ?? [
+      { id: "1", name: "Home" },
+      { id: "2", name: "About" },
+      { id: "3", name: "Services" },
+      { id: "4", name: "Contact" },
+    ];
+    return (
+      <div>
+        <label className="block text-xs font-semibold text-on-surface-variant uppercase tracking-widest mb-1.5 ml-1">
+          {field.label}{field.required && <span className="ml-1" style={{ color: primaryColor }}>*</span>}
+        </label>
+        {field.hint && <p className="text-xs text-on-surface-variant/60 mb-3 ml-1">{field.hint}</p>}
+        <div className="rounded-2xl border-2 border-outline-variant/20 overflow-hidden bg-surface-container-lowest">
+          {/* Mock nav preview */}
+          <div className="px-4 py-3 border-b border-outline-variant/15 bg-surface-container/30">
+            <div className="flex items-center gap-4 text-xs text-on-surface-variant/60">
+              <i className="fa-solid fa-bars text-sm" style={{ color: primaryColor }} />
+              {starterPages.slice(0, 5).map((p) => (
+                <span key={p.id} className="font-medium hover:text-on-surface transition-colors cursor-default">{p.name}</span>
+              ))}
+            </div>
+          </div>
+          {/* Pages list */}
+          <div className="p-3 space-y-1.5">
+            {starterPages.map((page, i) => (
+              <div key={page.id} className="flex items-center gap-3 px-3 py-2.5 rounded-xl bg-surface-container/40 border border-outline-variant/10">
+                <i className="fa-solid fa-grip-vertical text-[10px] text-on-surface-variant/30" />
+                <span className="text-sm text-on-surface flex-1">{page.name}</span>
+                <span className="text-[10px] text-on-surface-variant/40 uppercase tracking-wider">Page {i + 1}</span>
+              </div>
+            ))}
+          </div>
+          <div className="px-3 pb-3">
+            <button type="button" className="w-full py-2.5 rounded-xl border-2 border-dashed text-xs font-bold uppercase tracking-widest transition-all hover:opacity-80"
+              style={{ borderColor: primaryColor + "40", color: primaryColor }}>
+              <i className="fa-solid fa-plus text-[10px] mr-1.5" />Add Page
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  /* Feature Selector — preview */
+  if (field.type === "feature_selector" && field.featureSelectorConfig) {
+    const cfg = field.featureSelectorConfig;
+    const categories = [...new Set(cfg.features.map((f) => f.category || "Features"))];
+    return (
+      <div>
+        <label className="block text-xs font-semibold text-on-surface-variant uppercase tracking-widest mb-1.5 ml-1">
+          {field.label}{field.required && <span className="ml-1" style={{ color: primaryColor }}>*</span>}
+        </label>
+        {field.hint && <p className="text-xs text-on-surface-variant/60 mb-3 ml-1">{field.hint}</p>}
+        {cfg.maxSelections ? <p className="text-xs text-on-surface-variant/40 mb-3 ml-1">Select up to {cfg.maxSelections}</p> : null}
+        <div className="space-y-4">
+          {categories.map((cat) => (
+            <div key={cat}>
+              {categories.length > 1 && <h4 className="text-[10px] font-bold text-on-surface-variant/50 uppercase tracking-widest mb-2 ml-1">{cat}</h4>}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                {cfg.features.filter((f) => (f.category || "Features") === cat).map((feat) => (
+                  <div key={feat.id}
+                    className="flex items-start gap-3 p-3.5 rounded-xl border-2 border-outline-variant/20 bg-surface-container-lowest cursor-pointer hover:border-primary/30 transition-all">
+                    {feat.icon && <i className={`fa-solid ${feat.icon} text-base mt-0.5`} style={{ color: primaryColor }} />}
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2">
+                        <span className="text-sm font-semibold text-on-surface">{feat.name}</span>
+                        {cfg.showComplexity && feat.complexity && <span className="text-[9px] px-1.5 py-0.5 rounded-full bg-surface-container-high text-on-surface-variant/60">{feat.complexity}</span>}
+                      </div>
+                      {feat.description && <p className="text-xs text-on-surface-variant/60 mt-0.5">{feat.description}</p>}
+                      {cfg.showPriceImpact && feat.priceImpact && <span className="text-[10px] font-bold mt-1 inline-block" style={{ color: primaryColor }}>{feat.priceImpact}</span>}
+                    </div>
+                    <div className="w-5 h-5 rounded border-2 border-outline-variant/30 shrink-0 mt-0.5" />
+                  </div>
+                ))}
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    );
+  }
+
+  /* Goal Builder — preview */
+  if (field.type === "goal_builder" && field.goalBuilderConfig) {
+    const cfg = field.goalBuilderConfig;
+    return (
+      <div>
+        <label className="block text-xs font-semibold text-on-surface-variant uppercase tracking-widest mb-1.5 ml-1">
+          {field.label}{field.required && <span className="ml-1" style={{ color: primaryColor }}>*</span>}
+        </label>
+        {field.hint && <p className="text-xs text-on-surface-variant/60 mb-3 ml-1">{field.hint}</p>}
+        {cfg.allowMultiple && <p className="text-xs text-on-surface-variant/40 mb-3 ml-1">Select all that apply</p>}
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          {cfg.goals.map((goal) => (
+            <div key={goal.id}
+              className="flex items-center gap-3 p-4 rounded-xl border-2 border-outline-variant/20 bg-surface-container-lowest cursor-pointer hover:border-primary/30 transition-all">
+              {goal.icon && <i className={`fa-solid ${goal.icon} text-lg`} style={{ color: primaryColor }} />}
+              <span className="text-sm font-semibold text-on-surface">{goal.label}</span>
+            </div>
+          ))}
+        </div>
+      </div>
+    );
+  }
+
+  /* Approval / Sign-off — preview */
+  if (field.type === "approval" && field.approvalConfig) {
+    const cfg = field.approvalConfig;
+    return (
+      <div>
+        <label className="block text-xs font-semibold text-on-surface-variant uppercase tracking-widest mb-1.5 ml-1">
+          {field.label}{field.required && <span className="ml-1" style={{ color: primaryColor }}>*</span>}
+        </label>
+        {field.hint && <p className="text-xs text-on-surface-variant/60 mb-2 ml-1">{field.hint}</p>}
+        <div className="space-y-4">
+          {cfg.scopeText && (
+            <div className="max-h-56 overflow-y-auto rounded-xl border-2 border-outline-variant/20 p-4 text-sm text-on-surface-variant leading-relaxed whitespace-pre-wrap bg-surface-container-lowest/50">
+              {cfg.scopeText}
+            </div>
+          )}
+          {cfg.requireFullName && (
+            <div>
+              <label className="block text-xs font-medium text-on-surface-variant mb-1">Full Name</label>
+              <input type="text" placeholder="Type your full legal name" className={INPUT_CLS} style={focusRing} readOnly />
+            </div>
+          )}
+          {cfg.requireSignature && (
+            <div>
+              <label className="block text-xs font-medium text-on-surface-variant mb-1">Signature</label>
+              <div className="relative rounded-xl border-2 border-outline-variant/20 overflow-hidden bg-white/95" style={{ height: 120 }}>
+                <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none select-none">
+                  <i className="fa-solid fa-signature text-2xl mb-1" style={{ color: "#d1d5db" }} />
+                  <span className="text-xs" style={{ color: "#9ca3af" }}>Sign here with mouse or finger</span>
+                </div>
+                <div className="absolute bottom-4 left-6 right-6 border-b" style={{ borderColor: "rgba(0,0,0,0.1)" }} />
+              </div>
+            </div>
+          )}
+          <button type="button"
+            className="w-full py-3.5 px-6 rounded-xl font-semibold text-sm border-2 flex items-center justify-center gap-2 transition-all"
+            style={{ borderColor: primaryColor, color: primaryColor }}>
+            <i className="fa-solid fa-circle text-base" />
+            {cfg.approveLabel || "I Approve"}
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  /* Asset Collection — preview */
+  if (field.type === "asset_collection" && field.assetCollectionConfig) {
+    const cfg = field.assetCollectionConfig;
+    const cats = cfg.categories ?? ["logos", "colors", "fonts", "documents", "images"];
+    const catIcons: Record<string, string> = { logos: "fa-star", colors: "fa-palette", fonts: "fa-font", documents: "fa-file-lines", images: "fa-images", other: "fa-folder" };
+    return (
+      <div>
+        <label className="block text-xs font-semibold text-on-surface-variant uppercase tracking-widest mb-1.5 ml-1">
+          {field.label}{field.required && <span className="ml-1" style={{ color: primaryColor }}>*</span>}
+        </label>
+        {field.hint && <p className="text-xs text-on-surface-variant/60 mb-3 ml-1">{field.hint}</p>}
+        <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+          {cats.map((cat) => (
+            <div key={cat} className="flex flex-col items-center gap-2 p-4 rounded-xl border-2 border-dashed border-outline-variant/25 bg-surface-container-lowest/50 cursor-pointer hover:border-primary/30 transition-all">
+              <div className="w-12 h-12 rounded-full bg-surface-container-high flex items-center justify-center">
+                <i className={`fa-solid ${catIcons[cat] || "fa-folder"} text-lg`} style={{ color: primaryColor }} />
+              </div>
+              <span className="text-xs font-semibold text-on-surface capitalize">{cat}</span>
+              <span className="text-[10px] text-on-surface-variant/50">Drop files here</span>
+            </div>
+          ))}
+        </div>
+        {cfg.maxFiles && <p className="text-xs text-on-surface-variant/40 mt-2 ml-1">Max {cfg.maxFiles} files total</p>}
+      </div>
+    );
+  }
+
   /* All other fields — fully interactive */
   return (
     <div>
