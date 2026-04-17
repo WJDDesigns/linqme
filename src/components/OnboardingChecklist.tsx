@@ -107,7 +107,7 @@ export default function OnboardingChecklist({
         <div className="px-6 md:px-8 pb-6 pt-2 text-center">
           <div className="py-4">
             <div className="w-12 h-12 rounded-2xl bg-tertiary/10 flex items-center justify-center mx-auto mb-3">
-              <i className="fa-solid fa-party-horn text-tertiary text-xl" />
+              <i className="fa-solid fa-circle-check text-tertiary text-xl" />
             </div>
             <p className="text-sm font-semibold text-on-surface">
               Congratulations! Your workspace is fully set up.
