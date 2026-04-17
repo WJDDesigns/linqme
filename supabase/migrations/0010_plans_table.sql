@@ -25,11 +25,11 @@ VALUES
   ('free', 'Starlink', 0, 1,
    '["Your own branded workspace", "Unlimited form fields", "File uploads", "1 submission / month"]'::jsonb,
    true, false, 0),
-  ('pro', 'Supernova', 14900, NULL,
+  ('pro', 'Agency', 14900, NULL,
    '["Everything in Starlink", "Unlimited submissions", "Custom domain", "Branded emails", "Full white-labeling"]'::jsonb,
    true, true, 1),
   ('enterprise', 'Galactic', 39900, NULL,
-   '["Everything in Supernova", "Priority support", "API access (coming)", "Dedicated success contact"]'::jsonb,
+   '["Everything in Agency", "Priority support", "API access (coming)", "Dedicated success contact"]'::jsonb,
    true, false, 2)
 ON CONFLICT (slug) DO NOTHING;
 

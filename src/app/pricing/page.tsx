@@ -11,7 +11,7 @@ export const metadata: Metadata = {
 
 const TIERS = [
   {
-    name: "Comet",
+    name: "Free",
     tagline: "For getting started",
     price: "Free",
     period: "forever",
@@ -30,7 +30,7 @@ const TIERS = [
     highlight: false,
   },
   {
-    name: "Nova",
+    name: "Starter",
     tagline: "For growing agencies",
     price: "$99",
     period: "/mo",
@@ -44,27 +44,27 @@ const TIERS = [
       { text: "CSV & PDF exports", included: true },
       { text: "Team members", included: true },
     ],
-    cta: "Get Nova",
-    href: "/signup?plan=nova",
+    cta: "Get Starter",
+    href: "/signup?plan=starter",
     highlight: true,
   },
   {
-    name: "Supernova",
+    name: "Agency",
     tagline: "For scaling teams",
     price: "$249",
     period: "/mo",
     features: [
       { text: "Unlimited submissions", included: true },
       { text: "500 GB file storage", included: true },
-      { text: "Everything in Nova", included: true },
+      { text: "Everything in Starter", included: true },
       { text: "Priority 24/7 support", included: true },
       { text: "Dedicated account manager", included: true },
       { text: "Advanced analytics", included: true },
       { text: "Custom onboarding setup", included: true },
       { text: "SLA guarantee", included: true },
     ],
-    cta: "Get Supernova",
-    href: "/signup?plan=supernova",
+    cta: "Get Agency",
+    href: "/signup?plan=agency",
     highlight: false,
   },
 ];
@@ -88,7 +88,7 @@ const FAQ = [
   },
   {
     q: "Do you offer annual billing?",
-    a: "Yes, annual billing comes with a 20% discount. Contact us at hello@linqme.io to set up annual billing on Nova or Supernova.",
+    a: "Yes, annual billing comes with a 20% discount. Contact us at hello@linqme.io to set up annual billing on Starter or Agency.",
   },
   {
     q: "What file types can clients upload?",
@@ -165,23 +165,23 @@ export default function PricingPage() {
               <thead>
                 <tr className="border-b border-outline-variant/[0.08]">
                   <th className="text-left px-6 py-4 text-xs uppercase tracking-widest text-on-surface-variant/50 font-bold">Feature</th>
-                  <th className="text-center px-4 py-4 text-xs uppercase tracking-widest text-on-surface-variant/50 font-bold">Comet</th>
-                  <th className="text-center px-4 py-4 text-xs uppercase tracking-widest text-primary font-bold">Nova</th>
-                  <th className="text-center px-4 py-4 text-xs uppercase tracking-widest text-on-surface-variant/50 font-bold">Supernova</th>
+                  <th className="text-center px-4 py-4 text-xs uppercase tracking-widest text-on-surface-variant/50 font-bold">Free</th>
+                  <th className="text-center px-4 py-4 text-xs uppercase tracking-widest text-primary font-bold">Starter</th>
+                  <th className="text-center px-4 py-4 text-xs uppercase tracking-widest text-on-surface-variant/50 font-bold">Agency</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-outline-variant/[0.05]">
-                <CompareRow feature="Monthly submissions" comet="1" nova="25" supernova="Unlimited" />
-                <CompareRow feature="File storage" comet="1 GB" nova="50 GB" supernova="500 GB" />
-                <CompareRow feature="Form fields" comet="Unlimited" nova="Unlimited" supernova="Unlimited" />
-                <CompareRow feature="White-labeling" comet={false} nova={true} supernova={true} />
-                <CompareRow feature="Custom domain" comet={false} nova={true} supernova={true} />
-                <CompareRow feature="Remove branding" comet={false} nova={true} supernova={true} />
-                <CompareRow feature="CSV & PDF exports" comet={false} nova={true} supernova={true} />
-                <CompareRow feature="Team members" comet="1" nova="5" supernova="Unlimited" />
-                <CompareRow feature="Priority support" comet={false} nova={false} supernova={true} />
-                <CompareRow feature="Dedicated account manager" comet={false} nova={false} supernova={true} />
-                <CompareRow feature="SLA guarantee" comet={false} nova={false} supernova={true} />
+                <CompareRow feature="Monthly submissions" free="1" starter="25" agency="Unlimited" />
+                <CompareRow feature="File storage" free="1 GB" starter="50 GB" agency="500 GB" />
+                <CompareRow feature="Form fields" free="Unlimited" starter="Unlimited" agency="Unlimited" />
+                <CompareRow feature="White-labeling" free={false} starter={true} agency={true} />
+                <CompareRow feature="Custom domain" free={false} starter={true} agency={true} />
+                <CompareRow feature="Remove branding" free={false} starter={true} agency={true} />
+                <CompareRow feature="CSV & PDF exports" free={false} starter={true} agency={true} />
+                <CompareRow feature="Team members" free="1" starter="5" agency="Unlimited" />
+                <CompareRow feature="Priority support" free={false} starter={false} agency={true} />
+                <CompareRow feature="Dedicated account manager" free={false} starter={false} agency={true} />
+                <CompareRow feature="SLA guarantee" free={false} starter={false} agency={true} />
               </tbody>
             </table>
           </div>
@@ -257,14 +257,14 @@ export default function PricingPage() {
 
 function CompareRow({
   feature,
-  comet,
-  nova,
-  supernova,
+  free,
+  starter,
+  agency,
 }: {
   feature: string;
-  comet: string | boolean;
-  nova: string | boolean;
-  supernova: string | boolean;
+  free: string | boolean;
+  starter: string | boolean;
+  agency: string | boolean;
 }) {
   function renderCell(val: string | boolean) {
     if (val === true) return <i className="fa-solid fa-check text-tertiary text-xs" />;
@@ -275,9 +275,9 @@ function CompareRow({
   return (
     <tr className="hover:bg-primary/[0.02] transition-colors">
       <td className="px-6 py-3.5 text-on-surface font-medium">{feature}</td>
-      <td className="text-center px-4 py-3.5">{renderCell(comet)}</td>
-      <td className="text-center px-4 py-3.5">{renderCell(nova)}</td>
-      <td className="text-center px-4 py-3.5">{renderCell(supernova)}</td>
+      <td className="text-center px-4 py-3.5">{renderCell(free)}</td>
+      <td className="text-center px-4 py-3.5">{renderCell(starter)}</td>
+      <td className="text-center px-4 py-3.5">{renderCell(agency)}</td>
     </tr>
   );
 }

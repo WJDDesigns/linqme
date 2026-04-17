@@ -59,8 +59,8 @@ export async function getAllPlans(): Promise<Plan[]> {
 /** Map legacy plan slugs to current ones */
 function normalizePlanSlug(slug: string): string {
   switch (slug) {
-    case "pro": return "nova";
-    case "enterprise": return "supernova";
+    case "pro": return "starter";
+    case "enterprise": return "agency";
     default: return slug;
   }
 }
@@ -100,10 +100,10 @@ export async function getPlanBySlug(slug: string): Promise<Plan | null> {
 function fallbackStripePriceId(slug: string): string | null {
   switch (slug) {
     case "pro":
-    case "nova":
+    case "starter":
       return process.env.STRIPE_PRICE_PRO ?? null;
     case "enterprise":
-    case "supernova":
+    case "agency":
       return process.env.STRIPE_PRICE_ENTERPRISE ?? null;
     default:
       return null;
@@ -136,9 +136,9 @@ export function getFormsLimitForTier(tier: string): number | null {
   switch (tier) {
     case "free": return 1;
     case "pro":
-    case "nova": return 10;
+    case "starter": return 10;
     case "enterprise":
-    case "supernova": return null;
+    case "agency": return null;
     default: return 1;
   }
 }
@@ -148,7 +148,7 @@ function getDefaultPlans(): Plan[] {
     {
       id: "default-free",
       slug: "free",
-      name: "Comet",
+      name: "Free",
       priceMonthly: 0,
       submissionsMonthlyLimit: 1,
       features: ["Your own branded workspace", "1 form", "Unlimited form fields", "File uploads", "1 GB storage", "1 submission / month"],
@@ -160,13 +160,13 @@ function getDefaultPlans(): Plan[] {
       sortOrder: 0,
     },
     {
-      id: "default-nova",
-      slug: "nova",
-      name: "Nova",
+      id: "default-starter",
+      slug: "starter",
+      name: "Starter",
       priceMonthly: 9900,
       submissionsMonthlyLimit: 25,
       formsLimit: 10,
-      features: ["Everything in Comet", "Up to 10 forms", "25 submissions / month", "50 GB storage", "Full white-labeling", "Custom domain", "CSV & PDF exports"],
+      features: ["Everything in Free", "Up to 10 forms", "25 submissions / month", "50 GB storage", "Full white-labeling", "Custom domain", "CSV & PDF exports"],
       stripeProductId: null,
       stripePriceId: process.env.STRIPE_PRICE_PRO ?? null,
       isActive: true,
@@ -174,13 +174,13 @@ function getDefaultPlans(): Plan[] {
       sortOrder: 1,
     },
     {
-      id: "default-supernova",
-      slug: "supernova",
-      name: "Supernova",
+      id: "default-agency",
+      slug: "agency",
+      name: "Agency",
       priceMonthly: 24900,
       submissionsMonthlyLimit: null,
       formsLimit: null,
-      features: ["Everything in Nova", "Unlimited forms", "Unlimited submissions", "500 GB storage", "Priority 24/7 support", "Dedicated account manager"],
+      features: ["Everything in Starter", "Unlimited forms", "Unlimited submissions", "500 GB storage", "Priority 24/7 support", "Dedicated account manager"],
       stripeProductId: null,
       stripePriceId: process.env.STRIPE_PRICE_ENTERPRISE ?? null,
       isActive: true,

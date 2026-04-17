@@ -11,7 +11,7 @@ export const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
 
 /* ── Plan tier ↔ Stripe price mapping ─────────────────────── */
 
-export type BillingTier = "free" | "pro" | "enterprise" | "nova" | "supernova";
+export type BillingTier = "free" | "pro" | "enterprise" | "starter" | "agency";
 
 export interface PlanConfig {
   tier: BillingTier;
@@ -28,10 +28,10 @@ export interface PlanConfig {
  * Plan definitions. Stripe price IDs are set via env vars so the same
  * code works across dev / staging / production Stripe accounts.
  */
-export const PLANS: Partial<Record<BillingTier, PlanConfig>> & Record<"free" | "nova" | "supernova", PlanConfig> = {
+export const PLANS: Partial<Record<BillingTier, PlanConfig>> & Record<"free" | "starter" | "agency", PlanConfig> = {
   free: {
     tier: "free",
-    name: "Comet",
+    name: "Free",
     priceMonthly: 0,
     stripePriceId: null,
     submissionsMonthlyLimit: 1,
@@ -43,14 +43,14 @@ export const PLANS: Partial<Record<BillingTier, PlanConfig>> & Record<"free" | "
       "1 submission / month",
     ],
   },
-  nova: {
-    tier: "nova",
-    name: "Nova",
+  starter: {
+    tier: "starter",
+    name: "Starter",
     priceMonthly: 9900, // $99
     stripePriceId: process.env.STRIPE_PRICE_PRO ?? null,
     submissionsMonthlyLimit: 25,
     features: [
-      "Everything in Comet",
+      "Everything in Free",
       "25 submissions / month",
       "50 GB storage",
       "Full white-labeling",
@@ -58,14 +58,14 @@ export const PLANS: Partial<Record<BillingTier, PlanConfig>> & Record<"free" | "
       "CSV & PDF exports",
     ],
   },
-  supernova: {
-    tier: "supernova",
-    name: "Supernova",
+  agency: {
+    tier: "agency",
+    name: "Agency",
     priceMonthly: 24900, // $249
     stripePriceId: process.env.STRIPE_PRICE_ENTERPRISE ?? null,
     submissionsMonthlyLimit: null,
     features: [
-      "Everything in Nova",
+      "Everything in Starter",
       "Unlimited submissions",
       "500 GB storage",
       "Priority 24/7 support",
@@ -80,12 +80,12 @@ export function mapLegacyTier(dbTier: string): BillingTier {
     case "paid":
     case "unlimited":
     case "pro":
-      return "nova";
+      return "starter";
     case "enterprise":
-    case "supernova":
-      return "supernova";
-    case "nova":
-      return "nova";
+    case "agency":
+      return "agency";
+    case "starter":
+      return "starter";
     default:
       return "free";
   }
@@ -95,10 +95,10 @@ export function mapLegacyTier(dbTier: string): BillingTier {
 export function tierToDbEnum(tier: BillingTier | string): string {
   switch (tier) {
     case "pro":
-    case "nova":
+    case "starter":
       return "paid";
     case "enterprise":
-    case "supernova":
+    case "agency":
       return "enterprise";
     default:
       return "free";
@@ -111,9 +111,9 @@ export function tierToDbEnum(tier: BillingTier | string): string {
  * Returns the price IDs that should be saved to env vars.
  */
 export async function ensureStripeProducts(): Promise<Record<string, string | null>> {
-  const results: Record<string, string | null> = { free: null, nova: null, supernova: null };
+  const results: Record<string, string | null> = { free: null, starter: null, agency: null };
 
-  for (const plan of [PLANS.nova, PLANS.supernova]) {
+  for (const plan of [PLANS.starter, PLANS.agency]) {
     if (plan.stripePriceId) {
       results[plan.tier] = plan.stripePriceId;
       continue;

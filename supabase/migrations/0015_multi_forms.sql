@@ -1,5 +1,5 @@
 -- Multi-form support: allow partners to have multiple forms
--- Free tier: 1 form, Nova: 10 forms, Supernova: unlimited
+-- Free tier: 1 form, Starter: 10 forms, Agency: unlimited
 
 -- Add metadata columns to partner_forms so each form has its own identity
 ALTER TABLE partner_forms

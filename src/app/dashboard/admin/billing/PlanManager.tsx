@@ -221,7 +221,7 @@ function PlanForm({ plan, nextOrder, onClose }: { plan: Plan | null; nextOrder: 
             name="name"
             required
             defaultValue={plan?.name ?? ""}
-            placeholder="Supernova"
+            placeholder="Agency"
             className={INPUT_CLS}
           />
         </label>

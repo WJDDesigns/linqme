@@ -495,7 +495,7 @@ export default async function LandingPage() {
           <span className="inline-block text-xs font-bold text-primary uppercase tracking-[0.2em] mb-4">Pricing</span>
           <h2 className="text-4xl md:text-5xl font-headline font-bold mb-4">Plans for every stage</h2>
           <p className="text-on-surface-variant text-lg mb-12 max-w-xl mx-auto">
-            Start free with Comet, grow with Nova, and go unlimited with Supernova.
+            Start free with Free, grow with Starter, and go unlimited with Agency.
           </p>
 
           <HomePricingTeaser />
@@ -525,7 +525,7 @@ export default async function LandingPage() {
           </div>
 
           <div className="space-y-4">
-            <FaqItem q="Is linqme really free?" a="Yes. The Comet plan is free forever with 1 submission per month and 1 GB of storage. No credit card required. Upgrade to Nova or Supernova when you're ready for more." />
+            <FaqItem q="Is linqme really free?" a="Yes. The Free plan is free forever with 1 submission per month and 1 GB of storage. No credit card required. Upgrade to Starter or Agency when you're ready for more." />
             <FaqItem q="Can my clients see linqme branding?" a="On paid plans, you can completely remove all linqme branding. Your clients will see your logo, your colors, and your custom domain. It looks 100% like your own tool." />
             <FaqItem q="What file types can clients upload?" a="Clients can upload any file type including images, PDFs, documents, videos, and design files. Individual files can be up to 100 MB on all plans." />
             <FaqItem q="Do I need to give clients a login?" a="No. Clients access their onboarding form via a unique, secure link. No accounts or passwords needed on their end. You get a full dashboard to manage everything." />
