@@ -4,6 +4,13 @@ import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { PROVIDER_META, ALL_PROVIDERS, type CloudProvider } from "@/lib/cloud/providers";
 
+const PROVIDER_URLS: Record<CloudProvider, { url: string; label: string }> = {
+  google_drive: { url: "https://drive.google.com", label: "Open Google Drive" },
+  dropbox: { url: "https://www.dropbox.com/account/connected_apps", label: "Manage Dropbox apps" },
+  onedrive: { url: "https://onedrive.live.com", label: "Open OneDrive" },
+  box: { url: "https://app.box.com/account", label: "Manage Box account" },
+};
+
 interface Integration {
   id: string;
   provider: string;
@@ -83,22 +90,44 @@ export default function IntegrationsSection({ integrations }: { integrations: In
                 </div>
               </div>
 
-              <div className="mt-4">
+              <div className="mt-4 space-y-2">
                 {isConnected ? (
-                  <button
-                    onClick={() => handleDisconnect(provider)}
-                    disabled={pending || disconnecting === provider}
-                    className="w-full px-4 py-2 text-xs font-bold text-error/70 border border-error/15 rounded-lg hover:bg-error/5 hover:text-error transition-all disabled:opacity-50"
-                  >
-                    {disconnecting === provider ? "Disconnecting..." : "Disconnect"}
-                  </button>
+                  <>
+                    <a
+                      href={PROVIDER_URLS[provider].url}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="flex items-center justify-center gap-1.5 text-[11px] font-medium text-on-surface-variant/60 hover:text-primary transition-colors"
+                    >
+                      <i className="fa-solid fa-arrow-up-right-from-square text-[9px]" />
+                      {PROVIDER_URLS[provider].label}
+                    </a>
+                    <button
+                      onClick={() => handleDisconnect(provider)}
+                      disabled={pending || disconnecting === provider}
+                      className="w-full px-4 py-2 text-xs font-bold text-error/70 border border-error/15 rounded-lg hover:bg-error/5 hover:text-error transition-all disabled:opacity-50"
+                    >
+                      {disconnecting === provider ? "Disconnecting..." : "Disconnect"}
+                    </button>
+                  </>
                 ) : (
-                  <a
-                    href={`/api/integrations/${provider}/connect`}
-                    className="block w-full px-4 py-2 text-xs font-bold text-center text-primary border border-primary/20 rounded-lg hover:bg-primary/5 transition-all"
-                  >
-                    Connect {meta.displayName}
-                  </a>
+                  <>
+                    <a
+                      href={PROVIDER_URLS[provider].url}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="flex items-center gap-1.5 text-[11px] font-medium text-primary hover:text-primary/80 transition-colors"
+                    >
+                      <i className="fa-solid fa-arrow-up-right-from-square text-[9px]" />
+                      {PROVIDER_URLS[provider].label}
+                    </a>
+                    <a
+                      href={`/api/integrations/${provider}/connect`}
+                      className="block w-full px-4 py-2 text-xs font-bold text-center text-primary border border-primary/20 rounded-lg hover:bg-primary/5 transition-all"
+                    >
+                      Connect {meta.displayName}
+                    </a>
+                  </>
                 )}
               </div>
             </div>

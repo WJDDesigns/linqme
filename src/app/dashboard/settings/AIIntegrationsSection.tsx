@@ -17,6 +17,8 @@ interface ProviderMeta {
   icon: string;
   color: string;
   models: { value: string; label: string }[];
+  apiKeyUrl: string;
+  apiKeyLabel: string;
 }
 
 const PROVIDER_META: Record<AIProvider, ProviderMeta> = {
@@ -29,6 +31,8 @@ const PROVIDER_META: Record<AIProvider, ProviderMeta> = {
       { value: "gpt-4o-mini", label: "GPT-4o Mini" },
       { value: "gpt-4-turbo", label: "GPT-4 Turbo" },
     ],
+    apiKeyUrl: "https://platform.openai.com/api-keys",
+    apiKeyLabel: "Get your API key from OpenAI",
   },
   anthropic: {
     displayName: "Anthropic (Claude)",
@@ -38,6 +42,8 @@ const PROVIDER_META: Record<AIProvider, ProviderMeta> = {
       { value: "claude-sonnet-4-20250514", label: "Claude Sonnet 4" },
       { value: "claude-haiku-4-5-20251001", label: "Claude Haiku 4.5" },
     ],
+    apiKeyUrl: "https://console.anthropic.com/settings/keys",
+    apiKeyLabel: "Get your API key from Anthropic",
   },
   google_ai: {
     displayName: "Google AI (Gemini)",
@@ -47,6 +53,8 @@ const PROVIDER_META: Record<AIProvider, ProviderMeta> = {
       { value: "gemini-2.0-flash", label: "Gemini 2.0 Flash" },
       { value: "gemini-1.5-pro", label: "Gemini 1.5 Pro" },
     ],
+    apiKeyUrl: "https://aistudio.google.com/apikey",
+    apiKeyLabel: "Get your API key from Google AI Studio",
   },
 };
 
@@ -223,6 +231,16 @@ export default function AIIntegrationsSection({
                   </button>
                 ) : (
                   <div className="space-y-3">
+                    {/* Link to get API key */}
+                    <a
+                      href={meta.apiKeyUrl}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="flex items-center gap-1.5 text-[11px] font-medium text-primary hover:text-primary/80 transition-colors"
+                    >
+                      <i className="fa-solid fa-arrow-up-right-from-square text-[9px]" />
+                      {meta.apiKeyLabel}
+                    </a>
                     {/* API Key input */}
                     <div className="relative">
                       <input
