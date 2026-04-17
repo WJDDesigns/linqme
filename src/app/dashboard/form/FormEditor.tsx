@@ -4,6 +4,7 @@ import { useState, useCallback, useRef, useEffect } from "react";
 import type { FormSchema, StepDef, FieldDef, FieldType, PackageConfig, PackageOption, PackageFeature, PackageRule, PackageLayout, RepeaterConfig, RepeaterSubField, ShowCondition, AssetCollectionConfig, AssetCategory, SiteStructureConfig, FeatureSelectorConfig, FeatureOption, GoalBuilderConfig, GoalOption, GoalRefinement, ApprovalConfig } from "@/lib/forms";
 import { PROVIDER_META, type CloudProvider } from "@/lib/cloud/providers";
 import CloudDestinationButton from "@/components/CloudDestinationButton";
+import IconPicker from "@/components/IconPicker";
 import { saveFormSchemaAction } from "./actions";
 
 /* ── Field type catalogue ──────────────────────────────────── */
@@ -1275,10 +1276,14 @@ function FieldSettingsPanel({ field, onUpdate, onClose, allFields, hasAI }: {
             <div>
               <span className="text-[11px] font-medium text-on-surface-variant mb-1 block">Max Files</span>
               <input type="number" min={1} value={field.assetCollectionConfig.maxFiles} onChange={e => onUpdate({ assetCollectionConfig: { ...field.assetCollectionConfig!, maxFiles: +e.target.value } })} className={INPUT_CLS} />
+              <p className="text-[10px] text-on-surface-variant/50 mt-0.5">Maximum number of files the client can upload per category.</p>
             </div>
             <div className="flex items-center justify-between p-3 bg-surface-container rounded-lg">
-              <span className="text-xs font-medium text-on-surface">Allow Cloud Connect</span>
-              <label className="relative cursor-pointer">
+              <div>
+                <span className="text-xs font-medium text-on-surface block">Allow Cloud Connect</span>
+                <p className="text-[10px] text-on-surface-variant/50 mt-0.5">Let clients link files from Google Drive, Dropbox, etc.</p>
+              </div>
+              <label className="relative cursor-pointer shrink-0 ml-3">
                 <input type="checkbox" checked={!!field.assetCollectionConfig.allowCloudConnect} onChange={e => onUpdate({ assetCollectionConfig: { ...field.assetCollectionConfig!, allowCloudConnect: e.target.checked } })} className="sr-only peer" />
                 <div className="w-8 h-4 bg-surface-container-highest rounded-full peer-checked:bg-primary transition-colors" />
                 <div className="absolute left-0.5 top-0.5 w-3 h-3 bg-on-surface-variant rounded-full peer-checked:translate-x-4 peer-checked:bg-on-primary transition-all" />
@@ -1286,10 +1291,12 @@ function FieldSettingsPanel({ field, onUpdate, onClose, allFields, hasAI }: {
             </div>
             <div>
               <span className="text-[11px] font-medium text-on-surface-variant mb-1 block">Categories</span>
+              <p className="text-[10px] text-on-surface-variant/50 mb-2">Organize uploads into sections. Drag to reorder.</p>
               <div className="space-y-1.5">
                 {field.assetCollectionConfig.categories?.map((cat, i) => (
-                  <div key={i} className="flex items-center gap-2">
-                    <input value={cat} onChange={e => { const cats = [...field.assetCollectionConfig!.categories!]; cats[i] = e.target.value as AssetCategory; onUpdate({ assetCollectionConfig: { ...field.assetCollectionConfig!, categories: cats } }); }} className={INPUT_CLS} />
+                  <div key={i} draggable onDragStart={(e) => { e.dataTransfer.setData("text/plain", String(i)); }} onDragOver={(e) => { e.preventDefault(); e.dataTransfer.dropEffect = "move"; }} onDrop={(e) => { const from = Number(e.dataTransfer.getData("text/plain")); if (from !== i && !isNaN(from)) { const cats = [...field.assetCollectionConfig!.categories!]; const [moved] = cats.splice(from, 1); cats.splice(i > from ? i - 1 : i, 0, moved); onUpdate({ assetCollectionConfig: { ...field.assetCollectionConfig!, categories: cats } }); } }} className="flex items-center gap-2">
+                    <div className="cursor-grab active:cursor-grabbing text-on-surface-variant/30 hover:text-on-surface-variant/60 transition-colors shrink-0" title="Drag to reorder"><i className="fa-solid fa-grip-vertical text-[10px]" /></div>
+                    <input value={cat} onChange={e => { const cats = [...field.assetCollectionConfig!.categories!]; cats[i] = e.target.value as AssetCategory; onUpdate({ assetCollectionConfig: { ...field.assetCollectionConfig!, categories: cats } }); }} className={INPUT_CLS} placeholder="e.g. Logo, Photos, Brand Guidelines" />
                     <button onClick={() => { const cats = field.assetCollectionConfig!.categories!.filter((_, j) => j !== i); onUpdate({ assetCollectionConfig: { ...field.assetCollectionConfig!, categories: cats } }); }} className="p-1 text-on-surface-variant/40 hover:text-error text-xs transition-colors shrink-0"><i className="fa-solid fa-xmark" /></button>
                   </div>
                 ))}
@@ -1306,10 +1313,14 @@ function FieldSettingsPanel({ field, onUpdate, onClose, allFields, hasAI }: {
             <div>
               <span className="text-[11px] font-medium text-on-surface-variant mb-1 block">Max Pages</span>
               <input type="number" min={1} value={field.siteStructureConfig.maxPages} onChange={e => onUpdate({ siteStructureConfig: { ...field.siteStructureConfig!, maxPages: +e.target.value } })} className={INPUT_CLS} />
+              <p className="text-[10px] text-on-surface-variant/50 mt-0.5">Maximum number of pages the client can add to their sitemap.</p>
             </div>
             <div className="flex items-center justify-between p-3 bg-surface-container rounded-lg">
-              <span className="text-xs font-medium text-on-surface">Allow Nesting</span>
-              <label className="relative cursor-pointer">
+              <div>
+                <span className="text-xs font-medium text-on-surface block">Allow Nesting</span>
+                <p className="text-[10px] text-on-surface-variant/50 mt-0.5">Let clients create sub-pages under parent pages.</p>
+              </div>
+              <label className="relative cursor-pointer shrink-0 ml-3">
                 <input type="checkbox" checked={!!field.siteStructureConfig.allowNesting} onChange={e => onUpdate({ siteStructureConfig: { ...field.siteStructureConfig!, allowNesting: e.target.checked } })} className="sr-only peer" />
                 <div className="w-8 h-4 bg-surface-container-highest rounded-full peer-checked:bg-primary transition-colors" />
                 <div className="absolute left-0.5 top-0.5 w-3 h-3 bg-on-surface-variant rounded-full peer-checked:translate-x-4 peer-checked:bg-on-primary transition-all" />
@@ -1317,10 +1328,12 @@ function FieldSettingsPanel({ field, onUpdate, onClose, allFields, hasAI }: {
             </div>
             <div>
               <span className="text-[11px] font-medium text-on-surface-variant mb-1 block">Starter Pages</span>
+              <p className="text-[10px] text-on-surface-variant/50 mb-2">Pre-populate common pages so clients have a starting point. Drag to reorder.</p>
               <div className="space-y-1.5">
                 {field.siteStructureConfig.starterPages?.map((page, i) => (
-                  <div key={page.id} className="flex items-center gap-2">
-                    <input value={page.name} onChange={e => { const pages = [...field.siteStructureConfig!.starterPages!]; pages[i] = { ...pages[i], name: e.target.value }; onUpdate({ siteStructureConfig: { ...field.siteStructureConfig!, starterPages: pages } }); }} className={INPUT_CLS} placeholder="Page name" />
+                  <div key={page.id} draggable onDragStart={(e) => { e.dataTransfer.setData("text/plain", String(i)); }} onDragOver={(e) => { e.preventDefault(); e.dataTransfer.dropEffect = "move"; }} onDrop={(e) => { const from = Number(e.dataTransfer.getData("text/plain")); if (from !== i && !isNaN(from)) { const pages = [...field.siteStructureConfig!.starterPages!]; const [moved] = pages.splice(from, 1); pages.splice(i > from ? i - 1 : i, 0, moved); onUpdate({ siteStructureConfig: { ...field.siteStructureConfig!, starterPages: pages } }); } }} className="flex items-center gap-2">
+                    <div className="cursor-grab active:cursor-grabbing text-on-surface-variant/30 hover:text-on-surface-variant/60 transition-colors shrink-0" title="Drag to reorder"><i className="fa-solid fa-grip-vertical text-[10px]" /></div>
+                    <input value={page.name} onChange={e => { const pages = [...field.siteStructureConfig!.starterPages!]; pages[i] = { ...pages[i], name: e.target.value }; onUpdate({ siteStructureConfig: { ...field.siteStructureConfig!, starterPages: pages } }); }} className={INPUT_CLS} placeholder="e.g. Home, About, Services, Contact" />
                     <button onClick={() => { const pages = field.siteStructureConfig!.starterPages!.filter((_, j) => j !== i); onUpdate({ siteStructureConfig: { ...field.siteStructureConfig!, starterPages: pages } }); }} className="p-1 text-on-surface-variant/40 hover:text-error text-xs transition-colors shrink-0"><i className="fa-solid fa-xmark" /></button>
                   </div>
                 ))}
@@ -1404,10 +1417,12 @@ function FieldSettingsPanel({ field, onUpdate, onClose, allFields, hasAI }: {
             <div>
               <span className="text-[11px] font-medium text-on-surface-variant mb-1 block">Max Competitors</span>
               <input type="number" min={1} max={20} value={field.competitorAnalyzerConfig.maxCompetitors ?? 5} onChange={e => onUpdate({ competitorAnalyzerConfig: { ...field.competitorAnalyzerConfig!, maxCompetitors: Number(e.target.value) } })} className={INPUT_CLS} />
+              <p className="text-[10px] text-on-surface-variant/50 mt-0.5">How many competitor URLs the client can enter.</p>
             </div>
             <div>
               <span className="text-[11px] font-medium text-on-surface-variant mb-1 block">Placeholder URL</span>
               <input value={field.competitorAnalyzerConfig.placeholder ?? ""} onChange={e => onUpdate({ competitorAnalyzerConfig: { ...field.competitorAnalyzerConfig!, placeholder: e.target.value } })} className={INPUT_CLS} placeholder="https://competitor.com" />
+              <p className="text-[10px] text-on-surface-variant/50 mt-0.5">Example URL shown as placeholder text in the input field.</p>
             </div>
             {hasAI ? (
               <>
@@ -1448,24 +1463,33 @@ function FieldSettingsPanel({ field, onUpdate, onClose, allFields, hasAI }: {
           <section className="space-y-3">
             <div className="text-[10px] font-bold text-on-surface-variant uppercase tracking-widest">Timeline & Availability</div>
             <div className="flex items-center justify-between p-3 bg-surface-container rounded-lg">
-              <span className="text-xs font-medium text-on-surface">Show Start Date</span>
-              <label className="relative cursor-pointer">
+              <div>
+                <span className="text-xs font-medium text-on-surface block">Show Start Date</span>
+                <p className="text-[10px] text-on-surface-variant/50 mt-0.5">When does the client want to begin the project?</p>
+              </div>
+              <label className="relative cursor-pointer shrink-0 ml-3">
                 <input type="checkbox" checked={!!field.timelineConfig.showStartDate} onChange={e => onUpdate({ timelineConfig: { ...field.timelineConfig!, showStartDate: e.target.checked } })} className="sr-only peer" />
                 <div className="w-8 h-4 bg-surface-container-highest rounded-full peer-checked:bg-primary transition-colors" />
                 <div className="absolute left-0.5 top-0.5 w-3 h-3 bg-on-surface-variant rounded-full peer-checked:translate-x-4 peer-checked:bg-on-primary transition-all" />
               </label>
             </div>
             <div className="flex items-center justify-between p-3 bg-surface-container rounded-lg">
-              <span className="text-xs font-medium text-on-surface">Show End / Deadline Date</span>
-              <label className="relative cursor-pointer">
+              <div>
+                <span className="text-xs font-medium text-on-surface block">Show End / Deadline Date</span>
+                <p className="text-[10px] text-on-surface-variant/50 mt-0.5">Does the client have a hard deadline?</p>
+              </div>
+              <label className="relative cursor-pointer shrink-0 ml-3">
                 <input type="checkbox" checked={!!field.timelineConfig.showEndDate} onChange={e => onUpdate({ timelineConfig: { ...field.timelineConfig!, showEndDate: e.target.checked } })} className="sr-only peer" />
                 <div className="w-8 h-4 bg-surface-container-highest rounded-full peer-checked:bg-primary transition-colors" />
                 <div className="absolute left-0.5 top-0.5 w-3 h-3 bg-on-surface-variant rounded-full peer-checked:translate-x-4 peer-checked:bg-on-primary transition-all" />
               </label>
             </div>
             <div className="flex items-center justify-between p-3 bg-surface-container rounded-lg">
-              <span className="text-xs font-medium text-on-surface">Allow Blackout Dates</span>
-              <label className="relative cursor-pointer">
+              <div>
+                <span className="text-xs font-medium text-on-surface block">Allow Blackout Dates</span>
+                <p className="text-[10px] text-on-surface-variant/50 mt-0.5">Let clients mark date ranges when they&apos;re unavailable.</p>
+              </div>
+              <label className="relative cursor-pointer shrink-0 ml-3">
                 <input type="checkbox" checked={!!field.timelineConfig.allowBlackoutDates} onChange={e => onUpdate({ timelineConfig: { ...field.timelineConfig!, allowBlackoutDates: e.target.checked } })} className="sr-only peer" />
                 <div className="w-8 h-4 bg-surface-container-highest rounded-full peer-checked:bg-primary transition-colors" />
                 <div className="absolute left-0.5 top-0.5 w-3 h-3 bg-on-surface-variant rounded-full peer-checked:translate-x-4 peer-checked:bg-on-primary transition-all" />
@@ -1473,14 +1497,33 @@ function FieldSettingsPanel({ field, onUpdate, onClose, allFields, hasAI }: {
             </div>
             <div>
               <span className="text-[11px] font-medium text-on-surface-variant mb-1.5 block">Milestones</span>
+              <p className="text-[10px] text-on-surface-variant/50 mb-2">Key project phases the client needs to set dates for. Drag to reorder.</p>
               <div className="space-y-1.5">
                 {(field.timelineConfig.milestones ?? []).map((ms, mi) => (
-                  <div key={ms.id} className="flex items-center gap-2 p-2 bg-surface-container rounded-lg">
-                    <input value={ms.label} onChange={e => { const milestones = [...(field.timelineConfig!.milestones ?? [])]; milestones[mi] = { ...milestones[mi], label: e.target.value }; onUpdate({ timelineConfig: { ...field.timelineConfig!, milestones } }); }} className="flex-1 text-xs bg-transparent border-none outline-none text-on-surface" placeholder="Milestone name" />
-                    <label className="flex items-center gap-1 text-[10px] text-on-surface-variant/60 shrink-0">
+                  <div
+                    key={ms.id}
+                    draggable
+                    onDragStart={(e) => { e.dataTransfer.setData("text/plain", String(mi)); }}
+                    onDragOver={(e) => { e.preventDefault(); e.dataTransfer.dropEffect = "move"; }}
+                    onDrop={(e) => {
+                      const from = Number(e.dataTransfer.getData("text/plain"));
+                      if (from !== mi && !isNaN(from)) {
+                        const milestones = [...(field.timelineConfig!.milestones ?? [])];
+                        const [moved] = milestones.splice(from, 1);
+                        milestones.splice(mi > from ? mi - 1 : mi, 0, moved);
+                        onUpdate({ timelineConfig: { ...field.timelineConfig!, milestones } });
+                      }
+                    }}
+                    className="flex items-center gap-2 p-2 bg-surface-container rounded-lg"
+                  >
+                    <div className="cursor-grab active:cursor-grabbing text-on-surface-variant/30 hover:text-on-surface-variant/60 transition-colors shrink-0" title="Drag to reorder">
+                      <i className="fa-solid fa-grip-vertical text-[10px]" />
+                    </div>
+                    <input value={ms.label} onChange={e => { const milestones = [...(field.timelineConfig!.milestones ?? [])]; milestones[mi] = { ...milestones[mi], label: e.target.value }; onUpdate({ timelineConfig: { ...field.timelineConfig!, milestones } }); }} className="flex-1 text-xs bg-transparent border-none outline-none text-on-surface" placeholder="e.g. Discovery, Design, Development, Launch" />
+                    <label className="flex items-center gap-1 text-[10px] text-on-surface-variant/60 shrink-0" title="Client must provide a date for this milestone">
                       <input type="checkbox" checked={!!ms.required} onChange={e => { const milestones = [...(field.timelineConfig!.milestones ?? [])]; milestones[mi] = { ...milestones[mi], required: e.target.checked }; onUpdate({ timelineConfig: { ...field.timelineConfig!, milestones } }); }} className="w-3 h-3 rounded" style={{ accentColor: "var(--color-primary)" }} /> Req
                     </label>
-                    <button onClick={() => { const milestones = (field.timelineConfig!.milestones ?? []).filter((_, i) => i !== mi); onUpdate({ timelineConfig: { ...field.timelineConfig!, milestones } }); }} className="text-on-surface-variant/40 hover:text-error text-[10px]"><i className="fa-solid fa-xmark" /></button>
+                    <button onClick={() => { const milestones = (field.timelineConfig!.milestones ?? []).filter((_, i) => i !== mi); onUpdate({ timelineConfig: { ...field.timelineConfig!, milestones } }); }} className="text-on-surface-variant/40 hover:text-error text-[10px] shrink-0"><i className="fa-solid fa-xmark" /></button>
                   </div>
                 ))}
               </div>
@@ -1496,25 +1539,31 @@ function FieldSettingsPanel({ field, onUpdate, onClose, allFields, hasAI }: {
             <div>
               <span className="text-[11px] font-medium text-on-surface-variant mb-1 block">Mode</span>
               <select value={field.budgetAllocatorConfig.mode} onChange={e => onUpdate({ budgetAllocatorConfig: { ...field.budgetAllocatorConfig!, mode: e.target.value as "constrained" | "independent" } })} className={INPUT_CLS}>
-                <option value="constrained">Fixed Total (redistributing)</option>
-                <option value="independent">Independent Sliders</option>
+                <option value="constrained">Fixed Total — budget is split across channels</option>
+                <option value="independent">Independent — each channel has its own limit</option>
               </select>
+              <p className="text-[10px] text-on-surface-variant/50 mt-0.5">{field.budgetAllocatorConfig.mode === "constrained" ? "Moving one slider automatically adjusts others to keep the total fixed." : "Each channel slider is independent — no shared total."}</p>
             </div>
             {field.budgetAllocatorConfig.mode === "constrained" && (
               <div>
                 <span className="text-[11px] font-medium text-on-surface-variant mb-1 block">Total Budget ({field.budgetAllocatorConfig.currency ?? "$"})</span>
                 <input type="number" min={0} value={field.budgetAllocatorConfig.totalBudget ?? 5000} onChange={e => onUpdate({ budgetAllocatorConfig: { ...field.budgetAllocatorConfig!, totalBudget: Number(e.target.value) } })} className={INPUT_CLS} />
+                <p className="text-[10px] text-on-surface-variant/50 mt-0.5">The fixed amount clients divide across channels.</p>
               </div>
             )}
             {field.budgetAllocatorConfig.mode === "independent" && (
               <div>
                 <span className="text-[11px] font-medium text-on-surface-variant mb-1 block">Max Per Channel ({field.budgetAllocatorConfig.currency ?? "$"})</span>
                 <input type="number" min={0} value={field.budgetAllocatorConfig.maxPerChannel ?? 10000} onChange={e => onUpdate({ budgetAllocatorConfig: { ...field.budgetAllocatorConfig!, maxPerChannel: Number(e.target.value) } })} className={INPUT_CLS} />
+                <p className="text-[10px] text-on-surface-variant/50 mt-0.5">Maximum each channel slider can reach.</p>
               </div>
             )}
             <div className="flex items-center justify-between p-3 bg-surface-container rounded-lg">
-              <span className="text-xs font-medium text-on-surface">Show as Percentages</span>
-              <label className="relative cursor-pointer">
+              <div>
+                <span className="text-xs font-medium text-on-surface block">Show as Percentages</span>
+                <p className="text-[10px] text-on-surface-variant/50 mt-0.5">Display % instead of dollar amounts on sliders.</p>
+              </div>
+              <label className="relative cursor-pointer shrink-0 ml-3">
                 <input type="checkbox" checked={!!field.budgetAllocatorConfig.showAsPercentage} onChange={e => onUpdate({ budgetAllocatorConfig: { ...field.budgetAllocatorConfig!, showAsPercentage: e.target.checked } })} className="sr-only peer" />
                 <div className="w-8 h-4 bg-surface-container-highest rounded-full peer-checked:bg-primary transition-colors" />
                 <div className="absolute left-0.5 top-0.5 w-3 h-3 bg-on-surface-variant rounded-full peer-checked:translate-x-4 peer-checked:bg-on-primary transition-all" />
@@ -1522,16 +1571,37 @@ function FieldSettingsPanel({ field, onUpdate, onClose, allFields, hasAI }: {
             </div>
             <div>
               <span className="text-[11px] font-medium text-on-surface-variant mb-1 block">Currency Symbol</span>
-              <input value={field.budgetAllocatorConfig.currency ?? "$"} onChange={e => onUpdate({ budgetAllocatorConfig: { ...field.budgetAllocatorConfig!, currency: e.target.value } })} className={INPUT_CLS} maxLength={3} />
+              <input value={field.budgetAllocatorConfig.currency ?? "$"} onChange={e => onUpdate({ budgetAllocatorConfig: { ...field.budgetAllocatorConfig!, currency: e.target.value } })} className={INPUT_CLS} maxLength={3} placeholder="e.g. $, €, £" />
             </div>
             <div>
               <span className="text-[11px] font-medium text-on-surface-variant mb-1.5 block">Channels</span>
+              <p className="text-[10px] text-on-surface-variant/50 mb-2">Budget categories your client allocates money across. Drag to reorder.</p>
               <div className="space-y-1.5">
                 {field.budgetAllocatorConfig.channels.map((ch, ci) => (
-                  <div key={ch.id} className="flex items-center gap-2 p-2 bg-surface-container rounded-lg">
-                    <input value={ch.icon ?? ""} onChange={e => { const channels = [...field.budgetAllocatorConfig!.channels]; channels[ci] = { ...channels[ci], icon: e.target.value }; onUpdate({ budgetAllocatorConfig: { ...field.budgetAllocatorConfig!, channels } }); }} className="w-16 text-[10px] bg-transparent border-none outline-none text-on-surface-variant/60" placeholder="fa-icon" />
-                    <input value={ch.label} onChange={e => { const channels = [...field.budgetAllocatorConfig!.channels]; channels[ci] = { ...channels[ci], label: e.target.value }; onUpdate({ budgetAllocatorConfig: { ...field.budgetAllocatorConfig!, channels } }); }} className="flex-1 text-xs bg-transparent border-none outline-none text-on-surface font-medium" placeholder="Channel name" />
-                    <button onClick={() => { const channels = field.budgetAllocatorConfig!.channels.filter((_, i) => i !== ci); onUpdate({ budgetAllocatorConfig: { ...field.budgetAllocatorConfig!, channels } }); }} className="text-on-surface-variant/40 hover:text-error text-[10px]"><i className="fa-solid fa-xmark" /></button>
+                  <div
+                    key={ch.id}
+                    draggable
+                    onDragStart={(e) => { e.dataTransfer.setData("text/plain", String(ci)); (e.currentTarget as HTMLElement).dataset.dragIdx = String(ci); }}
+                    onDragOver={(e) => { e.preventDefault(); e.dataTransfer.dropEffect = "move"; }}
+                    onDrop={(e) => {
+                      const from = Number(e.dataTransfer.getData("text/plain"));
+                      if (from !== ci && !isNaN(from)) {
+                        const channels = [...field.budgetAllocatorConfig!.channels];
+                        const [moved] = channels.splice(from, 1);
+                        channels.splice(ci > from ? ci - 1 : ci, 0, moved);
+                        onUpdate({ budgetAllocatorConfig: { ...field.budgetAllocatorConfig!, channels } });
+                      }
+                    }}
+                    className="flex items-center gap-2 p-2 bg-surface-container rounded-lg group"
+                  >
+                    <div className="cursor-grab active:cursor-grabbing text-on-surface-variant/30 hover:text-on-surface-variant/60 transition-colors shrink-0" title="Drag to reorder">
+                      <i className="fa-solid fa-grip-vertical text-[10px]" />
+                    </div>
+                    <div className="shrink-0">
+                      <IconPicker value={ch.icon ?? "fa-circle"} onChange={(icon) => { const channels = [...field.budgetAllocatorConfig!.channels]; channels[ci] = { ...channels[ci], icon }; onUpdate({ budgetAllocatorConfig: { ...field.budgetAllocatorConfig!, channels } }); }} />
+                    </div>
+                    <input value={ch.label} onChange={e => { const channels = [...field.budgetAllocatorConfig!.channels]; channels[ci] = { ...channels[ci], label: e.target.value }; onUpdate({ budgetAllocatorConfig: { ...field.budgetAllocatorConfig!, channels } }); }} className="flex-1 text-xs bg-transparent border-none outline-none text-on-surface font-medium" placeholder="e.g. SEO, Social Media, Content" />
+                    <button onClick={() => { const channels = field.budgetAllocatorConfig!.channels.filter((_, i) => i !== ci); onUpdate({ budgetAllocatorConfig: { ...field.budgetAllocatorConfig!, channels } }); }} className="text-on-surface-variant/40 hover:text-error text-[10px] shrink-0"><i className="fa-solid fa-xmark" /></button>
                   </div>
                 ))}
               </div>
@@ -2563,6 +2633,45 @@ function DialogLauncher({
   );
 }
 
+/* ── Drag-reorder helper ─────────────────────────────────── */
+
+function useDragReorder<T extends { id: string }>(
+  items: T[],
+  onReorder: (updated: T[]) => void,
+) {
+  const dragIdx = useRef<number | null>(null);
+  const [dropIdx, setDropIdx] = useState<number | null>(null);
+
+  function onDragStart(i: number) { dragIdx.current = i; }
+  function onDragOver(e: React.DragEvent, i: number) { e.preventDefault(); e.dataTransfer.dropEffect = "move"; setDropIdx(i); }
+  function onDragLeave() { setDropIdx(null); }
+  function onDrop(i: number) {
+    const from = dragIdx.current;
+    if (from !== null && from !== i) {
+      const arr = [...items];
+      const [moved] = arr.splice(from, 1);
+      arr.splice(i > from ? i - 1 : i, 0, moved);
+      onReorder(arr);
+    }
+    dragIdx.current = null;
+    setDropIdx(null);
+  }
+  function onDragEnd() { dragIdx.current = null; setDropIdx(null); }
+
+  return { dragIdx, dropIdx, onDragStart, onDragOver, onDragLeave, onDrop, onDragEnd };
+}
+
+/** Small helper text below a label */
+function HelpText({ children }: { children: React.ReactNode }) {
+  return <p className="text-[10px] text-on-surface-variant/50 leading-relaxed mt-0.5">{children}</p>;
+}
+
+/** Drop indicator bar */
+function DropBar({ show }: { show: boolean }) {
+  if (!show) return null;
+  return <div className="h-1 rounded-full bg-primary/60 mx-2 my-1 animate-pulse" />;
+}
+
 /* ── Feature Selector Dialog ─────────────────────────────── */
 
 function FeatureSelectorDialog({ config, onUpdate, onClose }: {
@@ -2570,52 +2679,95 @@ function FeatureSelectorDialog({ config, onUpdate, onClose }: {
   onUpdate: (cfg: FeatureSelectorConfig) => void;
   onClose: () => void;
 }) {
+  const dnd = useDragReorder(config.features ?? [], (features) => onUpdate({ ...config, features }));
+
   return (
     <div className="space-y-5">
+      {/* Intro help */}
+      <div className="p-3 bg-primary/5 rounded-xl border border-primary/10">
+        <p className="text-xs text-on-surface-variant leading-relaxed">
+          <i className="fa-solid fa-circle-info text-primary mr-1.5" />
+          Define the features your clients can choose from. Drag the <i className="fa-solid fa-grip-vertical text-[10px] mx-0.5" /> handle to reorder. Each feature can have a category, complexity level, and optional price.
+        </p>
+      </div>
+
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         <div>
-          <span className="text-[11px] font-medium text-on-surface-variant mb-1 block">Max Selections (0 = unlimited)</span>
+          <span className="text-[11px] font-medium text-on-surface-variant mb-1 block">Max Selections</span>
           <input type="number" min={0} value={config.maxSelections} onChange={e => onUpdate({ ...config, maxSelections: +e.target.value })} className={INPUT_CLS} />
+          <HelpText>How many features the client can pick. 0 means unlimited.</HelpText>
         </div>
         <div className="flex items-center justify-between p-3 bg-surface-container rounded-lg">
-          <span className="text-xs font-medium text-on-surface">Price Impact</span>
-          <label className="relative cursor-pointer">
+          <div>
+            <span className="text-xs font-medium text-on-surface block">Price Impact</span>
+            <HelpText>Show a price tag on each feature so clients see costs.</HelpText>
+          </div>
+          <label className="relative cursor-pointer shrink-0 ml-3">
             <input type="checkbox" checked={!!config.showPriceImpact} onChange={e => onUpdate({ ...config, showPriceImpact: e.target.checked })} className="sr-only peer" />
             <div className="w-8 h-4 bg-surface-container-highest rounded-full peer-checked:bg-primary transition-colors" />
             <div className="absolute left-0.5 top-0.5 w-3 h-3 bg-on-surface-variant rounded-full peer-checked:translate-x-4 peer-checked:bg-on-primary transition-all" />
           </label>
         </div>
         <div className="flex items-center justify-between p-3 bg-surface-container rounded-lg">
-          <span className="text-xs font-medium text-on-surface">Complexity</span>
-          <label className="relative cursor-pointer">
+          <div>
+            <span className="text-xs font-medium text-on-surface block">Complexity</span>
+            <HelpText>Show how complex each feature is to build.</HelpText>
+          </div>
+          <label className="relative cursor-pointer shrink-0 ml-3">
             <input type="checkbox" checked={!!config.showComplexity} onChange={e => onUpdate({ ...config, showComplexity: e.target.checked })} className="sr-only peer" />
             <div className="w-8 h-4 bg-surface-container-highest rounded-full peer-checked:bg-primary transition-colors" />
             <div className="absolute left-0.5 top-0.5 w-3 h-3 bg-on-surface-variant rounded-full peer-checked:translate-x-4 peer-checked:bg-on-primary transition-all" />
           </label>
         </div>
       </div>
-      <div className="space-y-3">
+
+      <div className="space-y-1">
         {config.features?.map((feat, i) => (
-          <div key={feat.id} className="p-4 bg-surface-container rounded-xl border border-outline-variant/10 space-y-3">
-            <div className="flex items-center gap-3">
-              <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center text-primary text-xs shrink-0">
-                <i className={`fa-solid ${feat.icon || "fa-puzzle-piece"}`} />
+          <div key={feat.id}>
+            <DropBar show={dnd.dropIdx === i} />
+            <div
+              draggable
+              onDragStart={() => dnd.onDragStart(i)}
+              onDragOver={(e) => dnd.onDragOver(e, i)}
+              onDragLeave={dnd.onDragLeave}
+              onDrop={() => dnd.onDrop(i)}
+              onDragEnd={dnd.onDragEnd}
+              className="p-4 bg-surface-container rounded-xl border border-outline-variant/10 space-y-3 transition-all"
+            >
+              <div className="flex items-center gap-3">
+                <div className="cursor-grab active:cursor-grabbing text-on-surface-variant/30 hover:text-on-surface-variant/60 transition-colors shrink-0" title="Drag to reorder">
+                  <i className="fa-solid fa-grip-vertical text-xs" />
+                </div>
+                <IconPicker value={feat.icon || "fa-puzzle-piece"} onChange={(icon) => { const features = [...config.features!]; features[i] = { ...features[i], icon }; onUpdate({ ...config, features }); }} />
+                <input value={feat.name} onChange={e => { const features = [...config.features!]; features[i] = { ...features[i], name: e.target.value }; onUpdate({ ...config, features }); }} className={`${INPUT_CLS} font-semibold`} placeholder="e.g. Contact Form, Blog, E-commerce" />
+                <button onClick={() => onUpdate({ ...config, features: config.features!.filter((_, j) => j !== i) })} className="p-2 text-on-surface-variant/40 hover:text-error text-xs shrink-0"><i className="fa-solid fa-trash" /></button>
               </div>
-              <input value={feat.name} onChange={e => { const features = [...config.features!]; features[i] = { ...features[i], name: e.target.value }; onUpdate({ ...config, features }); }} className={`${INPUT_CLS} font-semibold`} placeholder="Feature name" />
-              <button onClick={() => onUpdate({ ...config, features: config.features!.filter((_, j) => j !== i) })} className="p-2 text-on-surface-variant/40 hover:text-error text-xs"><i className="fa-solid fa-trash" /></button>
-            </div>
-            <input value={feat.description} onChange={e => { const features = [...config.features!]; features[i] = { ...features[i], description: e.target.value }; onUpdate({ ...config, features }); }} className={INPUT_CLS} placeholder="Description" />
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-              <input value={feat.icon} onChange={e => { const features = [...config.features!]; features[i] = { ...features[i], icon: e.target.value }; onUpdate({ ...config, features }); }} className={INPUT_CLS} placeholder="fa-..." />
-              <input value={feat.category} onChange={e => { const features = [...config.features!]; features[i] = { ...features[i], category: e.target.value }; onUpdate({ ...config, features }); }} className={INPUT_CLS} placeholder="Category" />
-              <select value={feat.complexity} onChange={e => { const features = [...config.features!]; features[i] = { ...features[i], complexity: e.target.value as "Simple" | "Medium" | "Complex" }; onUpdate({ ...config, features }); }} className={INPUT_CLS}>
-                <option value="Simple">Simple</option><option value="Medium">Medium</option><option value="Complex">Complex</option>
-              </select>
-              <input value={feat.priceImpact} onChange={e => { const features = [...config.features!]; features[i] = { ...features[i], priceImpact: e.target.value }; onUpdate({ ...config, features }); }} className={INPUT_CLS} placeholder="Price" />
+              <input value={feat.description} onChange={e => { const features = [...config.features!]; features[i] = { ...features[i], description: e.target.value }; onUpdate({ ...config, features }); }} className={INPUT_CLS} placeholder="Short description, e.g. 'Let visitors reach out via a form'" />
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                <div>
+                  <input value={feat.category} onChange={e => { const features = [...config.features!]; features[i] = { ...features[i], category: e.target.value }; onUpdate({ ...config, features }); }} className={INPUT_CLS} placeholder="e.g. Core, Content, Commerce" />
+                  <HelpText>Group label — clients see features organized by this.</HelpText>
+                </div>
+                <div>
+                  <select value={feat.complexity} onChange={e => { const features = [...config.features!]; features[i] = { ...features[i], complexity: e.target.value as "Simple" | "Medium" | "Complex" }; onUpdate({ ...config, features }); }} className={INPUT_CLS}>
+                    <option value="Simple">Simple — minimal effort</option>
+                    <option value="Medium">Medium — moderate effort</option>
+                    <option value="Complex">Complex — significant effort</option>
+                  </select>
+                  <HelpText>How much dev effort this feature requires.</HelpText>
+                </div>
+                <div>
+                  <input value={feat.priceImpact} onChange={e => { const features = [...config.features!]; features[i] = { ...features[i], priceImpact: e.target.value }; onUpdate({ ...config, features }); }} className={INPUT_CLS} placeholder="e.g. Included, +$300, +$1,500" />
+                  <HelpText>Price shown to client if &ldquo;Price Impact&rdquo; is on.</HelpText>
+                </div>
+              </div>
             </div>
           </div>
         ))}
+        {/* Final drop zone */}
+        {(config.features?.length ?? 0) > 0 && <DropBar show={dnd.dropIdx === (config.features?.length ?? 0)} />}
       </div>
+
       <button onClick={() => onUpdate({ ...config, features: [...config.features!, { id: uid(), name: "", description: "", icon: "fa-puzzle-piece", complexity: "Simple" as const, priceImpact: "", category: "" }] })} className="w-full py-3 border-2 border-dashed border-primary/30 rounded-xl text-sm text-primary font-bold hover:bg-primary/5 transition-all flex items-center justify-center gap-2"><i className="fa-solid fa-plus text-xs" /> Add Feature</button>
     </div>
   );
@@ -2628,46 +2780,80 @@ function GoalBuilderDialog({ config, onUpdate, onClose }: {
   onUpdate: (cfg: GoalBuilderConfig) => void;
   onClose: () => void;
 }) {
+  const dnd = useDragReorder(config.goals ?? [], (goals) => onUpdate({ ...config, goals }));
+
   return (
     <div className="space-y-5">
+      <div className="p-3 bg-primary/5 rounded-xl border border-primary/10">
+        <p className="text-xs text-on-surface-variant leading-relaxed">
+          <i className="fa-solid fa-circle-info text-primary mr-1.5" />
+          Define the goals your clients can pick from, like &ldquo;Generate Leads&rdquo; or &ldquo;Sell Products.&rdquo; Each goal can have refinements — follow-up questions that narrow down exactly what the client needs.
+        </p>
+      </div>
+
       <div className="flex items-center justify-between p-3 bg-surface-container rounded-lg">
-        <span className="text-xs font-medium text-on-surface">Allow Multiple Goals</span>
-        <label className="relative cursor-pointer">
+        <div>
+          <span className="text-xs font-medium text-on-surface block">Allow Multiple Goals</span>
+          <HelpText>Let clients select more than one goal at a time.</HelpText>
+        </div>
+        <label className="relative cursor-pointer shrink-0 ml-3">
           <input type="checkbox" checked={!!config.allowMultiple} onChange={e => onUpdate({ ...config, allowMultiple: e.target.checked })} className="sr-only peer" />
           <div className="w-8 h-4 bg-surface-container-highest rounded-full peer-checked:bg-primary transition-colors" />
           <div className="absolute left-0.5 top-0.5 w-3 h-3 bg-on-surface-variant rounded-full peer-checked:translate-x-4 peer-checked:bg-on-primary transition-all" />
         </label>
       </div>
-      <div className="space-y-3">
+
+      <div className="space-y-1">
         {config.goals?.map((goal, gi) => (
-          <div key={goal.id} className="p-4 bg-surface-container rounded-xl border border-outline-variant/10 space-y-3">
-            <div className="flex items-center gap-3">
-              <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center text-primary text-xs shrink-0"><i className={`fa-solid ${goal.icon || "fa-bullseye"}`} /></div>
-              <input value={goal.icon} onChange={e => { const goals = [...config.goals!]; goals[gi] = { ...goals[gi], icon: e.target.value }; onUpdate({ ...config, goals }); }} className={INPUT_CLS} placeholder="Icon" style={{ maxWidth: 120 }} />
-              <input value={goal.label} onChange={e => { const goals = [...config.goals!]; goals[gi] = { ...goals[gi], label: e.target.value }; onUpdate({ ...config, goals }); }} className={`${INPUT_CLS} font-semibold`} placeholder="Goal label" />
-              <button onClick={() => onUpdate({ ...config, goals: config.goals!.filter((_, j) => j !== gi) })} className="p-2 text-on-surface-variant/40 hover:text-error text-xs"><i className="fa-solid fa-trash" /></button>
-            </div>
-            <div className="pl-4 border-l-2 border-primary/20 space-y-2">
-              <span className="text-[10px] font-bold text-on-surface-variant/60 uppercase tracking-wider">Refinements</span>
-              {goal.refinements?.map((ref, ri) => (
-                <div key={ref.id} className="flex items-start gap-2 p-3 bg-surface-container-high/50 rounded-lg">
-                  <div className="flex-1 space-y-2">
-                    <input value={ref.label} onChange={e => { const goals = [...config.goals!]; const refs = [...goals[gi].refinements!]; refs[ri] = { ...refs[ri], label: e.target.value }; goals[gi] = { ...goals[gi], refinements: refs }; onUpdate({ ...config, goals }); }} className={INPUT_CLS} placeholder="Refinement label" />
-                    <div className="flex gap-2">
-                      <select value={ref.type} onChange={e => { const goals = [...config.goals!]; const refs = [...goals[gi].refinements!]; refs[ri] = { ...refs[ri], type: e.target.value as "select" | "range" | "text" | "number" }; goals[gi] = { ...goals[gi], refinements: refs }; onUpdate({ ...config, goals }); }} className={INPUT_CLS}>
-                        <option value="select">Select</option><option value="range">Range</option><option value="text">Text</option>
-                      </select>
-                      {ref.type === "select" && <input value={(ref.options || []).join(", ")} onChange={e => { const goals = [...config.goals!]; const refs = [...goals[gi].refinements!]; refs[ri] = { ...refs[ri], options: e.target.value.split(",").map(s => s.trim()).filter(Boolean) }; goals[gi] = { ...goals[gi], refinements: refs }; onUpdate({ ...config, goals }); }} className={INPUT_CLS} placeholder="Options (comma-separated)" />}
-                      {ref.type === "range" && <><input type="number" value={ref.min ?? 0} onChange={e => { const goals = [...config.goals!]; const refs = [...goals[gi].refinements!]; refs[ri] = { ...refs[ri], min: +e.target.value }; goals[gi] = { ...goals[gi], refinements: refs }; onUpdate({ ...config, goals }); }} className={INPUT_CLS} placeholder="Min" /><input type="number" value={ref.max ?? 100} onChange={e => { const goals = [...config.goals!]; const refs = [...goals[gi].refinements!]; refs[ri] = { ...refs[ri], max: +e.target.value }; goals[gi] = { ...goals[gi], refinements: refs }; onUpdate({ ...config, goals }); }} className={INPUT_CLS} placeholder="Max" /></>}
-                    </div>
-                  </div>
-                  <button onClick={() => { const goals = [...config.goals!]; const refs = goals[gi].refinements!.filter((_, j) => j !== ri); goals[gi] = { ...goals[gi], refinements: refs }; onUpdate({ ...config, goals }); }} className="p-1 text-on-surface-variant/40 hover:text-error text-xs mt-1"><i className="fa-solid fa-xmark" /></button>
+          <div key={goal.id}>
+            <DropBar show={dnd.dropIdx === gi} />
+            <div
+              draggable
+              onDragStart={() => dnd.onDragStart(gi)}
+              onDragOver={(e) => dnd.onDragOver(e, gi)}
+              onDragLeave={dnd.onDragLeave}
+              onDrop={() => dnd.onDrop(gi)}
+              onDragEnd={dnd.onDragEnd}
+              className="p-4 bg-surface-container rounded-xl border border-outline-variant/10 space-y-3"
+            >
+              <div className="flex items-center gap-3">
+                <div className="cursor-grab active:cursor-grabbing text-on-surface-variant/30 hover:text-on-surface-variant/60 transition-colors shrink-0" title="Drag to reorder">
+                  <i className="fa-solid fa-grip-vertical text-xs" />
                 </div>
-              ))}
-              <button onClick={() => { const goals = [...config.goals!]; goals[gi] = { ...goals[gi], refinements: [...goals[gi].refinements!, { id: uid(), label: "", type: "select" as const, options: [] }] }; onUpdate({ ...config, goals }); }} className="w-full py-2 border border-dashed border-outline-variant/20 rounded-lg text-[11px] text-on-surface-variant/60 hover:border-primary/50 hover:text-primary transition-all flex items-center justify-center gap-1"><i className="fa-solid fa-plus text-[9px]" /> Add Refinement</button>
+                <IconPicker value={goal.icon || "fa-bullseye"} onChange={(icon) => { const goals = [...config.goals!]; goals[gi] = { ...goals[gi], icon }; onUpdate({ ...config, goals }); }} />
+                <input value={goal.label} onChange={e => { const goals = [...config.goals!]; goals[gi] = { ...goals[gi], label: e.target.value }; onUpdate({ ...config, goals }); }} className={`${INPUT_CLS} font-semibold`} placeholder="e.g. Generate Leads, Sell Products, Build Brand" />
+                <button onClick={() => onUpdate({ ...config, goals: config.goals!.filter((_, j) => j !== gi) })} className="p-2 text-on-surface-variant/40 hover:text-error text-xs shrink-0"><i className="fa-solid fa-trash" /></button>
+              </div>
+              <div className="pl-4 border-l-2 border-primary/20 space-y-2">
+                <div className="flex items-center gap-2">
+                  <span className="text-[10px] font-bold text-on-surface-variant/60 uppercase tracking-wider">Refinements</span>
+                  <span className="text-[9px] text-on-surface-variant/40">— follow-up questions shown when this goal is selected</span>
+                </div>
+                {goal.refinements?.map((ref, ri) => (
+                  <div key={ref.id} className="flex items-start gap-2 p-3 bg-surface-container-high/50 rounded-lg">
+                    <div className="flex-1 space-y-2">
+                      <input value={ref.label} onChange={e => { const goals = [...config.goals!]; const refs = [...goals[gi].refinements!]; refs[ri] = { ...refs[ri], label: e.target.value }; goals[gi] = { ...goals[gi], refinements: refs }; onUpdate({ ...config, goals }); }} className={INPUT_CLS} placeholder="e.g. Target audience, Budget range, Timeline" />
+                      <div className="flex gap-2">
+                        <div className="flex-1">
+                          <select value={ref.type} onChange={e => { const goals = [...config.goals!]; const refs = [...goals[gi].refinements!]; refs[ri] = { ...refs[ri], type: e.target.value as "select" | "range" | "text" | "number" }; goals[gi] = { ...goals[gi], refinements: refs }; onUpdate({ ...config, goals }); }} className={INPUT_CLS}>
+                            <option value="select">Dropdown — pick from a list</option>
+                            <option value="range">Range — numeric slider</option>
+                            <option value="text">Text — free-form answer</option>
+                          </select>
+                        </div>
+                        {ref.type === "select" && <input value={(ref.options || []).join(", ")} onChange={e => { const goals = [...config.goals!]; const refs = [...goals[gi].refinements!]; refs[ri] = { ...refs[ri], options: e.target.value.split(",").map(s => s.trim()).filter(Boolean) }; goals[gi] = { ...goals[gi], refinements: refs }; onUpdate({ ...config, goals }); }} className={INPUT_CLS} placeholder="Options separated by commas" />}
+                        {ref.type === "range" && <><input type="number" value={ref.min ?? 0} onChange={e => { const goals = [...config.goals!]; const refs = [...goals[gi].refinements!]; refs[ri] = { ...refs[ri], min: +e.target.value }; goals[gi] = { ...goals[gi], refinements: refs }; onUpdate({ ...config, goals }); }} className={INPUT_CLS} placeholder="Min value" /><input type="number" value={ref.max ?? 100} onChange={e => { const goals = [...config.goals!]; const refs = [...goals[gi].refinements!]; refs[ri] = { ...refs[ri], max: +e.target.value }; goals[gi] = { ...goals[gi], refinements: refs }; onUpdate({ ...config, goals }); }} className={INPUT_CLS} placeholder="Max value" /></>}
+                      </div>
+                    </div>
+                    <button onClick={() => { const goals = [...config.goals!]; const refs = goals[gi].refinements!.filter((_, j) => j !== ri); goals[gi] = { ...goals[gi], refinements: refs }; onUpdate({ ...config, goals }); }} className="p-1 text-on-surface-variant/40 hover:text-error text-xs mt-1"><i className="fa-solid fa-xmark" /></button>
+                  </div>
+                ))}
+                <button onClick={() => { const goals = [...config.goals!]; goals[gi] = { ...goals[gi], refinements: [...goals[gi].refinements!, { id: uid(), label: "", type: "select" as const, options: [] }] }; onUpdate({ ...config, goals }); }} className="w-full py-2 border border-dashed border-outline-variant/20 rounded-lg text-[11px] text-on-surface-variant/60 hover:border-primary/50 hover:text-primary transition-all flex items-center justify-center gap-1"><i className="fa-solid fa-plus text-[9px]" /> Add Refinement</button>
+              </div>
             </div>
           </div>
         ))}
+        {(config.goals?.length ?? 0) > 0 && <DropBar show={dnd.dropIdx === (config.goals?.length ?? 0)} />}
       </div>
       <button onClick={() => onUpdate({ ...config, goals: [...config.goals!, { id: uid(), label: "", icon: "fa-bullseye", refinements: [] }] })} className="w-full py-3 border-2 border-dashed border-primary/30 rounded-xl text-sm text-primary font-bold hover:bg-primary/5 transition-all flex items-center justify-center gap-2"><i className="fa-solid fa-plus text-xs" /> Add Goal</button>
     </div>
@@ -2681,31 +2867,68 @@ function BrandStyleDialog({ config, onUpdate, onClose }: {
   onUpdate: (cfg: NonNullable<FieldDef["brandStyleConfig"]>) => void;
   onClose: () => void;
 }) {
+  const dnd = useDragReorder(config.styles, (styles) => onUpdate({ ...config, styles }));
+
   return (
     <div className="space-y-5">
+      <div className="p-3 bg-primary/5 rounded-xl border border-primary/10">
+        <p className="text-xs text-on-surface-variant leading-relaxed">
+          <i className="fa-solid fa-circle-info text-primary mr-1.5" />
+          Create visual style options for clients to choose from. Each style has a color palette, font, and description. Drag to reorder how they appear.
+        </p>
+      </div>
+
       <div className="flex items-center justify-between p-3 bg-surface-container rounded-lg">
-        <span className="text-xs font-medium text-on-surface">Allow Multiple Selections</span>
-        <label className="relative cursor-pointer">
+        <div>
+          <span className="text-xs font-medium text-on-surface block">Allow Multiple Selections</span>
+          <HelpText>Let clients pick more than one style they like.</HelpText>
+        </div>
+        <label className="relative cursor-pointer shrink-0 ml-3">
           <input type="checkbox" checked={!!config.allowMultiple} onChange={e => onUpdate({ ...config, allowMultiple: e.target.checked })} className="sr-only peer" />
           <div className="w-8 h-4 bg-surface-container-highest rounded-full peer-checked:bg-primary transition-colors" />
           <div className="absolute left-0.5 top-0.5 w-3 h-3 bg-on-surface-variant rounded-full peer-checked:translate-x-4 peer-checked:bg-on-primary transition-all" />
         </label>
       </div>
+
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         {config.styles.map((style, si) => (
-          <div key={style.id} className="p-4 bg-surface-container rounded-xl border border-outline-variant/10 space-y-3">
-            <div className="flex items-center gap-2">
-              <div className="flex gap-0.5">{style.palette.map((c, ci) => <div key={ci} className="w-5 h-5 rounded border border-outline-variant/20" style={{ backgroundColor: c }} />)}</div>
-              <input value={style.name} onChange={e => { const styles = [...config.styles]; styles[si] = { ...styles[si], name: e.target.value }; onUpdate({ ...config, styles }); }} className="flex-1 text-sm font-bold bg-transparent border-none outline-none text-on-surface" />
-              <button onClick={() => onUpdate({ ...config, styles: config.styles.filter((_, i) => i !== si) })} className="text-on-surface-variant/40 hover:text-error text-xs p-1"><i className="fa-solid fa-trash" /></button>
+          <div key={style.id}>
+            <DropBar show={dnd.dropIdx === si} />
+            <div
+              draggable
+              onDragStart={() => dnd.onDragStart(si)}
+              onDragOver={(e) => dnd.onDragOver(e, si)}
+              onDragLeave={dnd.onDragLeave}
+              onDrop={() => dnd.onDrop(si)}
+              onDragEnd={dnd.onDragEnd}
+              className="p-4 bg-surface-container rounded-xl border border-outline-variant/10 space-y-3"
+            >
+              <div className="flex items-center gap-2">
+                <div className="cursor-grab active:cursor-grabbing text-on-surface-variant/30 hover:text-on-surface-variant/60 transition-colors shrink-0" title="Drag to reorder">
+                  <i className="fa-solid fa-grip-vertical text-xs" />
+                </div>
+                <div className="flex gap-0.5">{style.palette.map((c, ci) => <div key={ci} className="w-5 h-5 rounded border border-outline-variant/20" style={{ backgroundColor: c }} />)}</div>
+                <input value={style.name} onChange={e => { const styles = [...config.styles]; styles[si] = { ...styles[si], name: e.target.value }; onUpdate({ ...config, styles }); }} className="flex-1 text-sm font-bold bg-transparent border-none outline-none text-on-surface" placeholder="e.g. Modern & Clean, Bold & Vibrant" />
+                <button onClick={() => onUpdate({ ...config, styles: config.styles.filter((_, i) => i !== si) })} className="text-on-surface-variant/40 hover:text-error text-xs p-1 shrink-0"><i className="fa-solid fa-trash" /></button>
+              </div>
+              <div>
+                <input value={style.description ?? ""} onChange={e => { const styles = [...config.styles]; styles[si] = { ...styles[si], description: e.target.value }; onUpdate({ ...config, styles }); }} className={INPUT_CLS} placeholder="Describe the vibe, e.g. 'Minimalist with lots of whitespace'" />
+              </div>
+              <div className="flex gap-2 items-center flex-wrap">
+                <span className="text-[10px] text-on-surface-variant/60 shrink-0">Palette:</span>
+                {style.palette.map((c, ci) => (
+                  <div key={ci} className="relative group">
+                    <input type="color" value={c} onChange={e => { const styles = [...config.styles]; const palette = [...styles[si].palette]; palette[ci] = e.target.value; styles[si] = { ...styles[si], palette }; onUpdate({ ...config, styles }); }} className="w-7 h-7 rounded border-0 cursor-pointer bg-transparent p-0" />
+                    {style.palette.length > 1 && <button onClick={() => { const styles = [...config.styles]; styles[si] = { ...styles[si], palette: styles[si].palette.filter((_, j) => j !== ci) }; onUpdate({ ...config, styles }); }} className="absolute -top-1 -right-1 w-3.5 h-3.5 rounded-full bg-error text-on-error text-[7px] hidden group-hover:flex items-center justify-center"><i className="fa-solid fa-xmark" /></button>}
+                  </div>
+                ))}
+                {style.palette.length < 6 && <button onClick={() => { const styles = [...config.styles]; styles[si] = { ...styles[si], palette: [...styles[si].palette, "#888888"] }; onUpdate({ ...config, styles }); }} className="w-7 h-7 rounded border border-dashed border-outline-variant/30 flex items-center justify-center text-[9px] text-on-surface-variant/40 hover:text-primary" title="Add another color"><i className="fa-solid fa-plus" /></button>}
+              </div>
+              <div>
+                <input value={style.fontFamily ?? ""} onChange={e => { const styles = [...config.styles]; styles[si] = { ...styles[si], fontFamily: e.target.value }; onUpdate({ ...config, styles }); }} className={INPUT_CLS} placeholder="e.g. Inter, Playfair Display, Montserrat" />
+                <HelpText>Google Font name — shown in the style preview card.</HelpText>
+              </div>
             </div>
-            <input value={style.description ?? ""} onChange={e => { const styles = [...config.styles]; styles[si] = { ...styles[si], description: e.target.value }; onUpdate({ ...config, styles }); }} className={INPUT_CLS} placeholder="Style description..." />
-            <div className="flex gap-2 items-center flex-wrap">
-              <span className="text-[10px] text-on-surface-variant/60 shrink-0">Palette:</span>
-              {style.palette.map((c, ci) => <input key={ci} type="color" value={c} onChange={e => { const styles = [...config.styles]; const palette = [...styles[si].palette]; palette[ci] = e.target.value; styles[si] = { ...styles[si], palette }; onUpdate({ ...config, styles }); }} className="w-7 h-7 rounded border-0 cursor-pointer bg-transparent p-0" />)}
-              {style.palette.length < 6 && <button onClick={() => { const styles = [...config.styles]; styles[si] = { ...styles[si], palette: [...styles[si].palette, "#888888"] }; onUpdate({ ...config, styles }); }} className="w-7 h-7 rounded border border-dashed border-outline-variant/30 flex items-center justify-center text-[9px] text-on-surface-variant/40 hover:text-primary"><i className="fa-solid fa-plus" /></button>}
-            </div>
-            <input value={style.fontFamily ?? ""} onChange={e => { const styles = [...config.styles]; styles[si] = { ...styles[si], fontFamily: e.target.value }; onUpdate({ ...config, styles }); }} className={INPUT_CLS} placeholder="Font family" />
           </div>
         ))}
       </div>

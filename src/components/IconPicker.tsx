@@ -1,43 +1,67 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useRef, useEffect } from "react";
 
 /** Curated list of commonly useful Font Awesome icons */
 const ICONS = [
   // Communication
   "fa-bullhorn", "fa-bell", "fa-envelope", "fa-comment", "fa-comments", "fa-message",
+  "fa-phone", "fa-paper-plane", "fa-inbox", "fa-at",
   // Status / Alerts
   "fa-circle-info", "fa-triangle-exclamation", "fa-circle-check", "fa-circle-xmark",
-  "fa-shield-halved", "fa-lock", "fa-unlock",
+  "fa-shield-halved", "fa-lock", "fa-unlock", "fa-eye", "fa-eye-slash",
   // Actions
   "fa-rocket", "fa-bolt", "fa-fire", "fa-star", "fa-heart", "fa-thumbs-up",
   "fa-gift", "fa-trophy", "fa-medal", "fa-award", "fa-crown",
   // Business
-  "fa-building", "fa-briefcase", "fa-chart-line", "fa-chart-pie",
+  "fa-building", "fa-briefcase", "fa-chart-line", "fa-chart-pie", "fa-chart-bar",
   "fa-credit-card", "fa-money-bill-wave", "fa-coins", "fa-piggy-bank",
-  // Tech
+  "fa-receipt", "fa-file-invoice-dollar", "fa-wallet", "fa-hand-holding-dollar",
+  // Commerce / Shopping
+  "fa-cart-shopping", "fa-bag-shopping", "fa-store", "fa-shop", "fa-basket-shopping",
+  "fa-box", "fa-boxes-stacked", "fa-truck", "fa-barcode",
+  // Tech / Web
   "fa-code", "fa-bug", "fa-wrench", "fa-screwdriver-wrench", "fa-gear", "fa-gears",
-  "fa-server", "fa-database", "fa-cloud",
+  "fa-server", "fa-database", "fa-cloud", "fa-wifi", "fa-microchip",
+  "fa-laptop", "fa-desktop", "fa-mobile-screen", "fa-tablet-screen-button",
+  // Web Design
+  "fa-paintbrush", "fa-pen-ruler", "fa-swatchbook", "fa-object-group",
+  "fa-layer-group", "fa-sitemap", "fa-table-columns", "fa-window-maximize",
+  "fa-display", "fa-file-code", "fa-css3-alt", "fa-html5",
   // People
   "fa-user", "fa-users", "fa-user-plus", "fa-user-check", "fa-people-group",
-  "fa-handshake", "fa-hands-clapping",
+  "fa-handshake", "fa-hands-clapping", "fa-user-tie", "fa-person",
   // Media
   "fa-image", "fa-camera", "fa-video", "fa-music", "fa-palette",
+  "fa-film", "fa-photo-film", "fa-play", "fa-headphones",
+  // Content / Blog
+  "fa-newspaper", "fa-blog", "fa-pen-to-square", "fa-file-lines",
+  "fa-quote-left", "fa-rss", "fa-scroll",
   // Navigation
   "fa-house", "fa-map-pin", "fa-globe", "fa-plane", "fa-car",
+  "fa-location-dot", "fa-compass", "fa-map",
   // Calendar / Time
   "fa-calendar", "fa-clock", "fa-hourglass-half", "fa-stopwatch",
+  "fa-calendar-check", "fa-calendar-days",
   // Objects
   "fa-book", "fa-graduation-cap", "fa-lightbulb", "fa-magnifying-glass",
   "fa-tag", "fa-tags", "fa-bookmark", "fa-flag", "fa-puzzle-piece",
+  "fa-key", "fa-dice", "fa-flask", "fa-microscope",
+  // Files / Docs
+  "fa-file", "fa-folder", "fa-folder-open", "fa-file-pdf", "fa-file-image",
+  "fa-clipboard", "fa-clipboard-list", "fa-list-check",
   // Nature
   "fa-sun", "fa-moon", "fa-leaf", "fa-seedling", "fa-tree",
+  // Social / Marketing
+  "fa-share-nodes", "fa-thumbs-up", "fa-hand-pointer", "fa-bullseye",
+  "fa-chart-simple", "fa-filter", "fa-ranking-star", "fa-megaphone",
   // Misc
   "fa-wand-magic-sparkles", "fa-sparkles", "fa-hand-sparkles",
   "fa-circle-exclamation", "fa-info", "fa-question",
   "fa-check", "fa-xmark", "fa-plus", "fa-minus",
   "fa-arrow-up", "fa-arrow-right", "fa-arrow-down", "fa-arrow-left",
   "fa-link", "fa-paperclip", "fa-download", "fa-upload",
+  "fa-sliders", "fa-toggle-on", "fa-circle", "fa-square",
 ];
 
 interface Props {
@@ -48,6 +72,19 @@ interface Props {
 export default function IconPicker({ value, onChange }: Props) {
   const [open, setOpen] = useState(false);
   const [search, setSearch] = useState("");
+  const ref = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!open) return;
+    function handleClick(e: MouseEvent) {
+      if (ref.current && !ref.current.contains(e.target as Node)) {
+        setOpen(false);
+        setSearch("");
+      }
+    }
+    document.addEventListener("mousedown", handleClick);
+    return () => document.removeEventListener("mousedown", handleClick);
+  }, [open]);
 
   const filtered = useMemo(() => {
     if (!search) return ICONS;
@@ -56,7 +93,7 @@ export default function IconPicker({ value, onChange }: Props) {
   }, [search]);
 
   return (
-    <div className="relative">
+    <div className="relative" ref={ref}>
       <button
         type="button"
         onClick={() => setOpen(!open)}
