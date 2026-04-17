@@ -52,7 +52,11 @@ const FIELD_CATALOGUE: FieldTypeInfo[] = [
   { type: "site_structure", label: "Site Structure", icon: "fa-sitemap", group: "advanced", category: "web_design", description: "Visual sitemap builder" },
   { type: "feature_selector", label: "Feature Selector", icon: "fa-puzzle-piece", group: "advanced", category: "web_design", description: "Toggle features with price impact" },
   { type: "repeater", label: "Repeater / Pages", icon: "fa-layer-group", group: "advanced", category: "web_design", description: "Repeatable entry groups" },
-  // Marketing (placeholder — existing fields that fit)
+  // Phase 2: Style & Strategy
+  { type: "brand_style", label: "Brand Style Picker", icon: "fa-swatchbook", group: "advanced", category: "smart", description: "Visual style/vibe selector with AI tiles" },
+  { type: "competitor_analyzer", label: "Competitor Analyzer", icon: "fa-magnifying-glass-chart", group: "advanced", category: "smart", description: "Enter competitors, auto-scrape & AI summarize" },
+  { type: "timeline", label: "Timeline Selector", icon: "fa-calendar-days", group: "advanced", category: "smart", description: "Project dates, milestones & blackout dates" },
+  { type: "budget_allocator", label: "Budget Allocator", icon: "fa-sliders", group: "advanced", category: "smart", description: "Visual budget sliders across channels" },
   // Layout & Logic
   { type: "heading", label: "Section Heading", icon: "fa-heading", group: "advanced", category: "layout", description: "Display-only section header" },
   { type: "consent", label: "Consent / Terms", icon: "fa-file-contract", group: "advanced", category: "layout", description: "Agreement with checkbox" },
@@ -195,6 +199,56 @@ function makeField(type: FieldType, label: string): FieldDef {
       requireSignature: true,
       requireFullName: true,
       approveLabel: "I Approve",
+    };
+  }
+  if (type === "brand_style") {
+    base.label = "Brand Style";
+    base.brandStyleConfig = {
+      styles: [
+        { id: "modern", name: "Modern & Minimal", palette: ["#0f172a", "#3b82f6", "#f8fafc", "#e2e8f0", "#1e293b"], fontFamily: "Inter", description: "Clean lines, generous whitespace, sans-serif typography" },
+        { id: "corporate", name: "Corporate & Professional", palette: ["#1e3a5f", "#2563eb", "#f1f5f9", "#cbd5e1", "#0f172a"], fontFamily: "Merriweather", description: "Trustworthy, structured, serif accents" },
+        { id: "playful", name: "Playful & Creative", palette: ["#7c3aed", "#f472b6", "#fef3c7", "#a3e635", "#1e1b4b"], fontFamily: "Poppins", description: "Bold colors, rounded shapes, friendly feel" },
+        { id: "luxury", name: "Luxury & Elegant", palette: ["#1c1917", "#d4a574", "#fafaf9", "#292524", "#78716c"], fontFamily: "Playfair Display", description: "Rich neutrals, gold accents, refined typography" },
+      ],
+      allowMultiple: false,
+    };
+  }
+  if (type === "competitor_analyzer") {
+    base.label = "Competitors";
+    base.competitorAnalyzerConfig = {
+      maxCompetitors: 5,
+      placeholder: "https://competitor.com",
+      autoFetch: true,
+      aiSummary: true,
+    };
+  }
+  if (type === "timeline") {
+    base.label = "Project Timeline";
+    base.timelineConfig = {
+      showStartDate: true,
+      showEndDate: true,
+      allowBlackoutDates: true,
+      milestones: [
+        { id: "design", label: "Design Approval", required: false },
+        { id: "content", label: "Content Delivery", required: false },
+        { id: "launch", label: "Launch Date", required: false },
+      ],
+    };
+  }
+  if (type === "budget_allocator") {
+    base.label = "Budget Allocation";
+    base.budgetAllocatorConfig = {
+      mode: "constrained",
+      totalBudget: 5000,
+      maxPerChannel: 10000,
+      currency: "$",
+      showAsPercentage: false,
+      channels: [
+        { id: "google", label: "Google Ads", icon: "fa-google", defaultValue: 40 },
+        { id: "meta", label: "Meta / Facebook", icon: "fa-meta", defaultValue: 30 },
+        { id: "seo", label: "SEO", icon: "fa-magnifying-glass", defaultValue: 20 },
+        { id: "other", label: "Other", icon: "fa-ellipsis", defaultValue: 10 },
+      ],
     };
   }
   return base;
@@ -1274,6 +1328,169 @@ function FieldSettingsPanel({ field, onUpdate, onClose, allFields }: {
           </section>
         )}
 
+        {/* ── Brand Style Picker Settings ── */}
+        {field.type === "brand_style" && field.brandStyleConfig && (
+          <section className="space-y-3">
+            <div className="text-[10px] font-bold text-on-surface-variant uppercase tracking-widest">Brand Style Options</div>
+            <div className="flex items-center justify-between p-3 bg-surface-container rounded-lg">
+              <span className="text-xs font-medium text-on-surface">Allow Multiple Selections</span>
+              <label className="relative cursor-pointer">
+                <input type="checkbox" checked={!!field.brandStyleConfig.allowMultiple} onChange={e => onUpdate({ brandStyleConfig: { ...field.brandStyleConfig!, allowMultiple: e.target.checked } })} className="sr-only peer" />
+                <div className="w-8 h-4 bg-surface-container-highest rounded-full peer-checked:bg-primary transition-colors" />
+                <div className="absolute left-0.5 top-0.5 w-3 h-3 bg-on-surface-variant rounded-full peer-checked:translate-x-4 peer-checked:bg-on-primary transition-all" />
+              </label>
+            </div>
+            <div className="space-y-2">
+              {field.brandStyleConfig.styles.map((style, si) => (
+                <div key={style.id} className="p-3 bg-surface-container rounded-xl space-y-2">
+                  <div className="flex items-center gap-2">
+                    <div className="flex gap-0.5">{style.palette.map((c, ci) => <div key={ci} className="w-4 h-4 rounded-sm border border-outline-variant/20" style={{ backgroundColor: c }} />)}</div>
+                    <input value={style.name} onChange={e => { const styles = [...field.brandStyleConfig!.styles]; styles[si] = { ...styles[si], name: e.target.value }; onUpdate({ brandStyleConfig: { ...field.brandStyleConfig!, styles } }); }} className="flex-1 text-xs font-semibold bg-transparent border-none outline-none text-on-surface" />
+                    <button onClick={() => { const styles = field.brandStyleConfig!.styles.filter((_, i) => i !== si); onUpdate({ brandStyleConfig: { ...field.brandStyleConfig!, styles } }); }} className="text-on-surface-variant/40 hover:text-error text-xs"><i className="fa-solid fa-trash" /></button>
+                  </div>
+                  <input value={style.description ?? ""} onChange={e => { const styles = [...field.brandStyleConfig!.styles]; styles[si] = { ...styles[si], description: e.target.value }; onUpdate({ brandStyleConfig: { ...field.brandStyleConfig!, styles } }); }} className={INPUT_CLS + " !py-1.5 !text-[11px]"} placeholder="Style description..." />
+                  <div className="flex gap-1.5 items-center">
+                    <span className="text-[10px] text-on-surface-variant/60 shrink-0">Palette:</span>
+                    {style.palette.map((c, ci) => (
+                      <input key={ci} type="color" value={c} onChange={e => { const styles = [...field.brandStyleConfig!.styles]; const palette = [...styles[si].palette]; palette[ci] = e.target.value; styles[si] = { ...styles[si], palette }; onUpdate({ brandStyleConfig: { ...field.brandStyleConfig!, styles } }); }} className="w-6 h-6 rounded border-0 cursor-pointer bg-transparent p-0" />
+                    ))}
+                    {style.palette.length < 6 && <button onClick={() => { const styles = [...field.brandStyleConfig!.styles]; styles[si] = { ...styles[si], palette: [...styles[si].palette, "#888888"] }; onUpdate({ brandStyleConfig: { ...field.brandStyleConfig!, styles } }); }} className="w-6 h-6 rounded border border-dashed border-outline-variant/30 flex items-center justify-center text-[8px] text-on-surface-variant/40 hover:text-primary hover:border-primary/40"><i className="fa-solid fa-plus" /></button>}
+                  </div>
+                  <input value={style.fontFamily ?? ""} onChange={e => { const styles = [...field.brandStyleConfig!.styles]; styles[si] = { ...styles[si], fontFamily: e.target.value }; onUpdate({ brandStyleConfig: { ...field.brandStyleConfig!, styles } }); }} className={INPUT_CLS + " !py-1.5 !text-[11px]"} placeholder="Font family (e.g. Inter, Playfair Display)" />
+                </div>
+              ))}
+              <button onClick={() => onUpdate({ brandStyleConfig: { ...field.brandStyleConfig!, styles: [...field.brandStyleConfig!.styles, { id: uid(), name: "New Style", palette: ["#333333", "#666666", "#ffffff", "#eeeeee"], fontFamily: "", description: "" }] } })} className="w-full py-2 border border-dashed border-outline-variant/30 rounded-lg text-xs text-on-surface-variant hover:border-primary/50 hover:text-primary transition-all flex items-center justify-center gap-1.5"><i className="fa-solid fa-plus text-[9px]" /> Add Style</button>
+            </div>
+          </section>
+        )}
+
+        {/* ── Competitor Analyzer Settings ── */}
+        {field.type === "competitor_analyzer" && field.competitorAnalyzerConfig && (
+          <section className="space-y-3">
+            <div className="text-[10px] font-bold text-on-surface-variant uppercase tracking-widest">Competitor Analyzer</div>
+            <div>
+              <span className="text-[11px] font-medium text-on-surface-variant mb-1 block">Max Competitors</span>
+              <input type="number" min={1} max={20} value={field.competitorAnalyzerConfig.maxCompetitors ?? 5} onChange={e => onUpdate({ competitorAnalyzerConfig: { ...field.competitorAnalyzerConfig!, maxCompetitors: Number(e.target.value) } })} className={INPUT_CLS} />
+            </div>
+            <div>
+              <span className="text-[11px] font-medium text-on-surface-variant mb-1 block">Placeholder URL</span>
+              <input value={field.competitorAnalyzerConfig.placeholder ?? ""} onChange={e => onUpdate({ competitorAnalyzerConfig: { ...field.competitorAnalyzerConfig!, placeholder: e.target.value } })} className={INPUT_CLS} placeholder="https://competitor.com" />
+            </div>
+            <div className="flex items-center justify-between p-3 bg-surface-container rounded-lg">
+              <span className="text-xs font-medium text-on-surface">Auto-Fetch Site Data</span>
+              <label className="relative cursor-pointer">
+                <input type="checkbox" checked={!!field.competitorAnalyzerConfig.autoFetch} onChange={e => onUpdate({ competitorAnalyzerConfig: { ...field.competitorAnalyzerConfig!, autoFetch: e.target.checked } })} className="sr-only peer" />
+                <div className="w-8 h-4 bg-surface-container-highest rounded-full peer-checked:bg-primary transition-colors" />
+                <div className="absolute left-0.5 top-0.5 w-3 h-3 bg-on-surface-variant rounded-full peer-checked:translate-x-4 peer-checked:bg-on-primary transition-all" />
+              </label>
+            </div>
+            <div className="flex items-center justify-between p-3 bg-surface-container rounded-lg">
+              <span className="text-xs font-medium text-on-surface">AI Summary</span>
+              <label className="relative cursor-pointer">
+                <input type="checkbox" checked={!!field.competitorAnalyzerConfig.aiSummary} onChange={e => onUpdate({ competitorAnalyzerConfig: { ...field.competitorAnalyzerConfig!, aiSummary: e.target.checked } })} className="sr-only peer" />
+                <div className="w-8 h-4 bg-surface-container-highest rounded-full peer-checked:bg-primary transition-colors" />
+                <div className="absolute left-0.5 top-0.5 w-3 h-3 bg-on-surface-variant rounded-full peer-checked:translate-x-4 peer-checked:bg-on-primary transition-all" />
+              </label>
+            </div>
+          </section>
+        )}
+
+        {/* ── Timeline Settings ── */}
+        {field.type === "timeline" && field.timelineConfig && (
+          <section className="space-y-3">
+            <div className="text-[10px] font-bold text-on-surface-variant uppercase tracking-widest">Timeline & Availability</div>
+            <div className="flex items-center justify-between p-3 bg-surface-container rounded-lg">
+              <span className="text-xs font-medium text-on-surface">Show Start Date</span>
+              <label className="relative cursor-pointer">
+                <input type="checkbox" checked={!!field.timelineConfig.showStartDate} onChange={e => onUpdate({ timelineConfig: { ...field.timelineConfig!, showStartDate: e.target.checked } })} className="sr-only peer" />
+                <div className="w-8 h-4 bg-surface-container-highest rounded-full peer-checked:bg-primary transition-colors" />
+                <div className="absolute left-0.5 top-0.5 w-3 h-3 bg-on-surface-variant rounded-full peer-checked:translate-x-4 peer-checked:bg-on-primary transition-all" />
+              </label>
+            </div>
+            <div className="flex items-center justify-between p-3 bg-surface-container rounded-lg">
+              <span className="text-xs font-medium text-on-surface">Show End / Deadline Date</span>
+              <label className="relative cursor-pointer">
+                <input type="checkbox" checked={!!field.timelineConfig.showEndDate} onChange={e => onUpdate({ timelineConfig: { ...field.timelineConfig!, showEndDate: e.target.checked } })} className="sr-only peer" />
+                <div className="w-8 h-4 bg-surface-container-highest rounded-full peer-checked:bg-primary transition-colors" />
+                <div className="absolute left-0.5 top-0.5 w-3 h-3 bg-on-surface-variant rounded-full peer-checked:translate-x-4 peer-checked:bg-on-primary transition-all" />
+              </label>
+            </div>
+            <div className="flex items-center justify-between p-3 bg-surface-container rounded-lg">
+              <span className="text-xs font-medium text-on-surface">Allow Blackout Dates</span>
+              <label className="relative cursor-pointer">
+                <input type="checkbox" checked={!!field.timelineConfig.allowBlackoutDates} onChange={e => onUpdate({ timelineConfig: { ...field.timelineConfig!, allowBlackoutDates: e.target.checked } })} className="sr-only peer" />
+                <div className="w-8 h-4 bg-surface-container-highest rounded-full peer-checked:bg-primary transition-colors" />
+                <div className="absolute left-0.5 top-0.5 w-3 h-3 bg-on-surface-variant rounded-full peer-checked:translate-x-4 peer-checked:bg-on-primary transition-all" />
+              </label>
+            </div>
+            <div>
+              <span className="text-[11px] font-medium text-on-surface-variant mb-1.5 block">Milestones</span>
+              <div className="space-y-1.5">
+                {(field.timelineConfig.milestones ?? []).map((ms, mi) => (
+                  <div key={ms.id} className="flex items-center gap-2 p-2 bg-surface-container rounded-lg">
+                    <input value={ms.label} onChange={e => { const milestones = [...(field.timelineConfig!.milestones ?? [])]; milestones[mi] = { ...milestones[mi], label: e.target.value }; onUpdate({ timelineConfig: { ...field.timelineConfig!, milestones } }); }} className="flex-1 text-xs bg-transparent border-none outline-none text-on-surface" placeholder="Milestone name" />
+                    <label className="flex items-center gap-1 text-[10px] text-on-surface-variant/60 shrink-0">
+                      <input type="checkbox" checked={!!ms.required} onChange={e => { const milestones = [...(field.timelineConfig!.milestones ?? [])]; milestones[mi] = { ...milestones[mi], required: e.target.checked }; onUpdate({ timelineConfig: { ...field.timelineConfig!, milestones } }); }} className="w-3 h-3 rounded" style={{ accentColor: "var(--color-primary)" }} /> Req
+                    </label>
+                    <button onClick={() => { const milestones = (field.timelineConfig!.milestones ?? []).filter((_, i) => i !== mi); onUpdate({ timelineConfig: { ...field.timelineConfig!, milestones } }); }} className="text-on-surface-variant/40 hover:text-error text-[10px]"><i className="fa-solid fa-xmark" /></button>
+                  </div>
+                ))}
+              </div>
+              <button onClick={() => onUpdate({ timelineConfig: { ...field.timelineConfig!, milestones: [...(field.timelineConfig!.milestones ?? []), { id: uid(), label: "", required: false }] } })} className="w-full py-1.5 mt-1.5 border border-dashed border-outline-variant/30 rounded-lg text-[10px] text-on-surface-variant hover:border-primary/50 hover:text-primary transition-all flex items-center justify-center gap-1"><i className="fa-solid fa-plus text-[8px]" /> Add Milestone</button>
+            </div>
+          </section>
+        )}
+
+        {/* ── Budget Allocator Settings ── */}
+        {field.type === "budget_allocator" && field.budgetAllocatorConfig && (
+          <section className="space-y-3">
+            <div className="text-[10px] font-bold text-on-surface-variant uppercase tracking-widest">Budget Allocator</div>
+            <div>
+              <span className="text-[11px] font-medium text-on-surface-variant mb-1 block">Mode</span>
+              <select value={field.budgetAllocatorConfig.mode} onChange={e => onUpdate({ budgetAllocatorConfig: { ...field.budgetAllocatorConfig!, mode: e.target.value as "constrained" | "independent" } })} className={INPUT_CLS}>
+                <option value="constrained">Fixed Total (redistributing)</option>
+                <option value="independent">Independent Sliders</option>
+              </select>
+            </div>
+            {field.budgetAllocatorConfig.mode === "constrained" && (
+              <div>
+                <span className="text-[11px] font-medium text-on-surface-variant mb-1 block">Total Budget ({field.budgetAllocatorConfig.currency ?? "$"})</span>
+                <input type="number" min={0} value={field.budgetAllocatorConfig.totalBudget ?? 5000} onChange={e => onUpdate({ budgetAllocatorConfig: { ...field.budgetAllocatorConfig!, totalBudget: Number(e.target.value) } })} className={INPUT_CLS} />
+              </div>
+            )}
+            {field.budgetAllocatorConfig.mode === "independent" && (
+              <div>
+                <span className="text-[11px] font-medium text-on-surface-variant mb-1 block">Max Per Channel ({field.budgetAllocatorConfig.currency ?? "$"})</span>
+                <input type="number" min={0} value={field.budgetAllocatorConfig.maxPerChannel ?? 10000} onChange={e => onUpdate({ budgetAllocatorConfig: { ...field.budgetAllocatorConfig!, maxPerChannel: Number(e.target.value) } })} className={INPUT_CLS} />
+              </div>
+            )}
+            <div className="flex items-center justify-between p-3 bg-surface-container rounded-lg">
+              <span className="text-xs font-medium text-on-surface">Show as Percentages</span>
+              <label className="relative cursor-pointer">
+                <input type="checkbox" checked={!!field.budgetAllocatorConfig.showAsPercentage} onChange={e => onUpdate({ budgetAllocatorConfig: { ...field.budgetAllocatorConfig!, showAsPercentage: e.target.checked } })} className="sr-only peer" />
+                <div className="w-8 h-4 bg-surface-container-highest rounded-full peer-checked:bg-primary transition-colors" />
+                <div className="absolute left-0.5 top-0.5 w-3 h-3 bg-on-surface-variant rounded-full peer-checked:translate-x-4 peer-checked:bg-on-primary transition-all" />
+              </label>
+            </div>
+            <div>
+              <span className="text-[11px] font-medium text-on-surface-variant mb-1 block">Currency Symbol</span>
+              <input value={field.budgetAllocatorConfig.currency ?? "$"} onChange={e => onUpdate({ budgetAllocatorConfig: { ...field.budgetAllocatorConfig!, currency: e.target.value } })} className={INPUT_CLS} maxLength={3} />
+            </div>
+            <div>
+              <span className="text-[11px] font-medium text-on-surface-variant mb-1.5 block">Channels</span>
+              <div className="space-y-1.5">
+                {field.budgetAllocatorConfig.channels.map((ch, ci) => (
+                  <div key={ch.id} className="flex items-center gap-2 p-2 bg-surface-container rounded-lg">
+                    <input value={ch.icon ?? ""} onChange={e => { const channels = [...field.budgetAllocatorConfig!.channels]; channels[ci] = { ...channels[ci], icon: e.target.value }; onUpdate({ budgetAllocatorConfig: { ...field.budgetAllocatorConfig!, channels } }); }} className="w-16 text-[10px] bg-transparent border-none outline-none text-on-surface-variant/60" placeholder="fa-icon" />
+                    <input value={ch.label} onChange={e => { const channels = [...field.budgetAllocatorConfig!.channels]; channels[ci] = { ...channels[ci], label: e.target.value }; onUpdate({ budgetAllocatorConfig: { ...field.budgetAllocatorConfig!, channels } }); }} className="flex-1 text-xs bg-transparent border-none outline-none text-on-surface font-medium" placeholder="Channel name" />
+                    <button onClick={() => { const channels = field.budgetAllocatorConfig!.channels.filter((_, i) => i !== ci); onUpdate({ budgetAllocatorConfig: { ...field.budgetAllocatorConfig!, channels } }); }} className="text-on-surface-variant/40 hover:text-error text-[10px]"><i className="fa-solid fa-xmark" /></button>
+                  </div>
+                ))}
+              </div>
+              <button onClick={() => onUpdate({ budgetAllocatorConfig: { ...field.budgetAllocatorConfig!, channels: [...field.budgetAllocatorConfig!.channels, { id: uid(), label: "", icon: "fa-circle", defaultValue: 0 }] } })} className="w-full py-1.5 mt-1.5 border border-dashed border-outline-variant/30 rounded-lg text-[10px] text-on-surface-variant hover:border-primary/50 hover:text-primary transition-all flex items-center justify-center gap-1"><i className="fa-solid fa-plus text-[8px]" /> Add Channel</button>
+            </div>
+          </section>
+        )}
 
         <section className="space-y-3">
           <div className="text-[10px] font-bold text-on-surface-variant uppercase tracking-widest">Logic &amp; Rules</div>

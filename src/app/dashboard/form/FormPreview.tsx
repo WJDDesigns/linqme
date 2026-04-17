@@ -756,6 +756,198 @@ function PreviewField({ field, primaryColor, isPhone }: { field: FieldDef; prima
     );
   }
 
+  /* Brand Style Picker — preview */
+  if (field.type === "brand_style" && field.brandStyleConfig) {
+    const cfg = field.brandStyleConfig;
+    const getDarkest = (palette: string[]) => {
+      let d = palette[0] ?? "#333", min = Infinity;
+      for (const c of palette) { const h = c.replace("#",""); const b = parseInt(h.substring(0,2),16)*0.299+parseInt(h.substring(2,4),16)*0.587+parseInt(h.substring(4,6),16)*0.114; if(b<min){min=b;d=c;} }
+      return d;
+    };
+    const getLightest = (palette: string[]) => {
+      let l = palette[palette.length-1] ?? "#f5f5f5", max = -1;
+      for (const c of palette) { const h = c.replace("#",""); const b = parseInt(h.substring(0,2),16)*0.299+parseInt(h.substring(2,4),16)*0.587+parseInt(h.substring(4,6),16)*0.114; if(b>max){max=b;l=c;} }
+      return l;
+    };
+    return (
+      <div>
+        <label className="block text-xs font-semibold text-on-surface-variant uppercase tracking-widest mb-1.5 ml-1">
+          {field.label}{field.required && <span className="ml-1" style={{ color: primaryColor }}>*</span>}
+        </label>
+        {field.hint && <p className="text-xs text-on-surface-variant/60 mb-2 ml-1">{field.hint}</p>}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+          {cfg.styles.map((style) => {
+            const darkest = getDarkest(style.palette);
+            const lightest = getLightest(style.palette);
+            return (
+              <div key={style.id} className="rounded-xl border-2 border-outline-variant/30 p-3 bg-surface-container hover:border-primary/30 transition-all cursor-pointer">
+                <div className="rounded-lg overflow-hidden mb-2.5 border border-outline-variant/30" style={{ height: 64 }}>
+                  <div className="h-4 flex items-center px-2 gap-1" style={{ backgroundColor: style.palette[0] ?? "#333" }}>
+                    <div className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: "rgba(255,255,255,0.5)" }} />
+                    <div className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: "rgba(255,255,255,0.3)" }} />
+                    <div className="ml-auto text-[6px] font-bold" style={{ color: "rgba(255,255,255,0.8)", fontFamily: style.fontFamily }}>Logo</div>
+                  </div>
+                  <div className="px-2 py-1.5" style={{ backgroundColor: lightest }}>
+                    <div className="h-1 w-3/4 rounded-full mb-1" style={{ backgroundColor: darkest, opacity: 0.7 }} />
+                    <div className="h-1 w-1/2 rounded-full mb-1" style={{ backgroundColor: darkest, opacity: 0.4 }} />
+                    <div className="h-1 w-2/3 rounded-full" style={{ backgroundColor: darkest, opacity: 0.25 }} />
+                  </div>
+                </div>
+                <div className="flex rounded-md overflow-hidden mb-2" style={{ height: 6 }}>
+                  {style.palette.map((color, i) => <div key={i} className="flex-1" style={{ backgroundColor: color }} />)}
+                </div>
+                <p className="text-sm font-semibold text-on-surface">{style.name}</p>
+                {style.fontFamily && <p className="text-[10px] text-on-surface-variant mt-0.5"><i className="fa-solid fa-font mr-1" />{style.fontFamily}</p>}
+                {style.description && <p className="text-xs text-on-surface-variant/70 mt-1 leading-relaxed">{style.description}</p>}
+              </div>
+            );
+          })}
+        </div>
+        {cfg.allowMultiple && <p className="text-xs text-on-surface-variant/40 mt-2 ml-1">Select multiple styles</p>}
+      </div>
+    );
+  }
+
+  /* Competitor Analyzer — preview */
+  if (field.type === "competitor_analyzer" && field.competitorAnalyzerConfig) {
+    const cfg = field.competitorAnalyzerConfig;
+    return (
+      <div>
+        <label className="block text-xs font-semibold text-on-surface-variant uppercase tracking-widest mb-1.5 ml-1">
+          {field.label}{field.required && <span className="ml-1" style={{ color: primaryColor }}>*</span>}
+        </label>
+        {field.hint && <p className="text-xs text-on-surface-variant/60 mb-2 ml-1">{field.hint}</p>}
+        {cfg.autoFetch && (
+          <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[10px] font-semibold mb-3"
+            style={{ backgroundColor: primaryColor + "15", color: primaryColor }}>
+            <i className="fa-solid fa-wand-magic-sparkles text-[9px]" />Auto-analysis enabled
+          </div>
+        )}
+        <div className="rounded-xl border border-outline-variant/30 bg-surface-container p-3 mb-2">
+          <div className="flex items-center gap-2">
+            <input type="url" placeholder={cfg.placeholder || "https://competitor-website.com"} className={INPUT_CLS} style={focusRing} readOnly />
+            <div className="w-8 h-8 rounded-lg bg-surface-container-high flex items-center justify-center shrink-0">
+              <i className="fa-solid fa-note-sticky text-xs text-on-surface-variant/40" />
+            </div>
+          </div>
+        </div>
+        <button type="button" className="w-full py-2.5 rounded-xl border-2 border-dashed text-sm font-semibold flex items-center justify-center gap-2 transition-all"
+          style={{ borderColor: primaryColor + "40", color: primaryColor }}>
+          <i className="fa-solid fa-plus text-xs" />Add Competitor
+          {cfg.maxCompetitors && <span className="text-[10px] font-normal opacity-60">(0/{cfg.maxCompetitors})</span>}
+        </button>
+      </div>
+    );
+  }
+
+  /* Timeline Selector — preview */
+  if (field.type === "timeline" && field.timelineConfig) {
+    const cfg = field.timelineConfig;
+    return (
+      <div>
+        <label className="block text-xs font-semibold text-on-surface-variant uppercase tracking-widest mb-1.5 ml-1">
+          {field.label}{field.required && <span className="ml-1" style={{ color: primaryColor }}>*</span>}
+        </label>
+        {field.hint && <p className="text-xs text-on-surface-variant/60 mb-2 ml-1">{field.hint}</p>}
+        <div className="space-y-3">
+          {(cfg.showStartDate || cfg.showEndDate) && (
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              {cfg.showStartDate && (
+                <div>
+                  <label className="block text-[10px] font-semibold text-on-surface-variant uppercase tracking-wider mb-1 ml-1">
+                    <i className="fa-solid fa-play mr-1 text-[9px]" style={{ color: "#4caf50" }} />Project Start
+                  </label>
+                  <input type="date" className={INPUT_CLS} style={focusRing} readOnly />
+                </div>
+              )}
+              {cfg.showEndDate && (
+                <div>
+                  <label className="block text-[10px] font-semibold text-on-surface-variant uppercase tracking-wider mb-1 ml-1">
+                    <i className="fa-solid fa-flag-checkered mr-1 text-[9px]" style={{ color: "#f44336" }} />Project Deadline
+                  </label>
+                  <input type="date" className={INPUT_CLS} style={focusRing} readOnly />
+                </div>
+              )}
+            </div>
+          )}
+          {cfg.milestones && cfg.milestones.length > 0 && (
+            <div className="rounded-xl border border-outline-variant/30 bg-surface-container p-3">
+              <p className="text-[10px] font-semibold text-on-surface-variant uppercase tracking-wider mb-2.5">
+                <i className="fa-solid fa-diamond mr-1" style={{ color: primaryColor }} />Milestones
+              </p>
+              <div className="space-y-2.5">
+                {cfg.milestones.map((m) => (
+                  <div key={m.id}>
+                    <label className="block text-xs text-on-surface mb-1 ml-0.5">
+                      {m.label}{m.required && <span className="ml-1" style={{ color: primaryColor }}>*</span>}
+                    </label>
+                    <input type="date" className={INPUT_CLS} style={focusRing} readOnly />
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+          {cfg.allowBlackoutDates && (
+            <div className="rounded-xl border border-outline-variant/30 bg-surface-container p-3">
+              <p className="text-[10px] font-semibold text-on-surface-variant uppercase tracking-wider mb-2">
+                <i className="fa-solid fa-ban mr-1 text-error/70" />Blackout Periods
+              </p>
+              <button type="button" className="text-xs font-semibold flex items-center gap-1.5" style={{ color: primaryColor }}>
+                <i className="fa-solid fa-plus text-[9px]" />Add Blackout Period
+              </button>
+            </div>
+          )}
+        </div>
+      </div>
+    );
+  }
+
+  /* Budget Allocator — preview */
+  if (field.type === "budget_allocator" && field.budgetAllocatorConfig) {
+    const cfg = field.budgetAllocatorConfig;
+    const currency = cfg.currency ?? "$";
+    return (
+      <div>
+        <label className="block text-xs font-semibold text-on-surface-variant uppercase tracking-widest mb-1.5 ml-1">
+          {field.label}{field.required && <span className="ml-1" style={{ color: primaryColor }}>*</span>}
+        </label>
+        {field.hint && <p className="text-xs text-on-surface-variant/60 mb-2 ml-1">{field.hint}</p>}
+        {cfg.mode === "constrained" && cfg.totalBudget && cfg.totalBudget > 0 && (
+          <div className="rounded-xl border border-outline-variant/30 bg-surface-container p-3 mb-3">
+            <div className="flex items-center justify-between mb-1.5">
+              <span className="text-[10px] font-semibold text-on-surface-variant uppercase tracking-wider">
+                <i className="fa-solid fa-wallet mr-1" style={{ color: primaryColor }} />Total Budget
+              </span>
+              <span className="text-sm font-bold" style={{ color: primaryColor }}>{currency}{cfg.totalBudget.toLocaleString()}</span>
+            </div>
+            <div className="h-2 rounded-full bg-surface-container-highest" />
+          </div>
+        )}
+        <div className="space-y-3">
+          {cfg.channels.map((ch) => {
+            const defaultPct = ch.defaultValue && cfg.totalBudget ? (ch.defaultValue / cfg.totalBudget) * 100 : 25;
+            return (
+              <div key={ch.id} className="rounded-xl border border-outline-variant/30 bg-surface-container p-3">
+                <div className="flex items-center justify-between mb-2">
+                  <div className="flex items-center gap-2">
+                    {ch.icon && <i className={`${ch.icon} text-sm`} style={{ color: primaryColor }} />}
+                    <span className="text-xs font-semibold text-on-surface">{ch.label}</span>
+                  </div>
+                  <span className="text-sm font-bold tabular-nums" style={{ color: primaryColor }}>
+                    {cfg.showAsPercentage ? `${Math.round(defaultPct)}%` : `${currency}${(ch.defaultValue ?? 0).toLocaleString()}`}
+                  </span>
+                </div>
+                <div className="h-1.5 rounded-full bg-surface-container-highest">
+                  <div className="h-full rounded-full" style={{ width: `${Math.min(defaultPct, 100)}%`, backgroundColor: primaryColor, opacity: 0.6 }} />
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+    );
+  }
+
   /* All other fields — fully interactive */
   return (
     <div>

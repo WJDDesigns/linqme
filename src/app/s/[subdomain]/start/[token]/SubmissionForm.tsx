@@ -920,6 +920,622 @@ function SignaturePadCanvas({ value, onChange, primaryColor }: {
     </div>
   );
 }
+/* ── Phase 2 Field Renderers ──────────────────────────────── */
+
+function BrandStyleField({ field, value, error, onChange, primaryColor }: {
+  field: FieldDef; value: unknown; error?: string; onChange: (v: unknown) => void; primaryColor: string;
+}) {
+  const cfg = field.brandStyleConfig!;
+  const str = (value as string) ?? "";
+  const selected = cfg.allowMultiple ? (str ? str.split("||") : []) : (str ? [str] : []);
+
+  const toggle = (id: string) => {
+    if (cfg.allowMultiple) {
+      const next = selected.includes(id) ? selected.filter((s) => s !== id) : [...selected, id];
+      onChange(next.join("||"));
+    } else {
+      onChange(selected.includes(id) ? "" : id);
+    }
+  };
+
+  const getDarkest = (palette: string[]) => {
+    let darkest = palette[0] ?? "#333";
+    let minBrightness = Infinity;
+    for (const c of palette) {
+      const hex = c.replace("#", "");
+      const r = parseInt(hex.substring(0, 2), 16);
+      const g = parseInt(hex.substring(2, 4), 16);
+      const b = parseInt(hex.substring(4, 6), 16);
+      const brightness = r * 0.299 + g * 0.587 + b * 0.114;
+      if (brightness < minBrightness) { minBrightness = brightness; darkest = c; }
+    }
+    return darkest;
+  };
+
+  const getLightest = (palette: string[]) => {
+    let lightest = palette[palette.length - 1] ?? "#f5f5f5";
+    let maxBrightness = -1;
+    for (const c of palette) {
+      const hex = c.replace("#", "");
+      const r = parseInt(hex.substring(0, 2), 16);
+      const g = parseInt(hex.substring(2, 4), 16);
+      const b = parseInt(hex.substring(4, 6), 16);
+      const brightness = r * 0.299 + g * 0.587 + b * 0.114;
+      if (brightness > maxBrightness) { maxBrightness = brightness; lightest = c; }
+    }
+    return lightest;
+  };
+
+  return (
+    <div className="group">
+      <label className="block text-xs font-semibold text-on-surface-variant uppercase tracking-widest mb-1.5 ml-1">
+        {field.label}
+        {field.required && <span className="ml-1" style={{ color: primaryColor }}>*</span>}
+      </label>
+      {field.hint && <p className="text-xs text-on-surface-variant/60 mb-2 ml-1">{field.hint}</p>}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+        {cfg.styles.map((style) => {
+          const isSelected = selected.includes(style.id);
+          const darkest = getDarkest(style.palette);
+          const lightest = getLightest(style.palette);
+          return (
+            <button
+              key={style.id}
+              type="button"
+              onClick={() => toggle(style.id)}
+              className="relative rounded-xl border-2 p-3 text-left transition-all duration-200 hover:shadow-md"
+              style={{
+                borderColor: isSelected ? primaryColor : "var(--color-outline-variant)",
+                backgroundColor: isSelected ? primaryColor + "10" : "var(--color-surface-container)",
+              }}
+            >
+              {isSelected && (
+                <div className="absolute top-2 right-2 w-5 h-5 rounded-full flex items-center justify-center" style={{ backgroundColor: primaryColor }}>
+                  <i className="fa-solid fa-check text-[10px] text-white" />
+                </div>
+              )}
+              {/* Mini preview tile */}
+              <div className="rounded-lg overflow-hidden mb-2.5 border border-outline-variant/30" style={{ height: 64 }}>
+                <div className="h-4 flex items-center px-2 gap-1" style={{ backgroundColor: style.palette[0] ?? "#333" }}>
+                  <div className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: "rgba(255,255,255,0.5)" }} />
+                  <div className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: "rgba(255,255,255,0.3)" }} />
+                  <div className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: "rgba(255,255,255,0.3)" }} />
+                  <div className="ml-auto text-[6px] font-bold" style={{ color: "rgba(255,255,255,0.8)", fontFamily: style.fontFamily }}>Logo</div>
+                </div>
+                <div className="px-2 py-1.5" style={{ backgroundColor: lightest }}>
+                  <div className="h-1 w-3/4 rounded-full mb-1" style={{ backgroundColor: darkest, opacity: 0.7 }} />
+                  <div className="h-1 w-1/2 rounded-full mb-1" style={{ backgroundColor: darkest, opacity: 0.4 }} />
+                  <div className="h-1 w-2/3 rounded-full" style={{ backgroundColor: darkest, opacity: 0.25 }} />
+                </div>
+              </div>
+              {/* Color palette strip */}
+              <div className="flex rounded-md overflow-hidden mb-2" style={{ height: 6 }}>
+                {style.palette.map((color, i) => (
+                  <div key={i} className="flex-1" style={{ backgroundColor: color }} />
+                ))}
+              </div>
+              <p className="text-sm font-semibold text-on-surface">{style.name}</p>
+              {style.fontFamily && (
+                <p className="text-[10px] text-on-surface-variant mt-0.5" style={{ fontFamily: style.fontFamily }}>
+                  <i className="fa-solid fa-font mr-1" />{style.fontFamily}
+                </p>
+              )}
+              {style.description && (
+                <p className="text-xs text-on-surface-variant/70 mt-1 leading-relaxed">{style.description}</p>
+              )}
+            </button>
+          );
+        })}
+      </div>
+      {error && <p className="text-sm text-error mt-1.5 sl-fade-up flex items-center gap-1.5"><i className="fa-solid fa-circle-exclamation text-xs flex-shrink-0" />{error}</p>}
+    </div>
+  );
+}
+
+function CompetitorAnalyzerField({ field, value, error, onChange, primaryColor }: {
+  field: FieldDef; value: unknown; error?: string; onChange: (v: unknown) => void; primaryColor: string;
+}) {
+  const cfg = field.competitorAnalyzerConfig!;
+  type AnalysisResult = { title?: string | null; description?: string | null; headings?: string[]; navLinks?: string[]; fetchedAt?: string };
+  type CompetitorEntry = { url: string; notes?: string; analysis?: AnalysisResult };
+  const entries: CompetitorEntry[] = (() => {
+    try {
+      if (typeof value === "string" && value) { const p = JSON.parse(value); return Array.isArray(p) ? p : []; }
+      return [];
+    } catch { return []; }
+  })();
+  const [expandedIdx, setExpandedIdx] = useState<number | null>(null);
+  const [analyzing, setAnalyzing] = useState<number | null>(null);
+  const debounceRef = useRef<Record<number, ReturnType<typeof setTimeout>>>({});
+
+  const update = (next: CompetitorEntry[]) => onChange(JSON.stringify(next));
+  const canAdd = !cfg.maxCompetitors || entries.length < cfg.maxCompetitors;
+
+  const fetchAnalysis = useCallback(async (url: string, idx: number) => {
+    if (!cfg.autoFetch) return;
+    try {
+      new URL(url); // validate
+    } catch { return; }
+    setAnalyzing(idx);
+    try {
+      const res = await fetch("/api/competitor-analyze", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ url }),
+      });
+      if (res.ok) {
+        const data = await res.json();
+        // Re-parse current value to get latest entries
+        let current: CompetitorEntry[] = [];
+        try {
+          const raw = typeof value === "string" && value ? JSON.parse(value) : [];
+          current = Array.isArray(raw) ? raw : [];
+        } catch { current = []; }
+        if (current[idx]) {
+          const next = current.map((e, i) => i === idx ? { ...e, analysis: { title: data.title, description: data.description, headings: data.headings, navLinks: data.navLinks, fetchedAt: data.fetchedAt } } : e);
+          onChange(JSON.stringify(next));
+        }
+      }
+    } catch { /* silently fail */ }
+    setAnalyzing(null);
+  }, [cfg.autoFetch, value, onChange]);
+
+  const addEntry = () => {
+    if (!canAdd) return;
+    update([...entries, { url: "", notes: "" }]);
+  };
+
+  const removeEntry = (idx: number) => {
+    const next = entries.filter((_, i) => i !== idx);
+    update(next);
+    if (expandedIdx === idx) setExpandedIdx(null);
+  };
+
+  const updateEntry = (idx: number, patch: Partial<CompetitorEntry>) => {
+    const next = entries.map((e, i) => (i === idx ? { ...e, ...patch } : e));
+    update(next);
+    // Auto-fetch on URL change with debounce
+    if (cfg.autoFetch && patch.url !== undefined) {
+      if (debounceRef.current[idx]) clearTimeout(debounceRef.current[idx]);
+      const url = patch.url;
+      if (url && url.startsWith("http")) {
+        debounceRef.current[idx] = setTimeout(() => fetchAnalysis(url, idx), 1200);
+      }
+    }
+  };
+
+  return (
+    <div className="group">
+      <label className="block text-xs font-semibold text-on-surface-variant uppercase tracking-widest mb-1.5 ml-1">
+        {field.label}
+        {field.required && <span className="ml-1" style={{ color: primaryColor }}>*</span>}
+      </label>
+      {field.hint && <p className="text-xs text-on-surface-variant/60 mb-2 ml-1">{field.hint}</p>}
+      {cfg.autoFetch && (
+        <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[10px] font-semibold mb-3"
+          style={{ backgroundColor: primaryColor + "15", color: primaryColor }}>
+          <i className="fa-solid fa-wand-magic-sparkles text-[9px]" />
+          Auto-analysis enabled
+        </div>
+      )}
+      <div className="space-y-2.5">
+        {entries.map((entry, idx) => (
+          <div key={idx} className="rounded-xl border border-outline-variant/50 bg-surface-container p-3 transition-all duration-200">
+            <div className="flex items-center gap-2">
+              <div className="flex-1">
+                <input
+                  type="url"
+                  placeholder={cfg.placeholder || "https://competitor-website.com"}
+                  value={entry.url}
+                  onChange={(e) => updateEntry(idx, { url: e.target.value })}
+                  className={INPUT_CLS}
+                  style={{ "--tw-ring-color": primaryColor + "66" } as React.CSSProperties}
+                />
+              </div>
+              {cfg.autoFetch && (
+                <button type="button"
+                  onClick={() => entry.url && fetchAnalysis(entry.url, idx)}
+                  disabled={analyzing === idx || !entry.url}
+                  className="w-8 h-8 rounded-lg flex items-center justify-center transition-colors disabled:opacity-30"
+                  style={{ color: primaryColor }}
+                  title="Analyze site">
+                  <i className={`fa-solid ${analyzing === idx ? "fa-spinner fa-spin" : "fa-magnifying-glass-chart"} text-xs`} />
+                </button>
+              )}
+              <button type="button" onClick={() => setExpandedIdx(expandedIdx === idx ? null : idx)}
+                className="w-8 h-8 rounded-lg flex items-center justify-center text-on-surface-variant hover:bg-surface-container-high transition-colors"
+                title="Toggle notes">
+                <i className={`fa-solid fa-note-sticky text-xs ${expandedIdx === idx ? "opacity-100" : "opacity-40"}`} />
+              </button>
+              <button type="button" onClick={() => removeEntry(idx)}
+                className="w-8 h-8 rounded-lg flex items-center justify-center text-error/60 hover:text-error hover:bg-error/10 transition-colors"
+                title="Remove">
+                <i className="fa-solid fa-trash-can text-xs" />
+              </button>
+            </div>
+            {/* Analysis results */}
+            {entry.analysis && (entry.analysis.title || entry.analysis.description) && (
+              <div className="mt-2.5 rounded-lg p-2.5 border border-outline-variant/30" style={{ backgroundColor: primaryColor + "08" }}>
+                <div className="flex items-center gap-1.5 mb-1.5">
+                  <i className="fa-solid fa-robot text-[9px]" style={{ color: primaryColor }} />
+                  <span className="text-[10px] font-bold uppercase tracking-wider" style={{ color: primaryColor }}>Site Analysis</span>
+                </div>
+                {entry.analysis.title && <p className="text-xs font-semibold text-on-surface">{entry.analysis.title}</p>}
+                {entry.analysis.description && <p className="text-[11px] text-on-surface-variant mt-0.5 leading-relaxed line-clamp-2">{entry.analysis.description}</p>}
+                {entry.analysis.navLinks && entry.analysis.navLinks.length > 0 && (
+                  <div className="flex flex-wrap gap-1 mt-1.5">
+                    {entry.analysis.navLinks.slice(0, 6).map((link, i) => (
+                      <span key={i} className="text-[9px] px-1.5 py-0.5 rounded-md bg-surface-container-high text-on-surface-variant">{link}</span>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
+            {expandedIdx === idx && (
+              <div className="mt-2.5">
+                <textarea
+                  placeholder="Notes about this competitor..."
+                  value={entry.notes ?? ""}
+                  onChange={(e) => updateEntry(idx, { notes: e.target.value })}
+                  rows={2}
+                  className={INPUT_CLS}
+                  style={{ "--tw-ring-color": primaryColor + "66" } as React.CSSProperties}
+                />
+              </div>
+            )}
+          </div>
+        ))}
+      </div>
+      {canAdd && (
+        <button type="button" onClick={addEntry}
+          className="mt-3 w-full py-2.5 rounded-xl border-2 border-dashed text-sm font-semibold transition-all duration-200 hover:shadow-sm flex items-center justify-center gap-2"
+          style={{ borderColor: primaryColor + "40", color: primaryColor }}>
+          <i className="fa-solid fa-plus text-xs" />
+          Add Competitor
+          {cfg.maxCompetitors && <span className="text-[10px] font-normal opacity-60">({entries.length}/{cfg.maxCompetitors})</span>}
+        </button>
+      )}
+      {error && <p className="text-sm text-error mt-1.5 sl-fade-up flex items-center gap-1.5"><i className="fa-solid fa-circle-exclamation text-xs flex-shrink-0" />{error}</p>}
+    </div>
+  );
+}
+
+function TimelineField({ field, value, error, onChange, primaryColor }: {
+  field: FieldDef; value: unknown; error?: string; onChange: (v: unknown) => void; primaryColor: string;
+}) {
+  const cfg = field.timelineConfig!;
+  type TimelineData = { startDate?: string; endDate?: string; milestones: Record<string, string>; blackoutDates: { start: string; end: string }[] };
+  const data: TimelineData = (() => {
+    try {
+      if (typeof value === "string" && value) return JSON.parse(value);
+      return { milestones: {}, blackoutDates: [] };
+    } catch { return { milestones: {}, blackoutDates: [] }; }
+  })();
+
+  const update = (patch: Partial<TimelineData>) => {
+    onChange(JSON.stringify({ ...data, ...patch }));
+  };
+
+  const setMilestone = (id: string, date: string) => {
+    update({ milestones: { ...data.milestones, [id]: date } });
+  };
+
+  const addBlackout = () => {
+    update({ blackoutDates: [...data.blackoutDates, { start: "", end: "" }] });
+  };
+
+  const removeBlackout = (idx: number) => {
+    update({ blackoutDates: data.blackoutDates.filter((_, i) => i !== idx) });
+  };
+
+  const updateBlackout = (idx: number, patch: Partial<{ start: string; end: string }>) => {
+    update({ blackoutDates: data.blackoutDates.map((b, i) => (i === idx ? { ...b, ...patch } : b)) });
+  };
+
+  // Collect all dates for the timeline preview
+  const allDates: { label: string; date: string; color: string }[] = [];
+  if (data.startDate) allDates.push({ label: "Start", date: data.startDate, color: "#4caf50" });
+  if (cfg.milestones) {
+    cfg.milestones.forEach((m) => {
+      if (data.milestones[m.id]) allDates.push({ label: m.label, date: data.milestones[m.id], color: primaryColor });
+    });
+  }
+  if (data.endDate) allDates.push({ label: "Deadline", date: data.endDate, color: "#f44336" });
+  allDates.sort((a, b) => a.date.localeCompare(b.date));
+
+  return (
+    <div className="group">
+      <label className="block text-xs font-semibold text-on-surface-variant uppercase tracking-widest mb-1.5 ml-1">
+        {field.label}
+        {field.required && <span className="ml-1" style={{ color: primaryColor }}>*</span>}
+      </label>
+      {field.hint && <p className="text-xs text-on-surface-variant/60 mb-2 ml-1">{field.hint}</p>}
+
+      <div className="space-y-3">
+        {/* Start / End dates */}
+        {(cfg.showStartDate || cfg.showEndDate) && (
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            {cfg.showStartDate && (
+              <div>
+                <label className="block text-[10px] font-semibold text-on-surface-variant uppercase tracking-wider mb-1 ml-1">
+                  <i className="fa-solid fa-play mr-1 text-[9px]" style={{ color: "#4caf50" }} />Project Start
+                </label>
+                <input type="date" value={data.startDate ?? ""} min={cfg.minDate}
+                  onChange={(e) => update({ startDate: e.target.value })}
+                  className={INPUT_CLS}
+                  style={{ "--tw-ring-color": primaryColor + "66" } as React.CSSProperties} />
+              </div>
+            )}
+            {cfg.showEndDate && (
+              <div>
+                <label className="block text-[10px] font-semibold text-on-surface-variant uppercase tracking-wider mb-1 ml-1">
+                  <i className="fa-solid fa-flag-checkered mr-1 text-[9px]" style={{ color: "#f44336" }} />Project Deadline
+                </label>
+                <input type="date" value={data.endDate ?? ""} min={cfg.minDate}
+                  onChange={(e) => update({ endDate: e.target.value })}
+                  className={INPUT_CLS}
+                  style={{ "--tw-ring-color": primaryColor + "66" } as React.CSSProperties} />
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Milestones */}
+        {cfg.milestones && cfg.milestones.length > 0 && (
+          <div className="rounded-xl border border-outline-variant/50 bg-surface-container p-3">
+            <p className="text-[10px] font-semibold text-on-surface-variant uppercase tracking-wider mb-2.5">
+              <i className="fa-solid fa-diamond mr-1" style={{ color: primaryColor }} />Milestones
+            </p>
+            <div className="space-y-2.5">
+              {cfg.milestones.map((m) => (
+                <div key={m.id}>
+                  <label className="block text-xs text-on-surface mb-1 ml-0.5">
+                    {m.label}
+                    {m.required && <span className="ml-1" style={{ color: primaryColor }}>*</span>}
+                  </label>
+                  <input type="date" value={data.milestones[m.id] ?? ""} min={cfg.minDate}
+                    onChange={(e) => setMilestone(m.id, e.target.value)}
+                    className={INPUT_CLS}
+                    style={{ "--tw-ring-color": primaryColor + "66" } as React.CSSProperties} />
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Blackout dates */}
+        {cfg.allowBlackoutDates && (
+          <div className="rounded-xl border border-outline-variant/50 bg-surface-container p-3">
+            <p className="text-[10px] font-semibold text-on-surface-variant uppercase tracking-wider mb-2.5">
+              <i className="fa-solid fa-ban mr-1 text-error/70" />Blackout Periods
+            </p>
+            <div className="space-y-2">
+              {data.blackoutDates.map((b, idx) => (
+                <div key={idx} className="flex items-center gap-2">
+                  <input type="date" value={b.start} min={cfg.minDate}
+                    onChange={(e) => updateBlackout(idx, { start: e.target.value })}
+                    className={INPUT_CLS + " flex-1"}
+                    style={{ "--tw-ring-color": primaryColor + "66" } as React.CSSProperties} />
+                  <span className="text-[10px] text-on-surface-variant font-medium">to</span>
+                  <input type="date" value={b.end} min={b.start || cfg.minDate}
+                    onChange={(e) => updateBlackout(idx, { end: e.target.value })}
+                    className={INPUT_CLS + " flex-1"}
+                    style={{ "--tw-ring-color": primaryColor + "66" } as React.CSSProperties} />
+                  <button type="button" onClick={() => removeBlackout(idx)}
+                    className="w-8 h-8 rounded-lg flex items-center justify-center text-error/60 hover:text-error hover:bg-error/10 transition-colors flex-shrink-0"
+                    title="Remove">
+                    <i className="fa-solid fa-trash-can text-xs" />
+                  </button>
+                </div>
+              ))}
+            </div>
+            <button type="button" onClick={addBlackout}
+              className="mt-2 text-xs font-semibold flex items-center gap-1.5 transition-colors"
+              style={{ color: primaryColor }}>
+              <i className="fa-solid fa-plus text-[9px]" />Add Blackout Period
+            </button>
+          </div>
+        )}
+
+        {/* Timeline preview bar */}
+        {allDates.length >= 2 && (
+          <div className="rounded-xl border border-outline-variant/50 bg-surface-container p-3">
+            <p className="text-[10px] font-semibold text-on-surface-variant uppercase tracking-wider mb-3">
+              <i className="fa-solid fa-timeline mr-1" style={{ color: primaryColor }} />Timeline Preview
+            </p>
+            <div className="relative h-2 rounded-full bg-surface-container-highest">
+              {allDates.map((d, i) => {
+                const pct = allDates.length === 1 ? 50 : (i / (allDates.length - 1)) * 100;
+                return (
+                  <div key={i} className="absolute -translate-x-1/2 group/dot" style={{ left: `${pct}%` }}>
+                    <div className="w-3.5 h-3.5 rounded-full border-2 border-surface -mt-[3px]" style={{ backgroundColor: d.color }} />
+                    <div className="absolute top-5 left-1/2 -translate-x-1/2 whitespace-nowrap text-[9px] text-on-surface-variant font-medium">
+                      {d.label}
+                    </div>
+                    <div className="absolute -top-5 left-1/2 -translate-x-1/2 whitespace-nowrap text-[8px] text-on-surface-variant/60">
+                      {d.date}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+            <div className="h-6" /> {/* spacer for labels */}
+          </div>
+        )}
+      </div>
+
+      {error && <p className="text-sm text-error mt-1.5 sl-fade-up flex items-center gap-1.5"><i className="fa-solid fa-circle-exclamation text-xs flex-shrink-0" />{error}</p>}
+    </div>
+  );
+}
+
+function BudgetAllocatorField({ field, value, error, onChange, primaryColor }: {
+  field: FieldDef; value: unknown; error?: string; onChange: (v: unknown) => void; primaryColor: string;
+}) {
+  const cfg = field.budgetAllocatorConfig!;
+  const currency = cfg.currency ?? "$";
+  const isConstrained = cfg.mode === "constrained";
+  const totalBudget = cfg.totalBudget ?? 0;
+
+  const allocation: Record<string, number> = (() => {
+    try {
+      if (typeof value === "string" && value) return JSON.parse(value);
+      if (typeof value === "object" && value !== null && !Array.isArray(value)) return value as Record<string, number>;
+      const init: Record<string, number> = {};
+      cfg.channels.forEach((ch) => { init[ch.id] = ch.defaultValue ?? 0; });
+      return init;
+    } catch {
+      const init: Record<string, number> = {};
+      cfg.channels.forEach((ch) => { init[ch.id] = ch.defaultValue ?? 0; });
+      return init;
+    }
+  })();
+
+  const [localAlloc, setLocalAlloc] = useState<Record<string, number>>(allocation);
+
+  // Sync local state if external value changes
+  useEffect(() => {
+    try {
+      if (typeof value === "string" && value) {
+        const parsed = JSON.parse(value);
+        setLocalAlloc(parsed);
+      }
+    } catch { /* ignore */ }
+  }, [value]);
+
+  const totalAllocated = Object.values(localAlloc).reduce((s, v) => s + v, 0);
+
+  const handleSliderChange = (channelId: string, newVal: number) => {
+    let next: Record<string, number>;
+
+    if (isConstrained && totalBudget > 0) {
+      const oldVal = localAlloc[channelId] ?? 0;
+      const delta = newVal - oldVal;
+      const otherIds = cfg.channels.filter((c) => c.id !== channelId).map((c) => c.id);
+      const otherTotal = otherIds.reduce((s, id) => s + (localAlloc[id] ?? 0), 0);
+
+      next = { ...localAlloc, [channelId]: newVal };
+
+      if (otherTotal > 0 && delta !== 0) {
+        const redistribute = -delta;
+        otherIds.forEach((id) => {
+          const proportion = (localAlloc[id] ?? 0) / otherTotal;
+          next[id] = Math.max(0, Math.round((localAlloc[id] ?? 0) + redistribute * proportion));
+        });
+      }
+    } else {
+      next = { ...localAlloc, [channelId]: newVal };
+    }
+
+    setLocalAlloc(next);
+    onChange(JSON.stringify(next));
+  };
+
+  const getMax = (channelId: string) => {
+    if (isConstrained && totalBudget > 0) return totalBudget;
+    return cfg.maxPerChannel ?? 100000;
+  };
+
+  return (
+    <div className="group">
+      <label className="block text-xs font-semibold text-on-surface-variant uppercase tracking-widest mb-1.5 ml-1">
+        {field.label}
+        {field.required && <span className="ml-1" style={{ color: primaryColor }}>*</span>}
+      </label>
+      {field.hint && <p className="text-xs text-on-surface-variant/60 mb-2 ml-1">{field.hint}</p>}
+
+      {/* Total budget indicator (constrained mode) */}
+      {isConstrained && totalBudget > 0 && (
+        <div className="rounded-xl border border-outline-variant/50 bg-surface-container p-3 mb-3">
+          <div className="flex items-center justify-between mb-1.5">
+            <span className="text-[10px] font-semibold text-on-surface-variant uppercase tracking-wider">
+              <i className="fa-solid fa-wallet mr-1" style={{ color: primaryColor }} />Total Budget
+            </span>
+            <span className="text-sm font-bold" style={{ color: totalAllocated > totalBudget ? "var(--color-error)" : primaryColor }}>
+              {currency}{totalAllocated.toLocaleString()} / {currency}{totalBudget.toLocaleString()}
+            </span>
+          </div>
+          <div className="h-2 rounded-full bg-surface-container-highest overflow-hidden">
+            <div className="h-full rounded-full transition-all duration-300"
+              style={{
+                width: `${Math.min((totalAllocated / totalBudget) * 100, 100)}%`,
+                backgroundColor: totalAllocated > totalBudget ? "var(--color-error)" : primaryColor,
+              }} />
+          </div>
+          {totalAllocated > totalBudget && (
+            <p className="text-[10px] text-error mt-1 font-medium">
+              <i className="fa-solid fa-triangle-exclamation mr-1" />Over budget by {currency}{(totalAllocated - totalBudget).toLocaleString()}
+            </p>
+          )}
+        </div>
+      )}
+
+      {/* Channel sliders */}
+      <div className="space-y-3">
+        {cfg.channels.map((ch) => {
+          const val = localAlloc[ch.id] ?? 0;
+          const max = getMax(ch.id);
+          const pct = max > 0 ? (val / max) * 100 : 0;
+          const displayVal = cfg.showAsPercentage && isConstrained && totalBudget > 0
+            ? `${Math.round((val / totalBudget) * 100)}%`
+            : `${currency}${val.toLocaleString()}`;
+
+          return (
+            <div key={ch.id} className="rounded-xl border border-outline-variant/50 bg-surface-container p-3">
+              <div className="flex items-center justify-between mb-2">
+                <div className="flex items-center gap-2">
+                  {ch.icon && <i className={`${ch.icon} text-sm`} style={{ color: primaryColor }} />}
+                  <span className="text-xs font-semibold text-on-surface">{ch.label}</span>
+                </div>
+                <span className="text-sm font-bold tabular-nums" style={{ color: primaryColor }}>{displayVal}</span>
+              </div>
+              <input
+                type="range"
+                min={0}
+                max={max}
+                step={max > 1000 ? 100 : max > 100 ? 10 : 1}
+                value={val}
+                onChange={(e) => handleSliderChange(ch.id, Number(e.target.value))}
+                className="w-full h-1.5 rounded-full appearance-none cursor-pointer"
+                style={{
+                  background: `linear-gradient(to right, ${primaryColor} ${pct}%, var(--color-surface-container-highest) ${pct}%)`,
+                  accentColor: primaryColor,
+                }}
+              />
+            </div>
+          );
+        })}
+      </div>
+
+      {/* Visual bar chart summary */}
+      {cfg.channels.length > 1 && totalAllocated > 0 && (
+        <div className="rounded-xl border border-outline-variant/50 bg-surface-container p-3 mt-3">
+          <p className="text-[10px] font-semibold text-on-surface-variant uppercase tracking-wider mb-2.5">
+            <i className="fa-solid fa-chart-bar mr-1" style={{ color: primaryColor }} />Allocation Overview
+          </p>
+          <div className="space-y-1.5">
+            {cfg.channels.map((ch) => {
+              const val = localAlloc[ch.id] ?? 0;
+              const barPct = totalAllocated > 0 ? (val / totalAllocated) * 100 : 0;
+              return (
+                <div key={ch.id} className="flex items-center gap-2">
+                  <span className="text-[10px] text-on-surface-variant w-20 truncate">{ch.label}</span>
+                  <div className="flex-1 h-3 rounded-full bg-surface-container-highest overflow-hidden">
+                    <div className="h-full rounded-full transition-all duration-300" style={{ width: `${barPct}%`, backgroundColor: primaryColor, opacity: 0.5 + (barPct / 200) }} />
+                  </div>
+                  <span className="text-[10px] text-on-surface-variant tabular-nums w-10 text-right">{Math.round(barPct)}%</span>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
+      {error && <p className="text-sm text-error mt-1.5 sl-fade-up flex items-center gap-1.5"><i className="fa-solid fa-circle-exclamation text-xs flex-shrink-0" />{error}</p>}
+    </div>
+  );
+}
+
 function CelestialField({
   field, value, error, onChange, primaryColor, allData,
 }: {
@@ -1551,6 +2167,27 @@ function CelestialField({
       </div>
     );
   }
+
+  /* ── Brand Style Picker ── */
+  if (field.type === "brand_style" && field.brandStyleConfig) {
+    return <BrandStyleField field={field} value={value} error={error} onChange={onChange} primaryColor={primaryColor} />;
+  }
+
+  /* ── Competitor Analyzer ── */
+  if (field.type === "competitor_analyzer" && field.competitorAnalyzerConfig) {
+    return <CompetitorAnalyzerField field={field} value={value} error={error} onChange={onChange} primaryColor={primaryColor} />;
+  }
+
+  /* ── Timeline Selector ── */
+  if (field.type === "timeline" && field.timelineConfig) {
+    return <TimelineField field={field} value={value} error={error} onChange={onChange} primaryColor={primaryColor} />;
+  }
+
+  /* ── Budget Allocator ── */
+  if (field.type === "budget_allocator" && field.budgetAllocatorConfig) {
+    return <BudgetAllocatorField field={field} value={value} error={error} onChange={onChange} primaryColor={primaryColor} />;
+  }
+
   const isMultiCheckbox = field.type === "checkbox" && field.options && field.options.length > 0;
   /* Parse multi-checkbox value as array */
   const checkedValues: string[] = isMultiCheckbox

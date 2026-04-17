@@ -23,7 +23,11 @@ export type FieldType =
   | "site_structure"
   | "feature_selector"
   | "goal_builder"
-  | "approval";
+  | "approval"
+  | "brand_style"
+  | "competitor_analyzer"
+  | "timeline"
+  | "budget_allocator";
 
 /* ââ Package Selector types âââââââââââââââââââââââââââââââ */
 
@@ -216,6 +220,89 @@ export interface ApprovalConfig {
   approveLabel?: string;
 }
 
+/* ── Brand Style Picker types ────────────────────────────── */
+
+export interface BrandStyleOption {
+  id: string;
+  /** Vibe name, e.g. "Modern", "Corporate", "Playful", "Luxury" */
+  name: string;
+  /** Hex colors for the generated palette tile (3-5 colors) */
+  palette: string[];
+  /** Font family suggestion shown on the tile */
+  fontFamily?: string;
+  /** Short description of the style */
+  description?: string;
+}
+
+export interface BrandStyleConfig {
+  /** Style options the client can pick from */
+  styles: BrandStyleOption[];
+  /** Allow selecting multiple styles (default false = pick one) */
+  allowMultiple?: boolean;
+}
+
+/* ── Competitor Analyzer types ───────────────────────────── */
+
+export interface CompetitorAnalyzerConfig {
+  /** Max number of competitors a client can enter */
+  maxCompetitors?: number;
+  /** Placeholder URL example */
+  placeholder?: string;
+  /** Whether to auto-fetch site data via edge function */
+  autoFetch?: boolean;
+  /** Whether to generate an AI summary of the competitor */
+  aiSummary?: boolean;
+}
+
+/* ── Timeline & Availability Selector types ──────────────── */
+
+export interface TimelineMilestone {
+  id: string;
+  label: string;
+  /** Whether the client must provide a date for this milestone */
+  required?: boolean;
+}
+
+export interface TimelineConfig {
+  /** Pre-defined milestone dates for the client to fill in */
+  milestones?: TimelineMilestone[];
+  /** Show a project start date picker */
+  showStartDate?: boolean;
+  /** Show a project end/deadline date picker */
+  showEndDate?: boolean;
+  /** Allow client to add blackout/unavailable date ranges */
+  allowBlackoutDates?: boolean;
+  /** Minimum date (ISO string) — defaults to today */
+  minDate?: string;
+}
+
+/* ── Budget Allocator Slider types ───────────────────────── */
+
+export interface BudgetChannel {
+  id: string;
+  /** Channel label, e.g. "Google Ads", "Meta Ads", "SEO" */
+  label: string;
+  /** Icon class (Font Awesome) */
+  icon?: string;
+  /** Default allocation percentage or dollar amount */
+  defaultValue?: number;
+}
+
+export interface BudgetAllocatorConfig {
+  /** Available channels to allocate across */
+  channels: BudgetChannel[];
+  /** "constrained" = fixed total, redistributing; "independent" = each slider standalone */
+  mode: "constrained" | "independent";
+  /** For constrained mode: the total budget to distribute */
+  totalBudget?: number;
+  /** For independent mode: max value per slider */
+  maxPerChannel?: number;
+  /** Currency symbol (default "$") */
+  currency?: string;
+  /** Show as percentages instead of dollar amounts */
+  showAsPercentage?: boolean;
+}
+
 /** Condition to show/hide a field or step based on another field's value */
 export interface ShowCondition {
   /** ID of the field to evaluate (from any step) */
@@ -258,6 +345,14 @@ export interface FieldDef {
   goalBuilderConfig?: GoalBuilderConfig;
   /** For approval fields â sign-off configuration */
   approvalConfig?: ApprovalConfig;
+  /** For brand_style fields — visual style picker configuration */
+  brandStyleConfig?: BrandStyleConfig;
+  /** For competitor_analyzer fields — competitor input configuration */
+  competitorAnalyzerConfig?: CompetitorAnalyzerConfig;
+  /** For timeline fields — date/milestone configuration */
+  timelineConfig?: TimelineConfig;
+  /** For budget_allocator fields — slider configuration */
+  budgetAllocatorConfig?: BudgetAllocatorConfig;
   /** Show this field only when the condition is met */
   showCondition?: ShowCondition;
   /** For file/files fields: optional cloud storage destination */
