@@ -1,9 +1,9 @@
 import Link from "next/link";
-import SiteLaunchLogo from "@/components/SiteLaunchLogo";
+import LinqMeLogo from "@/components/LinqMeLogo";
 
 export const metadata = {
-  title: "Privacy Policy | SiteLaunch",
-  description: "Privacy Policy for SiteLaunch, the client onboarding platform.",
+  title: "Privacy Policy | LinqMe",
+  description: "Privacy Policy for LinqMe, the client onboarding platform.",
 };
 
 export default function PrivacyPage() {
@@ -18,7 +18,7 @@ export default function PrivacyPage() {
       <div className="relative max-w-3xl mx-auto px-6 md:px-10 py-16">
         {/* Header */}
         <Link href="/" className="inline-flex items-center gap-2 mb-12">
-          <SiteLaunchLogo className="h-8 w-auto text-primary" ringClassName="text-on-surface/60" />
+          <LinqMeLogo className="h-8 w-auto text-primary" ringClassName="text-on-surface/60" />
         </Link>
 
         <div className="glass-panel rounded-2xl border border-outline-variant/15 p-8 md:p-12">
@@ -33,7 +33,7 @@ export default function PrivacyPage() {
             <section>
               <h2 className="text-base font-bold text-on-surface mb-3">1. Introduction</h2>
               <p>
-                WJD Designs (&quot;Company,&quot; &quot;we,&quot; &quot;us,&quot; or &quot;our&quot;) operates the SiteLaunch
+                WJD Designs (&quot;Company,&quot; &quot;we,&quot; &quot;us,&quot; or &quot;our&quot;) operates the LinqMe
                 platform (&quot;Service&quot;). This Privacy Policy explains how we collect, use, disclose,
                 and safeguard your information when you use our Service. Please read this Privacy
                 Policy carefully. By using the Service, you consent to the data practices described
@@ -113,7 +113,7 @@ export default function PrivacyPage() {
             <section>
               <h2 className="text-base font-bold text-on-surface mb-3">5. Data Collected by Your Clients</h2>
               <p>
-                As a SiteLaunch user, you may collect personal information from your own clients
+                As a LinqMe user, you may collect personal information from your own clients
                 through forms you create on the platform. You are the data controller for this
                 information and are responsible for ensuring your data collection practices comply
                 with all applicable laws and regulations (including GDPR, CCPA, and other privacy
@@ -158,8 +158,8 @@ export default function PrivacyPage() {
               </p>
               <p className="mt-3">
                 To exercise any of these rights, please contact us at{" "}
-                <a href="mailto:privacy@mysitelaunch.com" className="text-primary hover:underline">
-                  privacy@mysitelaunch.com
+                <a href="mailto:privacy@linqme.io" className="text-primary hover:underline">
+                  privacy@linqme.io
                 </a>
                 . We will respond to your request within 30 days.
               </p>
@@ -212,8 +212,8 @@ export default function PrivacyPage() {
               <p>
                 If you have any questions about this Privacy Policy or our data practices, please
                 contact us at{" "}
-                <a href="mailto:privacy@mysitelaunch.com" className="text-primary hover:underline">
-                  privacy@mysitelaunch.com
+                <a href="mailto:privacy@linqme.io" className="text-primary hover:underline">
+                  privacy@linqme.io
                 </a>
                 .
               </p>

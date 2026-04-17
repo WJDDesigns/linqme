@@ -128,7 +128,7 @@ export async function signupAction(formData: FormData): Promise<SignupResult> {
   }
 
   // 4. Generate an email verification link and send it via Resend.
-  const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? "https://app.mysitelaunch.com";
+  const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? "https://app.linqme.io";
   const redirectTo = `${appUrl.replace(/\/$/, "")}/auth/callback?next=/dashboard`;
 
   try {

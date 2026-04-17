@@ -1,5 +1,5 @@
 /**
- * Branded HTML email template wrapper for SiteLaunch emails.
+ * Branded HTML email template wrapper for LinqMe emails.
  * Provides consistent styling across all outgoing emails.
  *
  * Also supports DB-stored templates from the `email_templates` table,
@@ -98,7 +98,7 @@ interface TemplateOptions {
   body: string;
   /** Optional CTA button */
   cta?: { label: string; url: string };
-  /** Footer text — defaults to SiteLaunch branding */
+  /** Footer text — defaults to LinqMe branding */
   footer?: string;
   /** Optional partner name for "on behalf of" line */
   partnerName?: string;
@@ -110,8 +110,8 @@ interface TemplateOptions {
  */
 export function emailTemplate(opts: TemplateOptions): string {
   const footerText = opts.partnerName
-    ? `Sent from SiteLaunch on behalf of ${escapeHtml(opts.partnerName)}.`
-    : opts.footer ?? "Sent from SiteLaunch.";
+    ? `Sent from LinqMe on behalf of ${escapeHtml(opts.partnerName)}.`
+    : opts.footer ?? "Sent from LinqMe.";
 
   const ctaBlock = opts.cta
     ? `
@@ -145,8 +145,8 @@ export function emailTemplate(opts: TemplateOptions): string {
           <!-- Logo -->
           <tr>
             <td style="padding: 0 0 24px; text-align: center;">
-              <img src="https://mysitelaunch.com/email-logo.png" alt="SiteLaunch" width="60" height="77" style="display: block; margin: 0 auto 8px; border: 0;" />
-              <span style="font-size: 18px; font-weight: 800; color: #0f172a; letter-spacing: -0.02em;">SiteLaunch</span>
+              <img src="https://linqme.io/email-logo.png" alt="LinqMe" width="60" height="77" style="display: block; margin: 0 auto 8px; border: 0;" />
+              <span style="font-size: 18px; font-weight: 800; color: #0f172a; letter-spacing: -0.02em;">LinqMe</span>
             </td>
           </tr>
           <!-- Card -->

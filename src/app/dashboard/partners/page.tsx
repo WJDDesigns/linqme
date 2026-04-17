@@ -61,7 +61,7 @@ export default async function PartnersPage() {
     subCountMap[s.partner_id] = (subCountMap[s.partner_id] ?? 0) + 1;
   }
 
-  const rootHost = (process.env.NEXT_PUBLIC_ROOT_DOMAIN ?? "mysitelaunch.com").replace(/:\d+$/, "");
+  const rootHost = (process.env.NEXT_PUBLIC_ROOT_DOMAIN ?? "linqme.io").replace(/:\d+$/, "");
   const isPaid = account?.planTier !== "free";
 
   return (

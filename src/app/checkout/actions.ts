@@ -154,12 +154,12 @@ export async function createCheckoutSessionAction(
     cancel_url: `${appUrl}/checkout?plan=${planSlug}`,
     subscription_data: {
       metadata: {
-        sitelaunch_partner_id: account.id,
-        sitelaunch_tier: plan.slug,
+        linqme_partner_id: account.id,
+        linqme_tier: plan.slug,
       },
     },
     metadata: {
-      sitelaunch_partner_id: account.id,
+      linqme_partner_id: account.id,
     },
   };
 

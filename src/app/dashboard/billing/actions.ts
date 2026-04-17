@@ -93,12 +93,12 @@ export async function createCheckoutAction(planSlug: string, couponCode?: string
     cancel_url: `${appUrl}/dashboard/billing`,
     subscription_data: {
       metadata: {
-        sitelaunch_partner_id: account.id,
-        sitelaunch_tier: plan.slug,
+        linqme_partner_id: account.id,
+        linqme_tier: plan.slug,
       },
     },
     metadata: {
-      sitelaunch_partner_id: account.id,
+      linqme_partner_id: account.id,
     },
   };
 
@@ -171,8 +171,8 @@ export async function switchPlanAction(
       ],
       proration_behavior: "create_prorations",
       metadata: {
-        sitelaunch_partner_id: account.id,
-        sitelaunch_tier: targetSlug,
+        linqme_partner_id: account.id,
+        linqme_tier: targetSlug,
       },
     });
 

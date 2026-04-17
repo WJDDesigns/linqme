@@ -42,7 +42,7 @@ export default async function PartnerDetailPage({ params }: PageProps) {
     canEdit = !!membership;
   }
 
-  const rootHost = (process.env.NEXT_PUBLIC_ROOT_DOMAIN ?? "mysitelaunch.com").replace(/:\d+$/, "");
+  const rootHost = (process.env.NEXT_PUBLIC_ROOT_DOMAIN ?? "linqme.io").replace(/:\d+$/, "");
   const boundUpdate = updatePartnerAction.bind(null, id);
   const boundWhiteLabel = updateWhiteLabelAction.bind(null, id);
   const boundUpload = uploadLogoAction.bind(null, id);

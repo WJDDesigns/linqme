@@ -49,7 +49,7 @@ export default async function FormsListPage() {
     .eq("id", account.id)
     .maybeSingle();
 
-  const rootHost = (process.env.NEXT_PUBLIC_ROOT_DOMAIN ?? "mysitelaunch.com").replace(/:\d+$/, "");
+  const rootHost = (process.env.NEXT_PUBLIC_ROOT_DOMAIN ?? "linqme.io").replace(/:\d+$/, "");
   const storefrontHost = partner?.custom_domain || `${partner?.slug ?? account.slug}.${rootHost}`;
 
   // Get submission counts per form

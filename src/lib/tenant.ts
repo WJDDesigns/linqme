@@ -2,9 +2,9 @@
  * Tenant resolution utilities.
  *
  * A request can arrive three ways:
- *   1. Root domain:        mysitelaunch.com                → marketing / landing
- *   2. App subdomain:      app.mysitelaunch.com            → dashboards, login
- *   3. Partner subdomain:  {slug}.mysitelaunch.com         → partner-branded app
+ *   1. Root domain:        linqme.io                       → marketing / landing
+ *   2. App subdomain:      app.linqme.io                   → dashboards, login
+ *   3. Partner subdomain:  {slug}.linqme.io                → partner-branded app
  *   4. Custom domain:      onboard.popmarketing.com        → partner-branded app
  */
 

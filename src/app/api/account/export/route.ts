@@ -90,7 +90,7 @@ export async function GET() {
     return new NextResponse(JSON.stringify(exportData, null, 2), {
       headers: {
         "Content-Type": "application/json; charset=utf-8",
-        "Content-Disposition": `attachment; filename="sitelaunch-data-export-${dateStr}.json"`,
+        "Content-Disposition": `attachment; filename="linqme-data-export-${dateStr}.json"`,
       },
     });
   } catch (e) {

@@ -25,7 +25,7 @@ export default async function EmailTemplatesPage() {
           Email Templates
         </h1>
         <p className="text-sm text-on-surface-variant mt-1">
-          Manage the branded email templates sent by SiteLaunch.
+          Manage the branded email templates sent by LinqMe.
         </p>
       </header>
 

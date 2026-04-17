@@ -23,7 +23,7 @@ export async function GET(request: Request) {
   const code = url.searchParams.get("code");
   const stateParam = url.searchParams.get("state");
   const errorParam = url.searchParams.get("error");
-  const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? "https://app.mysitelaunch.com";
+  const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? "https://app.linqme.io";
   const settingsUrl = `${appUrl}/dashboard/settings`;
 
   if (errorParam) {

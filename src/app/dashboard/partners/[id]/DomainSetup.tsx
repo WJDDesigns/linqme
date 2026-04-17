@@ -43,13 +43,13 @@ const STATUS_STYLES: Record<
   },
 };
 
-const SITELAUNCH_CNAME = "cname.mysitelaunch.com";
+const LINQME_CNAME = "cname.linqme.io";
 
 export default function DomainSetup({
   partnerId,
   currentDomain,
   saveAction,
-  cnameTarget = SITELAUNCH_CNAME,
+  cnameTarget = LINQME_CNAME,
 }: Props) {
   const [domain, setDomain] = useState(currentDomain ?? "");
   const [result, setResult] = useState<DomainCheckResult | null>(null);

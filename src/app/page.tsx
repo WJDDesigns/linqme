@@ -1,5 +1,5 @@
 import Link from "next/link";
-import SiteLaunchLogo from "@/components/SiteLaunchLogo";
+import LinqMeLogo from "@/components/LinqMeLogo";
 import ThemeToggle from "@/components/ThemeToggle";
 import HomePricingTeaser from "./HomePricingTeaser";
 import { getSession } from "@/lib/auth";
@@ -13,8 +13,8 @@ export default async function LandingPage() {
       {/* Top Nav */}
       <nav className="fixed top-0 w-full z-50 flex justify-between items-center px-6 md:px-8 py-4 bg-background/70 backdrop-blur-2xl border-b border-on-surface/[0.04]">
         <Link href="/" className="flex items-center gap-2.5">
-          <SiteLaunchLogo className="h-7 w-auto text-primary" ringClassName="text-on-surface/70" />
-          <span className="text-lg font-bold font-headline text-on-surface tracking-tight">SiteLaunch</span>
+          <LinqMeLogo className="h-7 w-auto text-primary" ringClassName="text-on-surface/70" />
+          <span className="text-lg font-bold font-headline text-on-surface tracking-tight">LinqMe</span>
         </Link>
         <div className="hidden md:flex items-center gap-8">
           <a className="text-sm text-on-surface-variant hover:text-on-surface transition-colors duration-300" href="#features">Features</a>
@@ -135,7 +135,7 @@ export default async function LandingPage() {
                 <div className="flex-1 mx-4">
                   <div className="h-6 rounded-lg bg-surface-container-lowest/60 flex items-center px-3">
                     <i className="fa-solid fa-lock text-[8px] text-tertiary/60 mr-2" />
-                    <span className="text-[10px] text-on-surface-variant/40 font-mono">youragency.mysitelaunch.com</span>
+                    <span className="text-[10px] text-on-surface-variant/40 font-mono">youragency.linqme.io</span>
                   </div>
                 </div>
               </div>
@@ -376,7 +376,7 @@ export default async function LandingPage() {
                     <i className="fa-solid fa-wand-magic-sparkles text-lg" />
                   </div>
                   <h3 className="text-2xl font-bold mb-2 relative z-10">Total White-Labeling</h3>
-                  <p className="text-on-surface-variant max-w-md relative z-10">Your brand, your domain, your favicon. Your clients will never know SiteLaunch exists.</p>
+                  <p className="text-on-surface-variant max-w-md relative z-10">Your brand, your domain, your favicon. Your clients will never know LinqMe exists.</p>
                 </div>
               </div>
             </div>
@@ -444,7 +444,7 @@ export default async function LandingPage() {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <TestimonialCard quote="SiteLaunch cut our client onboarding time from 2 weeks to 2 days. The white-labeling means clients think it's our own tool." name="Lena Morales" role="Founder, PixelForge Studio" />
+            <TestimonialCard quote="LinqMe cut our client onboarding time from 2 weeks to 2 days. The white-labeling means clients think it's our own tool." name="Lena Morales" role="Founder, PixelForge Studio" />
             <TestimonialCard quote="We used to chase clients for assets across email, Slack, and Dropbox. Now everything lands in one place, organized and ready." name="Jordan Ellis" role="Creative Director, BrandHive" featured />
             <TestimonialCard quote="The form builder is incredibly flexible. We've built different onboarding flows for web design, branding, and SEO clients." name="Priya Sandoval" role="Operations Lead, CreativOps" />
           </div>
@@ -468,7 +468,7 @@ export default async function LandingPage() {
           <div className="text-center mb-16 md:mb-20">
             <span className="inline-block text-xs font-bold text-primary uppercase tracking-[0.2em] mb-4">Use Cases</span>
             <h2 className="text-4xl md:text-5xl font-headline font-bold mb-4">Works for every kind of agency</h2>
-            <p className="text-on-surface-variant text-lg max-w-xl mx-auto">From web design to marketing, SiteLaunch adapts to your workflow.</p>
+            <p className="text-on-surface-variant text-lg max-w-xl mx-auto">From web design to marketing, LinqMe adapts to your workflow.</p>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -525,8 +525,8 @@ export default async function LandingPage() {
           </div>
 
           <div className="space-y-4">
-            <FaqItem q="Is SiteLaunch really free?" a="Yes. The Comet plan is free forever with 1 submission per month and 1 GB of storage. No credit card required. Upgrade to Nova or Supernova when you're ready for more." />
-            <FaqItem q="Can my clients see SiteLaunch branding?" a="On paid plans, you can completely remove all SiteLaunch branding. Your clients will see your logo, your colors, and your custom domain. It looks 100% like your own tool." />
+            <FaqItem q="Is LinqMe really free?" a="Yes. The Comet plan is free forever with 1 submission per month and 1 GB of storage. No credit card required. Upgrade to Nova or Supernova when you're ready for more." />
+            <FaqItem q="Can my clients see LinqMe branding?" a="On paid plans, you can completely remove all LinqMe branding. Your clients will see your logo, your colors, and your custom domain. It looks 100% like your own tool." />
             <FaqItem q="What file types can clients upload?" a="Clients can upload any file type including images, PDFs, documents, videos, and design files. Individual files can be up to 100 MB on all plans." />
             <FaqItem q="Do I need to give clients a login?" a="No. Clients access their onboarding form via a unique, secure link. No accounts or passwords needed on their end. You get a full dashboard to manage everything." />
             <FaqItem q="Can I customize the onboarding form?" a="Absolutely. The drag-and-drop form builder lets you create multi-step forms with text fields, dropdowns, file uploads, repeater fields, and more. Each partner can have their own custom form." />
@@ -573,8 +573,8 @@ export default async function LandingPage() {
       <footer className="w-full py-12 px-8 border-t border-on-surface/[0.06]">
         <div className="max-w-6xl mx-auto flex flex-col md:flex-row items-center justify-between gap-6">
           <Link href="/" className="flex items-center gap-2.5">
-            <SiteLaunchLogo className="h-5 w-auto text-primary" ringClassName="text-on-surface/50" />
-            <span className="text-sm font-bold text-on-surface font-headline">SiteLaunch</span>
+            <LinqMeLogo className="h-5 w-auto text-primary" ringClassName="text-on-surface/50" />
+            <span className="text-sm font-bold text-on-surface font-headline">LinqMe</span>
           </Link>
           <div className="flex flex-wrap justify-center gap-8 text-xs text-on-surface-variant/40 uppercase tracking-widest font-label">
             <Link className="hover:text-primary transition-colors duration-300" href="/privacy">Privacy Policy</Link>
@@ -583,7 +583,7 @@ export default async function LandingPage() {
             <Link className="hover:text-primary transition-colors duration-300" href="/support">Contact</Link>
           </div>
           <div className="text-xs text-on-surface-variant/30">
-            &copy; {new Date().getFullYear()} SiteLaunch
+            &copy; {new Date().getFullYear()} LinqMe
           </div>
         </div>
       </footer>

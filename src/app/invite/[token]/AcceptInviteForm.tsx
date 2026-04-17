@@ -74,7 +74,7 @@ export default function AcceptInviteForm({ token, email, existingUser, existingU
         {existingUser ? (
           <div className="text-center">
             <p className="text-sm text-on-surface-variant/70 mb-2">
-              You already have a SiteLaunch account with
+              You already have a LinqMe account with
             </p>
             <p className="text-sm font-bold text-on-surface">{email}</p>
             <p className="text-xs text-on-surface-variant/50 mt-2">

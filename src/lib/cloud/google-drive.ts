@@ -98,7 +98,7 @@ const client: CloudProviderClient = {
 
   async uploadFile(accessToken: string, folderId: string, filename: string, buffer: Buffer, mimeType: string) {
     const metadata = JSON.stringify({ name: filename, parents: [folderId] });
-    const boundary = "sitelaunch_upload_boundary";
+    const boundary = "linqme_upload_boundary";
     const body = [
       `--${boundary}\r\nContent-Type: application/json; charset=UTF-8\r\n\r\n${metadata}\r\n`,
       `--${boundary}\r\nContent-Type: ${mimeType}\r\nContent-Transfer-Encoding: base64\r\n\r\n${buffer.toString("base64")}\r\n`,

@@ -1,1 +1,1 @@
--- No-op: cname_target not needed, using branded cname.mysitelaunch.com instead
+-- No-op: cname_target not needed, using branded cname.linqme.io instead

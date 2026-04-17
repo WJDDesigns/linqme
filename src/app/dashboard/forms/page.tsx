@@ -40,7 +40,7 @@ export default async function PartnerFormsReadOnlyPage() {
     .eq("id", partnerCtx.partnerId)
     .maybeSingle();
 
-  const rootHost = (process.env.NEXT_PUBLIC_ROOT_DOMAIN ?? "mysitelaunch.com").replace(/:\d+$/, "");
+  const rootHost = (process.env.NEXT_PUBLIC_ROOT_DOMAIN ?? "linqme.io").replace(/:\d+$/, "");
   const storefrontHost = partner?.custom_domain || `${partner?.slug ?? partnerCtx.partnerSlug}.${rootHost}`;
 
   // Get submission counts per form

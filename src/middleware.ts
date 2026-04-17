@@ -6,7 +6,7 @@ export async function middleware(request: NextRequest) {
   const { response, user, aal, hasMfaFactors } = await updateSession(request);
 
   const host = request.headers.get("host") || "";
-  const rootDomain = process.env.NEXT_PUBLIC_ROOT_DOMAIN || "mysitelaunch.com";
+  const rootDomain = process.env.NEXT_PUBLIC_ROOT_DOMAIN || "linqme.io";
   const tenant = resolveTenant(host, rootDomain);
 
   // Tenant debug logging — only in development

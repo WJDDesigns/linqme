@@ -31,7 +31,7 @@ function getResend(): Resend | null {
 }
 
 function defaultFrom(): string {
-  return process.env.RESEND_FROM ?? "SiteLaunch <noreply@mysitelaunch.com>";
+  return process.env.RESEND_FROM ?? "LinqMe <noreply@send.linqme.io>";
 }
 
 export async function sendMail(args: SendMailArgs): Promise<SendMailResult> {

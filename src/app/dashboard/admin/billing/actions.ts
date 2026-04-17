@@ -60,8 +60,8 @@ export async function adminChangePlanAction(partnerId: string, newTier: BillingT
         customer: partner.stripe_customer_id,
         items: [{ price: plan.stripePriceId }],
         metadata: {
-          sitelaunch_partner_id: partnerId,
-          sitelaunch_tier: newTier,
+          linqme_partner_id: partnerId,
+          linqme_tier: newTier,
         },
       });
     } catch (err) {
@@ -134,8 +134,8 @@ export async function adminRefundAction(invoiceId: string, reason?: string) {
     payment_intent: paymentIntentId,
     reason: "requested_by_customer",
     metadata: {
-      sitelaunch_refunded_by: session.email,
-      sitelaunch_reason: reason ?? "Admin-initiated refund",
+      linqme_refunded_by: session.email,
+      linqme_reason: reason ?? "Admin-initiated refund",
     },
   });
 

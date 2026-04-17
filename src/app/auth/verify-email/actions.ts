@@ -11,7 +11,7 @@ export async function resendVerificationAction(email: string): Promise<ResendRes
     return { ok: false, error: "Email address is required." };
   }
 
-  const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? "https://app.mysitelaunch.com";
+  const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? "https://app.linqme.io";
   const redirectTo = `${appUrl.replace(/\/$/, "")}/auth/callback?next=/dashboard`;
 
   try {

@@ -5,7 +5,7 @@ import Link from "next/link";
 import Image from "next/image";
 import SidebarNav from "./SidebarNav";
 import ThemeToggle from "@/components/ThemeToggle";
-import SiteLaunchLogo from "@/components/SiteLaunchLogo";
+import LinqMeLogo from "@/components/LinqMeLogo";
 import NotificationBell from "@/components/NotificationBell";
 import AccountSwitcher from "@/components/AccountSwitcher";
 
@@ -116,7 +116,7 @@ export default function DashboardShell({
         {/* Logo + collapse toggle */}
         <div className={`flex items-center ${collapsed ? "justify-center px-2" : "px-6"} py-6 mb-2`}>
           <Link href="/dashboard" className={`flex items-center ${collapsed ? "justify-center" : "gap-3"}`}>
-            <SiteLaunchLogo className="h-10 w-auto text-primary shrink-0" ringClassName="text-on-surface/60" />
+            <LinqMeLogo className="h-10 w-auto text-primary shrink-0" ringClassName="text-on-surface/60" />
             {!collapsed && (
               <div className="min-w-0">
                 <h2 className="text-lg font-bold text-on-surface font-headline tracking-tight truncate">

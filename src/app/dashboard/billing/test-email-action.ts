@@ -22,12 +22,12 @@ export async function sendTestEmailAction(): Promise<TestEmailResult> {
 
   const result = await sendMail({
     to: session.email,
-    subject: "SiteLaunch test email",
+    subject: "LinqMe test email",
     html: `
       <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; color: #0f172a;">
         <h2 style="margin: 0 0 12px;">Your Resend setup works!</h2>
         <p style="margin: 0; color: #475569;">
-          If you're reading this, SiteLaunch can deliver email to ${session.email}.
+          If you're reading this, LinqMe can deliver email to ${session.email}.
         </p>
       </div>
     `,

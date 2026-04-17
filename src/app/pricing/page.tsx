@@ -1,6 +1,6 @@
 import Link from "next/link";
 import type { Metadata } from "next";
-import SiteLaunchLogo from "@/components/SiteLaunchLogo";
+import LinqMeLogo from "@/components/LinqMeLogo";
 import ThemeToggle from "@/components/ThemeToggle";
 import PricingCards from "./PricingCards";
 
@@ -39,7 +39,7 @@ const TIERS = [
       { text: "50 GB file storage", included: true },
       { text: "Full white-labeling", included: true },
       { text: "Custom domain mapping", included: true },
-      { text: "Remove SiteLaunch branding", included: true },
+      { text: "Remove LinqMe branding", included: true },
       { text: "Email support", included: true },
       { text: "CSV & PDF exports", included: true },
       { text: "Team members", included: true },
@@ -88,7 +88,7 @@ const FAQ = [
   },
   {
     q: "Do you offer annual billing?",
-    a: "Yes, annual billing comes with a 20% discount. Contact us at hello@mysitelaunch.com to set up annual billing on Nova or Supernova.",
+    a: "Yes, annual billing comes with a 20% discount. Contact us at hello@linqme.io to set up annual billing on Nova or Supernova.",
   },
   {
     q: "What file types can clients upload?",
@@ -102,8 +102,8 @@ export default function PricingPage() {
       {/* Nav */}
       <nav className="fixed top-0 w-full z-50 flex justify-between items-center px-6 md:px-8 py-4 bg-background/70 backdrop-blur-2xl border-b border-on-surface/[0.04]">
         <Link href="/" className="flex items-center gap-2.5">
-          <SiteLaunchLogo className="h-7 w-auto text-primary" ringClassName="text-on-surface/70" />
-          <span className="text-lg font-bold font-headline text-on-surface tracking-tight">SiteLaunch</span>
+          <LinqMeLogo className="h-7 w-auto text-primary" ringClassName="text-on-surface/70" />
+          <span className="text-lg font-bold font-headline text-on-surface tracking-tight">LinqMe</span>
         </Link>
         <div className="hidden md:flex items-center gap-8">
           <Link className="text-sm text-on-surface-variant hover:text-on-surface transition-colors duration-300" href="/#features">Features</Link>
@@ -238,8 +238,8 @@ export default function PricingPage() {
       <footer className="w-full py-12 px-8 border-t border-on-surface/[0.06]">
         <div className="max-w-6xl mx-auto flex flex-col md:flex-row items-center justify-between gap-6">
           <Link href="/" className="flex items-center gap-2.5">
-            <SiteLaunchLogo className="h-5 w-auto text-primary" ringClassName="text-on-surface/50" />
-            <span className="text-sm font-bold text-on-surface font-headline">SiteLaunch</span>
+            <LinqMeLogo className="h-5 w-auto text-primary" ringClassName="text-on-surface/50" />
+            <span className="text-sm font-bold text-on-surface font-headline">LinqMe</span>
           </Link>
           <div className="flex flex-wrap justify-center gap-8 text-xs text-on-surface-variant/40 uppercase tracking-widest font-label">
             <Link className="hover:text-primary transition-colors duration-300" href="/privacy">Privacy Policy</Link>
@@ -247,7 +247,7 @@ export default function PricingPage() {
             <Link className="hover:text-primary transition-colors duration-300" href="/support">Contact</Link>
           </div>
           <div className="text-xs text-on-surface-variant/30">
-            &copy; {new Date().getFullYear()} SiteLaunch
+            &copy; {new Date().getFullYear()} LinqMe
           </div>
         </div>
       </footer>

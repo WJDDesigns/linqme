@@ -305,7 +305,7 @@ function AccordionItem({
  */
 function previewHtml(html: string): string {
   return html.replace(
-    /https?:\/\/(?:www\.)?mysitelaunch\.com\/(email-logo[^"')\s]*)/g,
+    /https?:\/\/(?:www\.)?linqme\.io\/(email-logo[^"')\s]*)/g,
     "/$1",
   );
 }

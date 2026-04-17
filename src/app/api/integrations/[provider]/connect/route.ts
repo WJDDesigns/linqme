@@ -39,7 +39,7 @@ export async function GET(
       path: "/",
     });
 
-    const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? "https://app.mysitelaunch.com";
+    const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? "https://app.linqme.io";
     const redirectUri = `${appUrl}/api/integrations/callback`;
 
     const client = await getProviderClient(provider);

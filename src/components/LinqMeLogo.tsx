@@ -1,10 +1,10 @@
 /**
- * SiteLaunch logo mark — inline SVG so we can color it dynamically.
+ * LinqMe logo mark — inline SVG so we can color it dynamically.
  *
  * Usage:
- *   <SiteLaunchLogo className="w-8 h-8 text-white" />            — white logo
- *   <SiteLaunchLogo className="w-8 h-8 text-primary" />          — themed
- *   <SiteLaunchLogo className="w-8 h-8" ringClassName="text-on-surface" /> — separate ring color
+ *   <LinqMeLogo className="w-8 h-8 text-white" />            — white logo
+ *   <LinqMeLogo className="w-8 h-8 text-primary" />          — themed
+ *   <LinqMeLogo className="w-8 h-8" ringClassName="text-on-surface" /> — separate ring color
  */
 
 interface Props {
@@ -14,13 +14,13 @@ interface Props {
   ringClassName?: string;
 }
 
-export default function SiteLaunchLogo({ className = "w-8 h-8", ringClassName }: Props) {
+export default function LinqMeLogo({ className = "w-8 h-8", ringClassName }: Props) {
   return (
     <svg
       viewBox="130 170 360 480"
       xmlns="http://www.w3.org/2000/svg"
       className={className}
-      aria-label="SiteLaunch logo"
+      aria-label="LinqMe logo"
     >
       {/* Inner mark — colored by parent text color (currentColor) */}
       <g fill="currentColor">

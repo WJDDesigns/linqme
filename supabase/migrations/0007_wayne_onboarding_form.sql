@@ -1,5 +1,5 @@
 -- ============================================================================
--- SiteLaunch — Apply Website Design Onboarding template to Wayne's account
+-- LinqMe — Apply Website Design Onboarding template to Wayne's account
 -- Migration 0007
 -- ============================================================================
 

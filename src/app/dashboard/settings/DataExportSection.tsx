@@ -19,7 +19,7 @@ export default function DataExportSection() {
       const blob = await res.blob();
       const disposition = res.headers.get("Content-Disposition") ?? "";
       const match = disposition.match(/filename="?([^"]+)"?/);
-      const filename = match?.[1] ?? "sitelaunch-data-export.json";
+      const filename = match?.[1] ?? "linqme-data-export.json";
 
       const url = URL.createObjectURL(blob);
       const a = document.createElement("a");

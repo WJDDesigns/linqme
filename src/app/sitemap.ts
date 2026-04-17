@@ -1,7 +1,7 @@
 import type { MetadataRoute } from "next";
 
 export default function sitemap(): MetadataRoute.Sitemap {
-  const baseUrl = process.env.NEXT_PUBLIC_MARKETING_URL || "https://mysitelaunch.com";
+  const baseUrl = process.env.NEXT_PUBLIC_MARKETING_URL || "https://linqme.io";
 
   return [
     {

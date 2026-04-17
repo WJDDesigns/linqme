@@ -1,4 +1,4 @@
-# SiteLaunch
+# LinqMe
 
 Multi-tenant client onboarding platform. Next.js 15 + Supabase + PWA.
 
@@ -7,7 +7,7 @@ This is Phase 0 — the skeleton. Auth works, subdomain routing works, schema is
 ## What's in here
 
 ```
-sitelaunch/
+linqme/
 ├── middleware.ts                      Subdomain detection + auth refresh
 ├── src/
 │   ├── app/
@@ -30,8 +30,8 @@ sitelaunch/
 ### 1. Clone and install
 
 ```bash
-git clone git@github.com:WJDDesigns/sitelaunch.git
-cd sitelaunch
+git clone git@github.com:WJDDesigns/linqme.git
+cd linqme
 pnpm install         # or: npm install
 ```
 
@@ -87,14 +87,14 @@ All three hit the same dev server; the middleware routes them based on host.
 
 ### One-time
 
-1. Push this repo to `WJDDesigns/sitelaunch` on GitHub.
+1. Push this repo to `WJDDesigns/linqme` on GitHub.
 2. Import the repo in Vercel.
-3. Add environment variables (same keys as `.env.local`, but set `NEXT_PUBLIC_ROOT_DOMAIN=mysitelaunch.com` and `NEXT_PUBLIC_APP_URL=https://app.mysitelaunch.com`).
+3. Add environment variables (same keys as `.env.local`, but set `NEXT_PUBLIC_ROOT_DOMAIN=linqme.io` and `NEXT_PUBLIC_APP_URL=https://app.linqme.io`).
 4. In Vercel → Domains, add:
-   - `mysitelaunch.com`
-   - `www.mysitelaunch.com`
-   - `app.mysitelaunch.com`
-   - `*.mysitelaunch.com` (wildcard — needed for partner subdomains)
+   - `linqme.io`
+   - `www.linqme.io`
+   - `app.linqme.io`
+   - `*.linqme.io` (wildcard — needed for partner subdomains)
 
 ### DNS at your registrar
 

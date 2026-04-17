@@ -52,8 +52,8 @@ export async function savePlanAction(formData: FormData) {
         // If product exists, update it
         if (stripeProductId) {
           await stripe.products.update(stripeProductId, {
-            name: `SiteLaunch ${name}`,
-            metadata: { sitelaunch_tier: slug },
+            name: `LinqMe ${name}`,
+            metadata: { linqme_tier: slug },
           });
 
           // If price changed, create a new price and archive the old one
@@ -63,7 +63,7 @@ export async function savePlanAction(formData: FormData) {
               unit_amount: priceMonthly,
               currency: "usd",
               recurring: { interval: "month" },
-              metadata: { sitelaunch_tier: slug },
+              metadata: { linqme_tier: slug },
             });
             stripePriceId = newPrice.id;
 
@@ -82,8 +82,8 @@ export async function savePlanAction(formData: FormData) {
       // If no Stripe product yet, create one
       if (!stripeProductId) {
         const product = await stripe.products.create({
-          name: `SiteLaunch ${name}`,
-          metadata: { sitelaunch_tier: slug },
+          name: `LinqMe ${name}`,
+          metadata: { linqme_tier: slug },
         });
         stripeProductId = product.id;
 
@@ -92,7 +92,7 @@ export async function savePlanAction(formData: FormData) {
           unit_amount: priceMonthly,
           currency: "usd",
           recurring: { interval: "month" },
-          metadata: { sitelaunch_tier: slug },
+          metadata: { linqme_tier: slug },
         });
         stripePriceId = price.id;
       }

@@ -48,7 +48,7 @@ export async function createCouponAction(input: CouponInput) {
       ...(input.expiresAt
         ? { redeem_by: Math.floor(new Date(input.expiresAt).getTime() / 1000) }
         : {}),
-      metadata: { sitelaunch_code: code },
+      metadata: { linqme_code: code },
     });
     stripeCouponId = stripeCoupon.id;
   } catch (err) {

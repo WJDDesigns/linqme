@@ -121,7 +121,7 @@ export async function ensureStripeProducts(): Promise<Record<string, string | nu
 
     // Search for existing product by metadata
     const existing = await stripe.products.search({
-      query: `metadata["sitelaunch_tier"]:"${plan.tier}"`,
+      query: `metadata["linqme_tier"]:"${plan.tier}"`,
     });
 
     let product: Stripe.Product;
@@ -129,8 +129,8 @@ export async function ensureStripeProducts(): Promise<Record<string, string | nu
       product = existing.data[0];
     } else {
       product = await stripe.products.create({
-        name: `SiteLaunch ${plan.name}`,
-        metadata: { sitelaunch_tier: plan.tier },
+        name: `LinqMe ${plan.name}`,
+        metadata: { linqme_tier: plan.tier },
       });
     }
 
@@ -153,7 +153,7 @@ export async function ensureStripeProducts(): Promise<Record<string, string | nu
         unit_amount: plan.priceMonthly,
         currency: "usd",
         recurring: { interval: "month" },
-        metadata: { sitelaunch_tier: plan.tier },
+        metadata: { linqme_tier: plan.tier },
       });
     }
 
@@ -173,7 +173,7 @@ export async function getOrCreateCustomer(
 ): Promise<string> {
   // Search by metadata first
   const existing = await stripe.customers.search({
-    query: `metadata["sitelaunch_partner_id"]:"${partnerId}"`,
+    query: `metadata["linqme_partner_id"]:"${partnerId}"`,
   });
 
   if (existing.data.length > 0) {
@@ -183,7 +183,7 @@ export async function getOrCreateCustomer(
   const customer = await stripe.customers.create({
     name: partnerName,
     email: email ?? undefined,
-    metadata: { sitelaunch_partner_id: partnerId },
+    metadata: { linqme_partner_id: partnerId },
   });
 
   return customer.id;

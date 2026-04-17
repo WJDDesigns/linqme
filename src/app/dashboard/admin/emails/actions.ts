@@ -36,23 +36,23 @@ export async function updateEmailTemplateAction(
 const SAMPLE_DATA: Record<string, Record<string, string>> = {
   verification: {
     name: "Jane Doe",
-    verify_url: "https://mysitelaunch.com/verify?token=sample-token-123",
+    verify_url: "https://linqme.io/verify?token=sample-token-123",
   },
   verification_resend: {
     name: "Jane Doe",
-    verify_url: "https://mysitelaunch.com/verify?token=sample-token-456",
+    verify_url: "https://linqme.io/verify?token=sample-token-456",
   },
   welcome: {
     company_name: "Acme Agency",
     plan_line: "You're on the Paid plan with unlimited submissions.",
-    storefront_url: "https://acme.mysitelaunch.com",
-    dashboard_url: "https://mysitelaunch.com/dashboard",
+    storefront_url: "https://acme.linqme.io",
+    dashboard_url: "https://linqme.io/dashboard",
   },
   submission_partner: {
     partner_name: "Acme Agency",
     client_name: "John Smith",
     client_email: "john@example.com",
-    dashboard_link: "https://mysitelaunch.com/dashboard/submissions",
+    dashboard_link: "https://linqme.io/dashboard/submissions",
   },
   submission_client: {
     client_name: "John Smith",
@@ -61,7 +61,7 @@ const SAMPLE_DATA: Record<string, Record<string, string>> = {
   partner_invite: {
     inviter_name: "Wayne",
     partner_name: "New Partner",
-    invite_url: "https://mysitelaunch.com/invite?token=sample-invite-789",
+    invite_url: "https://linqme.io/invite?token=sample-invite-789",
     role: "Partner Owner",
   },
   support_contact: {

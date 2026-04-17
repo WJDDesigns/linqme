@@ -1,5 +1,5 @@
 -- ============================================================================
--- SiteLaunch — initial schema
+-- LinqMe — initial schema
 -- Migration 0001
 -- ============================================================================
 
@@ -34,7 +34,7 @@ create table if not exists public.profiles (
 -- ============================================================================
 create table if not exists public.partners (
   id uuid primary key default gen_random_uuid(),
-  slug citext not null unique,                -- pop, acme, …  → pop.mysitelaunch.com
+  slug citext not null unique,                -- pop, acme, …  → pop.linqme.io
   name text not null,                         -- display name
   custom_domain citext unique,                -- e.g. onboard.popmarketing.com
   logo_url text,

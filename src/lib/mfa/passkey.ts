@@ -11,7 +11,7 @@ import type {
 } from "@simplewebauthn/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 
-const RP_NAME = "SiteLaunch";
+const RP_NAME = "LinqMe";
 
 /**
  * Derive the WebAuthn Relying Party ID.
@@ -42,7 +42,7 @@ function getRpId(): string {
 
   if (rootDomain) return rootDomain;
 
-  // Derive from APP_URL: "https://app.mysitelaunch.com" → "mysitelaunch.com"
+  // Derive from APP_URL: "https://app.linqme.io" → "linqme.io"
   if (appUrl) {
     try {
       const hostname = new URL(appUrl).hostname;
@@ -51,7 +51,7 @@ function getRpId(): string {
     } catch { /* fall through */ }
   }
 
-  return "mysitelaunch.com";
+  return "linqme.io";
 }
 
 /**

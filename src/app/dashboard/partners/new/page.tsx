@@ -8,7 +8,7 @@ const INPUT_CLS =
 
 export default async function NewPartnerPage() {
   await requireSuperadmin();
-  const rootHost = (process.env.NEXT_PUBLIC_ROOT_DOMAIN ?? "mysitelaunch.com").replace(/:\d+$/, "");
+  const rootHost = (process.env.NEXT_PUBLIC_ROOT_DOMAIN ?? "linqme.io").replace(/:\d+$/, "");
 
   return (
     <div className="max-w-5xl mx-auto px-6 md:px-10 py-8"><div className="max-w-2xl space-y-6">

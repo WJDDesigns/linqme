@@ -71,9 +71,9 @@ export default function WhiteLabelSection({ partner, canEdit, updateAction }: Pr
         <div className="rounded-xl bg-surface-container border border-outline-variant/15 p-4 flex items-start gap-3">
           <i className="fa-solid fa-gem text-primary mt-0.5" />
           <div>
-            <p className="text-sm font-semibold text-on-surface">Upgrade to remove SiteLaunch branding</p>
+            <p className="text-sm font-semibold text-on-surface">Upgrade to remove LinqMe branding</p>
             <p className="text-xs text-on-surface-variant/60 mt-1">
-              Paid plans and above can hide the SiteLaunch footer, add custom footer text,
+              Paid plans and above can hide the LinqMe footer, add custom footer text,
               customize the logo size, and choose a light or dark theme for their onboarding portal.
             </p>
             <a
@@ -88,11 +88,11 @@ export default function WhiteLabelSection({ partner, canEdit, updateAction }: Pr
       )}
 
       <form action={handleSubmit} className={locked ? "opacity-40 pointer-events-none select-none" : ""}>
-        {/* Hide SiteLaunch branding */}
+        {/* Hide LinqMe branding */}
         <div className="flex items-center justify-between p-4 bg-surface-container rounded-xl mb-4">
           <div>
-            <span className="text-sm font-medium text-on-surface">Hide SiteLaunch footer</span>
-            <p className="text-xs text-on-surface-variant/60 mt-0.5">Remove &ldquo;Powered by SiteLaunch&rdquo; from your onboarding pages</p>
+            <span className="text-sm font-medium text-on-surface">Hide LinqMe footer</span>
+            <p className="text-xs text-on-surface-variant/60 mt-0.5">Remove &ldquo;Powered by LinqMe&rdquo; from your onboarding pages</p>
           </div>
           <label className="relative cursor-pointer">
             <input
@@ -113,7 +113,7 @@ export default function WhiteLabelSection({ partner, canEdit, updateAction }: Pr
           <label className="block">
             <span className="text-xs font-semibold text-on-surface-variant uppercase tracking-widest">Custom footer text</span>
             <span className="block text-xs text-on-surface-variant/60 mt-0.5 mb-1.5">
-              Replaces the default SiteLaunch footer. e.g. &ldquo;&copy; 2026 Your Company&rdquo;
+              Replaces the default LinqMe footer. e.g. &ldquo;&copy; 2026 Your Company&rdquo;
             </span>
             <input
               name="custom_footer_text"

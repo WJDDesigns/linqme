@@ -31,12 +31,12 @@ export async function generateMetadata({ params }: { params: Promise<{ subdomain
   const partner = await getPartner(subdomain);
 
   if (!partner) {
-    return { title: "SiteLaunch" };
+    return { title: "LinqMe" };
   }
 
   const isPaid = partner.plan_tier !== "free";
   const useBranding = isPaid && partner.hide_branding;
-  const title = useBranding ? partner.name : `${partner.name} · SiteLaunch`;
+  const title = useBranding ? partner.name : `${partner.name} · LinqMe`;
   const primary = partner.primary_color || "#c0c1ff";
 
   const icons: Metadata["icons"] = {};

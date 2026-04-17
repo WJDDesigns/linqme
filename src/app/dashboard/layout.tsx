@@ -118,7 +118,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
   // Sidebar display name
   const sidebarName = isPartnerMember && partnerCtx
     ? partnerCtx.partnerName
-    : impersonatingName ?? (isAdmin ? "SiteLaunch" : (account?.name ?? "SiteLaunch"));
+    : impersonatingName ?? (isAdmin ? "LinqMe" : (account?.name ?? "LinqMe"));
 
   const sidebarLabel = isPartnerMember
     ? "Partner"

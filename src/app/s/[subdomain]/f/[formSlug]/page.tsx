@@ -5,7 +5,7 @@ import Image from "next/image";
 import type { Metadata } from "next";
 import { contrastText } from "@/lib/color-utils";
 import { startSubmissionAction } from "../../actions";
-import SiteLaunchLogo from "@/components/SiteLaunchLogo";
+import LinqMeLogo from "@/components/LinqMeLogo";
 import StorefrontThemeToggle from "../../StorefrontThemeToggle";
 import AnalyticsTracker from "../../AnalyticsTracker";
 import Link from "next/link";
@@ -29,7 +29,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
   return {
     title: `${formSlug} | ${partner.name}`,
-    description: `Complete the ${formSlug} form for ${partner.name}. Powered by SiteLaunch.`,
+    description: `Complete the ${formSlug} form for ${partner.name}. Powered by LinqMe.`,
     openGraph: {
       title: `${partner.name} | ${formSlug}`,
       description: `Complete the ${formSlug} form for ${partner.name}.`,
@@ -160,11 +160,11 @@ export default async function FormSlugPage({ params }: Props) {
           <>
             {footerText && <p className="text-xs text-on-surface/60">{footerText}</p>}
             <Link href="/" className="flex items-center gap-2">
-              <SiteLaunchLogo className="h-5 w-auto text-primary" ringClassName="text-on-surface/50" />
-              <span className="text-sm font-bold text-on-surface font-headline">SiteLaunch</span>
+              <LinqMeLogo className="h-5 w-auto text-primary" ringClassName="text-on-surface/50" />
+              <span className="text-sm font-bold text-on-surface font-headline">LinqMe</span>
             </Link>
             <p className="text-[10px] uppercase tracking-[0.3em] text-on-surface/30">
-              &copy; {new Date().getFullYear()} SiteLaunch &middot; WJD Designs
+              &copy; {new Date().getFullYear()} LinqMe &middot; WJD Designs
             </p>
           </>
         )}

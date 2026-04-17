@@ -1,6 +1,6 @@
 {
-  "name": "SiteLaunch",
-  "short_name": "SiteLaunch",
+  "name": "LinqMe",
+  "short_name": "LinqMe",
   "description": "Client onboarding, launched.",
   "start_url": "/dashboard",
   "display": "standalone",

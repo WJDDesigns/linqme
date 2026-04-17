@@ -59,7 +59,7 @@ export default async function SettingsPage() {
     .eq("id", account.id)
     .maybeSingle();
 
-  const rootHost = (process.env.NEXT_PUBLIC_ROOT_DOMAIN ?? "mysitelaunch.com").replace(/:\d+$/, "");
+  const rootHost = (process.env.NEXT_PUBLIC_ROOT_DOMAIN ?? "linqme.io").replace(/:\d+$/, "");
 
   /* ─────────────────────────────────────────────
      Tab: General — Profile, MFA, Sessions, Email

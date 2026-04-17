@@ -58,7 +58,7 @@ export default async function AdminDashboardPage() {
           Platform Overview
         </h1>
         <p className="text-sm text-on-surface-variant mt-1">
-          System-wide diagnostics and stats for SiteLaunch.
+          System-wide diagnostics and stats for LinqMe.
         </p>
       </header>
 
