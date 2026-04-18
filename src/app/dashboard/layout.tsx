@@ -42,15 +42,15 @@ const ADMIN_NAV = [
 /** Scoped nav for partner_member users — they only see their own partner's stuff */
 function getPartnerMemberNav(partnerId: string, allowFormEditing: boolean) {
   const formsLink = allowFormEditing
-    ? { href: "/dashboard/form", label: "Form Builder", icon: "fa-pen-ruler" }
+    ? { href: "/dashboard/form", label: "Forms", icon: "fa-pen-ruler" }
     : { href: "/dashboard/forms", label: "Forms", icon: "fa-file-lines" };
   return [
     { href: "/dashboard", label: "Dashboard", icon: "fa-table-cells" },
     formsLink,
+    { href: "/dashboard/entries", label: "Entries", icon: "fa-inbox" },
     { href: `/dashboard/partners/${partnerId}`, label: "Branding", icon: "fa-palette" },
-    { href: "/dashboard/submissions", label: "Submissions", icon: "fa-inbox" },
-    { href: "/dashboard/accounts", label: "Accounts", icon: "fa-users" },
-    { href: "/dashboard/settings", label: "Profile", icon: "fa-user" },
+    { href: "/dashboard/team", label: "Team", icon: "fa-user-group" },
+    { href: "/dashboard/settings", label: "Settings", icon: "fa-gear" },
   ];
 }
 
