@@ -5,7 +5,7 @@ import {
   BarChart, Bar, LineChart, Line, AreaChart, Area,
   PieChart, Pie, Cell, RadarChart, Radar, PolarGrid,
   PolarAngleAxis, PolarRadiusAxis,
-  XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend,
+  XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
 } from "recharts";
 import { saveDashboardWidgets } from "./actions";
 import type { Widget, WidgetType, ChartType, WidgetSize, WidgetOrientation, AggregateFunction, InsightDashboard } from "./actions";
@@ -63,7 +63,6 @@ const AGGREGATE_LABELS: Record<AggregateFunction, string> = {
   unique: "Unique values",
 };
 
-/** Built-in "virtual" fields that every form has */
 const SYSTEM_FIELDS = [
   { key: "__count", label: "Submission Count", type: "number" },
   { key: "__status", label: "Status", type: "select" },
@@ -73,46 +72,170 @@ const SYSTEM_FIELDS = [
   { key: "__submitted_at", label: "Submitted Date", type: "date" },
 ];
 
+/** Field types that make good categorical charts */
+const CATEGORICAL_TYPES = new Set(["select", "radio", "checkbox", "package"]);
+/** Field types that are numeric and can be summed/averaged */
+const NUMERIC_TYPES = new Set(["number", "budget_allocator"]);
+
 /* ── Props ────────────────────────────────────────────────── */
 
 interface Props {
-  dashboard: InsightDashboard | null;
+  dashboardMap: Record<string, InsightDashboard>;
   forms: { id: string; name: string; slug: string }[];
   fieldMap: Record<string, { key: string; label: string; type: string }[]>;
   submissions: Record<string, unknown>[];
 }
 
-/* ── Component ────────────────────────────────────────────── */
+/* ── Auto-generate logic ──────────────────────────────────── */
 
-export default function InsightsDashboard({ dashboard, forms, fieldMap, submissions }: Props) {
-  const [widgets, setWidgets] = useState<Widget[]>(dashboard?.widgets ?? []);
+function autoGenerateWidgets(
+  formId: string | null,
+  fields: { key: string; label: string; type: string }[],
+): Widget[] {
+  const widgets: Widget[] = [];
+  let order = 0;
+
+  const fid = formId;
+
+  // 1) Total entries count
+  widgets.push({
+    id: crypto.randomUUID(), type: "number", title: "Total Entries", size: "sm", orientation: "landscape",
+    dataSource: { formId: fid, fieldKey: "__count", fieldLabel: "Submission Count", aggregate: "count", timeRangeDays: 0 },
+    order: order++,
+  });
+
+  // 2) Entries last 30 days
+  widgets.push({
+    id: crypto.randomUUID(), type: "number", title: "Last 30 Days", size: "sm", orientation: "landscape",
+    dataSource: { formId: fid, fieldKey: "__count", fieldLabel: "Submission Count", aggregate: "count", timeRangeDays: 30 },
+    order: order++,
+  });
+
+  // 3) Unique clients
+  widgets.push({
+    id: crypto.randomUUID(), type: "number", title: "Unique Clients", size: "sm", orientation: "landscape",
+    dataSource: { formId: fid, fieldKey: "__client_email", fieldLabel: "Client Email", aggregate: "unique", timeRangeDays: 0 },
+    order: order++,
+  });
+
+  // 4) Completion rate (completed count)
+  widgets.push({
+    id: crypto.randomUUID(), type: "number", title: "Completed", size: "sm", orientation: "landscape",
+    dataSource: { formId: fid, fieldKey: "__count", fieldLabel: "Completed Entries", aggregate: "count", statusFilter: ["complete"], timeRangeDays: 0 },
+    order: order++,
+  });
+
+  // 5) Status breakdown — pie chart
+  widgets.push({
+    id: crypto.randomUUID(), type: "chart", chartType: "donut", title: "Status Breakdown", size: "md", orientation: "landscape",
+    dataSource: { formId: fid, fieldKey: "__count", fieldLabel: "Entries", aggregate: "count", groupByField: "__status", groupByLabel: "Status", timeRangeDays: 0 },
+    order: order++,
+  });
+
+  // 6) Submissions over time — area chart
+  widgets.push({
+    id: crypto.randomUUID(), type: "chart", chartType: "area", title: "Entries Over Time", size: "md", orientation: "landscape",
+    dataSource: { formId: fid, fieldKey: "__count", fieldLabel: "Entries", aggregate: "count", groupByField: "__created_at", groupByLabel: "Created Date", timeRangeDays: 90 },
+    order: order++,
+  });
+
+  // Now analyze form-specific fields
+  const categoricalFields = fields.filter((f) => CATEGORICAL_TYPES.has(f.type));
+  const numericFields = fields.filter((f) => NUMERIC_TYPES.has(f.type));
+  const textFields = fields.filter((f) => f.type === "text" || f.type === "textarea");
+
+  // 7) Categorical fields → bar charts (up to 3)
+  for (const field of categoricalFields.slice(0, 3)) {
+    widgets.push({
+      id: crypto.randomUUID(), type: "chart", chartType: "bar", title: field.label, size: "md", orientation: "landscape",
+      dataSource: { formId: fid, fieldKey: field.key, fieldLabel: field.label, aggregate: "count", timeRangeDays: 0 },
+      order: order++,
+    });
+  }
+
+  // 8) Numeric fields → number cards with sum + bar chart grouped by status
+  for (const field of numericFields.slice(0, 2)) {
+    widgets.push({
+      id: crypto.randomUUID(), type: "number", title: `Total ${field.label}`, size: "sm", orientation: "landscape",
+      dataSource: { formId: fid, fieldKey: field.key, fieldLabel: field.label, aggregate: "sum", timeRangeDays: 0 },
+      order: order++,
+    });
+    widgets.push({
+      id: crypto.randomUUID(), type: "number", title: `Avg ${field.label}`, size: "sm", orientation: "landscape",
+      dataSource: { formId: fid, fieldKey: field.key, fieldLabel: field.label, aggregate: "avg", timeRangeDays: 0 },
+      order: order++,
+    });
+  }
+
+  // 9) Recent entries table
+  widgets.push({
+    id: crypto.randomUUID(), type: "table", title: "Recent Entries", size: "lg", orientation: "landscape",
+    dataSource: { formId: fid, fieldKey: textFields[0]?.key ?? "__client_name", fieldLabel: textFields[0]?.label ?? "Client Name", aggregate: "count", timeRangeDays: 30 },
+    order: order++,
+  });
+
+  return widgets;
+}
+
+/* ── Main Component ───────────────────────────────────────── */
+
+export default function InsightsDashboard({ dashboardMap, forms, fieldMap, submissions }: Props) {
+  const tabs = useMemo(() => {
+    const t: { key: string; label: string; icon: string }[] = [
+      { key: "all", label: "All Forms", icon: "fa-layer-group" },
+    ];
+    for (const form of forms) {
+      t.push({ key: form.id, label: form.name, icon: "fa-file-lines" });
+    }
+    return t;
+  }, [forms]);
+
+  const [activeTab, setActiveTab] = useState("all");
+  const [widgetsByTab, setWidgetsByTab] = useState<Record<string, Widget[]>>(() => {
+    const map: Record<string, Widget[]> = {};
+    for (const [key, dash] of Object.entries(dashboardMap)) {
+      map[key] = dash.widgets;
+    }
+    return map;
+  });
   const [showAddPanel, setShowAddPanel] = useState(false);
   const [editingWidget, setEditingWidget] = useState<Widget | null>(null);
   const [isPending, startTransition] = useTransition();
   const [dragId, setDragId] = useState<string | null>(null);
-  const [hasUnsaved, setHasUnsaved] = useState(false);
+  const [unsavedTabs, setUnsavedTabs] = useState<Set<string>>(new Set());
 
-  // Auto-save handler
-  const save = useCallback((updated: Widget[]) => {
+  const widgets = widgetsByTab[activeTab] ?? [];
+
+  const setWidgets = useCallback((updated: Widget[]) => {
+    setWidgetsByTab((prev) => ({ ...prev, [activeTab]: updated }));
+    setUnsavedTabs((prev) => new Set(prev).add(activeTab));
+  }, [activeTab]);
+
+  const save = useCallback((tabKey: string, w: Widget[]) => {
     startTransition(async () => {
-      await saveDashboardWidgets(updated);
-      setHasUnsaved(false);
+      await saveDashboardWidgets(w, tabKey);
+      setUnsavedTabs((prev) => {
+        const next = new Set(prev);
+        next.delete(tabKey);
+        return next;
+      });
     });
   }, []);
 
-  const updateWidgets = useCallback((updated: Widget[]) => {
-    setWidgets(updated);
-    setHasUnsaved(true);
-  }, []);
+  // Filter submissions for the active tab
+  const tabSubmissions = useMemo(() => {
+    if (activeTab === "all") return submissions;
+    return submissions.filter((s) => s.partner_form_id === activeTab);
+  }, [activeTab, submissions]);
 
-  // Compute data for each widget from submissions
+  // Compute widget data
   const widgetData = useMemo(() => {
     const results: Record<string, unknown> = {};
     for (const widget of widgets) {
       const ds = widget.dataSource;
-      let filtered = submissions;
+      let filtered = tabSubmissions;
 
-      if (ds.formId) {
+      if (ds.formId && activeTab === "all") {
         filtered = filtered.filter((s) => s.partner_form_id === ds.formId);
       }
       if (ds.statusFilter && ds.statusFilter.length > 0) {
@@ -161,9 +284,32 @@ export default function InsightsDashboard({ dashboard, forms, fieldMap, submissi
       }
     }
     return results;
-  }, [widgets, submissions]);
+  }, [widgets, tabSubmissions, activeTab]);
 
-  // Drag & drop reorder
+  // Auto-generate handler
+  const handleAutoGenerate = useCallback(() => {
+    const formId = activeTab === "all" ? null : activeTab;
+    // Collect fields: for "all" merge all form fields, for a specific form use that form's fields
+    let fields: { key: string; label: string; type: string }[] = [];
+    if (formId) {
+      fields = fieldMap[formId] ?? [];
+    } else {
+      const seen = new Set<string>();
+      for (const formFields of Object.values(fieldMap)) {
+        for (const f of formFields) {
+          if (!seen.has(f.key)) {
+            seen.add(f.key);
+            fields.push(f);
+          }
+        }
+      }
+    }
+    const generated = autoGenerateWidgets(formId, fields);
+    setWidgetsByTab((prev) => ({ ...prev, [activeTab]: generated }));
+    setUnsavedTabs((prev) => new Set(prev).add(activeTab));
+  }, [activeTab, fieldMap]);
+
+  // Drag handlers
   const handleDragStart = (id: string) => setDragId(id);
   const handleDragOver = (e: React.DragEvent) => { e.preventDefault(); e.dataTransfer.dropEffect = "move"; };
   const handleDrop = (targetId: string) => {
@@ -175,18 +321,21 @@ export default function InsightsDashboard({ dashboard, forms, fieldMap, submissi
     const [moved] = updated.splice(fromIdx, 1);
     updated.splice(toIdx, 0, moved);
     updated.forEach((w, i) => (w.order = i));
-    updateWidgets(updated);
+    setWidgets(updated);
     setDragId(null);
   };
 
   const removeWidget = (id: string) => {
     const updated = widgets.filter((w) => w.id !== id);
     updated.forEach((w, i) => (w.order = i));
-    updateWidgets(updated);
+    setWidgets(updated);
   };
 
+  const hasUnsaved = unsavedTabs.has(activeTab);
+  const entryCount = tabSubmissions.length;
+
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 md:px-10 py-6 md:py-8 space-y-6">
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 md:px-10 py-6 md:py-8 space-y-5">
       {/* Header */}
       <div className="flex items-center justify-between flex-wrap gap-3">
         <div>
@@ -198,10 +347,10 @@ export default function InsightsDashboard({ dashboard, forms, fieldMap, submissi
             Build your custom dashboard from entry data.
           </p>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 flex-wrap">
           {hasUnsaved && (
             <button
-              onClick={() => save(widgets)}
+              onClick={() => save(activeTab, widgets)}
               disabled={isPending}
               className="flex items-center gap-2 px-4 py-2 rounded-xl bg-primary text-on-primary text-sm font-bold hover:opacity-90 transition-opacity disabled:opacity-50"
             >
@@ -209,6 +358,13 @@ export default function InsightsDashboard({ dashboard, forms, fieldMap, submissi
               Save
             </button>
           )}
+          <button
+            onClick={handleAutoGenerate}
+            className="flex items-center gap-2 px-4 py-2 rounded-xl bg-amber-500/10 text-amber-400 text-sm font-bold hover:bg-amber-500/15 transition-colors"
+          >
+            <i className="fa-solid fa-wand-magic-sparkles" />
+            Auto Generate
+          </button>
           <button
             onClick={() => setShowAddPanel(true)}
             className="flex items-center gap-2 px-4 py-2 rounded-xl bg-primary/10 text-primary text-sm font-bold hover:bg-primary/15 transition-colors"
@@ -219,23 +375,67 @@ export default function InsightsDashboard({ dashboard, forms, fieldMap, submissi
         </div>
       </div>
 
+      {/* Tabs */}
+      <div className="flex items-center gap-1 overflow-x-auto pb-1 -mx-1 px-1 scrollbar-thin">
+        {tabs.map((tab) => {
+          const isActive = tab.key === activeTab;
+          const tabHasWidgets = (widgetsByTab[tab.key]?.length ?? 0) > 0;
+          return (
+            <button
+              key={tab.key}
+              onClick={() => setActiveTab(tab.key)}
+              className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-bold whitespace-nowrap transition-colors shrink-0 ${
+                isActive
+                  ? "bg-primary/15 text-primary border border-primary/20"
+                  : "text-on-surface-variant hover:bg-white/[0.04] border border-transparent"
+              }`}
+            >
+              <i className={`fa-solid ${tab.icon} text-xs`} />
+              {tab.label}
+              {tabHasWidgets && (
+                <span className={`w-1.5 h-1.5 rounded-full ${isActive ? "bg-primary" : "bg-on-surface-variant/30"}`} />
+              )}
+              {unsavedTabs.has(tab.key) && (
+                <span className="w-1.5 h-1.5 rounded-full bg-amber-400" />
+              )}
+            </button>
+          );
+        })}
+      </div>
+
+      {/* Entry count indicator */}
+      <div className="text-xs text-on-surface-variant/40">
+        {entryCount} {entryCount === 1 ? "entry" : "entries"} {activeTab === "all" ? "across all forms" : "in this form"}
+      </div>
+
       {/* Empty state */}
       {widgets.length === 0 && !showAddPanel && (
         <div className="rounded-2xl border-2 border-dashed border-outline-variant/20 p-12 text-center">
           <div className="w-16 h-16 rounded-2xl bg-primary/10 flex items-center justify-center mx-auto mb-4">
             <i className="fa-solid fa-chart-mixed text-2xl text-primary" />
           </div>
-          <h2 className="text-lg font-bold text-on-surface mb-2">No widgets yet</h2>
+          <h2 className="text-lg font-bold text-on-surface mb-2">
+            {activeTab === "all" ? "No widgets yet" : `No widgets for this form`}
+          </h2>
           <p className="text-sm text-on-surface-variant max-w-md mx-auto mb-6">
-            Add charts, numbers, and tables to visualize your entry data. Widgets automatically pull data from your form submissions.
+            Click <strong>Auto Generate</strong> to instantly build a dashboard from your fields, or add widgets manually.
           </p>
-          <button
-            onClick={() => setShowAddPanel(true)}
-            className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-primary text-on-primary text-sm font-bold hover:opacity-90 transition"
-          >
-            <i className="fa-solid fa-plus" />
-            Add Your First Widget
-          </button>
+          <div className="flex items-center justify-center gap-3 flex-wrap">
+            <button
+              onClick={handleAutoGenerate}
+              className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-amber-500/10 text-amber-400 text-sm font-bold hover:bg-amber-500/15 transition"
+            >
+              <i className="fa-solid fa-wand-magic-sparkles" />
+              Auto Generate Dashboard
+            </button>
+            <button
+              onClick={() => setShowAddPanel(true)}
+              className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-primary/10 text-primary text-sm font-bold hover:bg-primary/15 transition"
+            >
+              <i className="fa-solid fa-plus" />
+              Add Manually
+            </button>
+          </div>
         </div>
       )}
 
@@ -255,7 +455,6 @@ export default function InsightsDashboard({ dashboard, forms, fieldMap, submissi
                 ${dragId === widget.id ? "opacity-40 scale-95" : ""}
                 transition-all duration-200`}
             >
-              {/* Widget header */}
               <div className="flex items-center justify-between mb-2 shrink-0">
                 <div className="flex items-center gap-2 min-w-0">
                   <i className="fa-solid fa-grip-vertical text-xs text-on-surface-variant/30 cursor-grab active:cursor-grabbing" />
@@ -278,18 +477,10 @@ export default function InsightsDashboard({ dashboard, forms, fieldMap, submissi
                   </button>
                 </div>
               </div>
-
-              {/* Widget body */}
               <div className="flex-1 min-h-0">
-                {widget.type === "number" && (
-                  <NumberWidget value={widgetData[widget.id] as number} widget={widget} />
-                )}
-                {widget.type === "chart" && (
-                  <ChartWidget data={(widgetData[widget.id] ?? []) as { name: string; value: number }[]} widget={widget} />
-                )}
-                {widget.type === "table" && (
-                  <TableWidget data={(widgetData[widget.id] ?? []) as Record<string, unknown>[]} widget={widget} />
-                )}
+                {widget.type === "number" && <NumberWidget value={widgetData[widget.id] as number} widget={widget} />}
+                {widget.type === "chart" && <ChartWidget data={(widgetData[widget.id] ?? []) as { name: string; value: number }[]} widget={widget} />}
+                {widget.type === "table" && <TableWidget data={(widgetData[widget.id] ?? []) as Record<string, unknown>[]} widget={widget} />}
               </div>
             </div>
           ))}
@@ -301,9 +492,10 @@ export default function InsightsDashboard({ dashboard, forms, fieldMap, submissi
         <AddWidgetPanel
           forms={forms}
           fieldMap={fieldMap}
+          defaultFormId={activeTab === "all" ? "" : activeTab}
           onAdd={(widget) => {
             const updated = [...widgets, { ...widget, order: widgets.length }];
-            updateWidgets(updated);
+            setWidgets(updated);
             setShowAddPanel(false);
           }}
           onClose={() => setShowAddPanel(false)}
@@ -315,10 +507,11 @@ export default function InsightsDashboard({ dashboard, forms, fieldMap, submissi
         <AddWidgetPanel
           forms={forms}
           fieldMap={fieldMap}
+          defaultFormId={activeTab === "all" ? "" : activeTab}
           editing={editingWidget}
           onAdd={(updated) => {
             const newWidgets = widgets.map((w) => (w.id === updated.id ? updated : w));
-            updateWidgets(newWidgets);
+            setWidgets(newWidgets);
             setEditingWidget(null);
           }}
           onClose={() => setEditingWidget(null)}
@@ -337,12 +530,8 @@ function NumberWidget({ value, widget }: { value: number; widget: Widget }) {
   return (
     <div className="flex items-center justify-center h-full">
       <div className="text-center">
-        <div className="text-4xl sm:text-5xl font-extrabold font-headline text-on-surface">
-          {formatted}
-        </div>
-        <div className="text-xs text-on-surface-variant/60 mt-1 uppercase tracking-wider">
-          {widget.dataSource.fieldLabel}
-        </div>
+        <div className="text-4xl sm:text-5xl font-extrabold font-headline text-on-surface">{formatted}</div>
+        <div className="text-xs text-on-surface-variant/60 mt-1 uppercase tracking-wider">{widget.dataSource.fieldLabel}</div>
       </div>
     </div>
   );
@@ -355,37 +544,23 @@ function ChartWidget({ data, widget }: { data: { name: string; value: number }[]
   const colors = CHART_COLORS.map(rgb);
 
   if (data.length === 0) {
-    return (
-      <div className="flex items-center justify-center h-full text-on-surface-variant/30 text-sm">
-        No data
-      </div>
-    );
+    return <div className="flex items-center justify-center h-full text-on-surface-variant/30 text-sm">No data</div>;
   }
+
+  const tooltipStyle = {
+    contentStyle: { background: "rgb(var(--color-surface-container))", border: "1px solid rgba(var(--color-outline-variant), 0.15)", borderRadius: 12 },
+    labelStyle: { color: "rgb(var(--color-on-surface))" },
+  };
 
   if (chartType === "pie" || chartType === "donut") {
     return (
       <ResponsiveContainer width="100%" height="100%">
         <PieChart>
-          <Pie
-            data={data}
-            cx="50%"
-            cy="50%"
-            innerRadius={chartType === "donut" ? "55%" : 0}
-            outerRadius="80%"
-            dataKey="value"
-            nameKey="name"
-            paddingAngle={2}
-            label={({ name, percent }) => `${name} ${((percent ?? 0) * 100).toFixed(0)}%`}
-            labelLine={false}
-          >
-            {data.map((_, i) => (
-              <Cell key={i} fill={colors[i % colors.length]} />
-            ))}
+          <Pie data={data} cx="50%" cy="50%" innerRadius={chartType === "donut" ? "55%" : 0} outerRadius="80%" dataKey="value" nameKey="name" paddingAngle={2}
+            label={({ name, percent }) => `${name} ${((percent ?? 0) * 100).toFixed(0)}%`} labelLine={false}>
+            {data.map((_, i) => <Cell key={i} fill={colors[i % colors.length]} />)}
           </Pie>
-          <Tooltip
-            contentStyle={{ background: "rgb(var(--color-surface-container))", border: "1px solid rgba(var(--color-outline-variant), 0.15)", borderRadius: 12 }}
-            labelStyle={{ color: "rgb(var(--color-on-surface))" }}
-          />
+          <Tooltip {...tooltipStyle} />
         </PieChart>
       </ResponsiveContainer>
     );
@@ -412,10 +587,7 @@ function ChartWidget({ data, widget }: { data: { name: string; value: number }[]
         <CartesianGrid strokeDasharray="3 3" stroke="rgba(var(--color-outline-variant), 0.1)" />
         <XAxis dataKey="name" tick={{ fill: "rgba(var(--color-on-surface-variant), 0.5)", fontSize: 10 }} axisLine={false} tickLine={false} />
         <YAxis tick={{ fill: "rgba(var(--color-on-surface-variant), 0.4)", fontSize: 10 }} axisLine={false} tickLine={false} />
-        <Tooltip
-          contentStyle={{ background: "rgb(var(--color-surface-container))", border: "1px solid rgba(var(--color-outline-variant), 0.15)", borderRadius: 12 }}
-          labelStyle={{ color: "rgb(var(--color-on-surface))" }}
-        />
+        <Tooltip {...tooltipStyle} />
         {chartType === "bar" && <Bar dataKey="value" fill={colors[0]} radius={[4, 4, 0, 0]} />}
         {chartType === "line" && <Line type="monotone" dataKey="value" stroke={colors[0]} strokeWidth={2} dot={{ fill: colors[0], r: 3 }} />}
         {chartType === "area" && <Area type="monotone" dataKey="value" fill={colors[0]} fillOpacity={0.2} stroke={colors[0]} strokeWidth={2} />}
@@ -428,11 +600,7 @@ function ChartWidget({ data, widget }: { data: { name: string; value: number }[]
 
 function TableWidget({ data, widget }: { data: Record<string, unknown>[]; widget: Widget }) {
   if (data.length === 0) {
-    return (
-      <div className="flex items-center justify-center h-full text-on-surface-variant/30 text-sm">
-        No data
-      </div>
-    );
+    return <div className="flex items-center justify-center h-full text-on-surface-variant/30 text-sm">No data</div>;
   }
 
   return (
@@ -449,9 +617,7 @@ function TableWidget({ data, widget }: { data: Record<string, unknown>[]; widget
           {data.map((row, i) => (
             <tr key={i} className="border-b border-outline-variant/5 hover:bg-white/[0.02]">
               <td className="py-1.5 px-2 text-on-surface/80 truncate max-w-[120px]">{String(row.client_name ?? "—")}</td>
-              <td className="py-1.5 px-2">
-                <StatusBadge status={String(row.status ?? "")} />
-              </td>
+              <td className="py-1.5 px-2"><StatusBadge status={String(row.status ?? "")} /></td>
               <td className="py-1.5 px-2 text-on-surface/60 truncate max-w-[160px]">{formatValue(row.value)}</td>
             </tr>
           ))}
@@ -487,18 +653,19 @@ function formatValue(val: unknown): string {
 interface AddWidgetPanelProps {
   forms: { id: string; name: string; slug: string }[];
   fieldMap: Record<string, { key: string; label: string; type: string }[]>;
+  defaultFormId: string;
   editing?: Widget;
   onAdd: (widget: Widget) => void;
   onClose: () => void;
 }
 
-function AddWidgetPanel({ forms, fieldMap, editing, onAdd, onClose }: AddWidgetPanelProps) {
+function AddWidgetPanel({ forms, fieldMap, defaultFormId, editing, onAdd, onClose }: AddWidgetPanelProps) {
   const [type, setType] = useState<WidgetType>(editing?.type ?? "number");
   const [chartType, setChartType] = useState<ChartType>(editing?.chartType ?? "bar");
   const [title, setTitle] = useState(editing?.title ?? "");
   const [size, setSize] = useState<WidgetSize>(editing?.size ?? "md");
   const [orientation, setOrientation] = useState<WidgetOrientation>(editing?.orientation ?? "landscape");
-  const [formId, setFormId] = useState<string>(editing?.dataSource.formId ?? "");
+  const [formId, setFormId] = useState<string>(editing?.dataSource.formId ?? defaultFormId);
   const [fieldKey, setFieldKey] = useState(editing?.dataSource.fieldKey ?? "__count");
   const [aggregate, setAggregate] = useState<AggregateFunction>(editing?.dataSource.aggregate ?? "count");
   const [groupByField, setGroupByField] = useState(editing?.dataSource.groupByField ?? "");
@@ -538,150 +705,93 @@ function AddWidgetPanel({ forms, fieldMap, editing, onAdd, onClose }: AddWidgetP
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4" onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}>
       <div className="w-full max-w-lg glass-panel rounded-2xl border border-outline-variant/15 p-6 space-y-5 max-h-[90vh] overflow-y-auto">
         <div className="flex items-center justify-between">
-          <h2 className="text-lg font-bold font-headline text-on-surface">
-            {editing ? "Edit Widget" : "Add Widget"}
-          </h2>
+          <h2 className="text-lg font-bold font-headline text-on-surface">{editing ? "Edit Widget" : "Add Widget"}</h2>
           <button onClick={onClose} className="w-8 h-8 rounded-lg hover:bg-white/[0.06] flex items-center justify-center text-on-surface-variant">
             <i className="fa-solid fa-xmark" />
           </button>
         </div>
 
-        {/* Widget type selector */}
+        {/* Widget type */}
         <div>
           <label className="text-xs font-bold text-on-surface-variant uppercase tracking-wider">Widget Type</label>
           <div className="flex gap-2 mt-2">
             {(["number", "chart", "table"] as WidgetType[]).map((t) => (
-              <button
-                key={t}
-                onClick={() => setType(t)}
-                className={`flex-1 py-3 rounded-xl border text-sm font-bold capitalize transition-colors ${
-                  type === t
-                    ? "bg-primary/15 border-primary/30 text-primary"
-                    : "border-outline-variant/10 text-on-surface-variant hover:bg-white/[0.03]"
-                }`}
-              >
-                <i className={`fa-solid ${TYPE_ICONS[t]} mr-2`} />
-                {t}
+              <button key={t} onClick={() => setType(t)}
+                className={`flex-1 py-3 rounded-xl border text-sm font-bold capitalize transition-colors ${type === t ? "bg-primary/15 border-primary/30 text-primary" : "border-outline-variant/10 text-on-surface-variant hover:bg-white/[0.03]"}`}>
+                <i className={`fa-solid ${TYPE_ICONS[t]} mr-2`} />{t}
               </button>
             ))}
           </div>
         </div>
 
-        {/* Chart type (when type === chart) */}
         {type === "chart" && (
           <div>
             <label className="text-xs font-bold text-on-surface-variant uppercase tracking-wider">Chart Style</label>
             <div className="grid grid-cols-3 gap-2 mt-2">
               {(["bar", "line", "area", "pie", "donut", "radar"] as ChartType[]).map((ct) => (
-                <button
-                  key={ct}
-                  onClick={() => setChartType(ct)}
-                  className={`py-2.5 rounded-xl border text-xs font-bold capitalize transition-colors ${
-                    chartType === ct
-                      ? "bg-primary/15 border-primary/30 text-primary"
-                      : "border-outline-variant/10 text-on-surface-variant hover:bg-white/[0.03]"
-                  }`}
-                >
-                  <i className={`fa-solid ${CHART_ICONS[ct]} mr-1.5`} />
-                  {ct}
+                <button key={ct} onClick={() => setChartType(ct)}
+                  className={`py-2.5 rounded-xl border text-xs font-bold capitalize transition-colors ${chartType === ct ? "bg-primary/15 border-primary/30 text-primary" : "border-outline-variant/10 text-on-surface-variant hover:bg-white/[0.03]"}`}>
+                  <i className={`fa-solid ${CHART_ICONS[ct]} mr-1.5`} />{ct}
                 </button>
               ))}
             </div>
           </div>
         )}
 
-        {/* Title */}
         <div>
           <label className="text-xs font-bold text-on-surface-variant uppercase tracking-wider">Title</label>
-          <input
-            type="text"
-            value={title}
-            onChange={(e) => setTitle(e.target.value)}
-            placeholder="Auto-generated if empty"
-            className="mt-1.5 w-full rounded-xl border border-outline-variant/15 bg-surface-container px-4 py-2.5 text-sm text-on-surface placeholder:text-on-surface-variant/30 focus:outline-none focus:ring-2 focus:ring-primary/40"
-          />
+          <input type="text" value={title} onChange={(e) => setTitle(e.target.value)} placeholder="Auto-generated if empty"
+            className="mt-1.5 w-full rounded-xl border border-outline-variant/15 bg-surface-container px-4 py-2.5 text-sm text-on-surface placeholder:text-on-surface-variant/30 focus:outline-none focus:ring-2 focus:ring-primary/40" />
         </div>
 
-        {/* Data source — form filter */}
         <div>
           <label className="text-xs font-bold text-on-surface-variant uppercase tracking-wider">Form</label>
-          <select
-            value={formId}
-            onChange={(e) => { setFormId(e.target.value); setFieldKey("__count"); setGroupByField(""); }}
-            className="mt-1.5 w-full rounded-xl border border-outline-variant/15 bg-surface-container px-4 py-2.5 text-sm text-on-surface focus:outline-none focus:ring-2 focus:ring-primary/40"
-          >
+          <select value={formId} onChange={(e) => { setFormId(e.target.value); setFieldKey("__count"); setGroupByField(""); }}
+            className="mt-1.5 w-full rounded-xl border border-outline-variant/15 bg-surface-container px-4 py-2.5 text-sm text-on-surface focus:outline-none focus:ring-2 focus:ring-primary/40">
             <option value="">All Forms</option>
-            {forms.map((f) => (
-              <option key={f.id} value={f.id}>{f.name}</option>
-            ))}
+            {forms.map((f) => <option key={f.id} value={f.id}>{f.name}</option>)}
           </select>
         </div>
 
-        {/* Field */}
         <div>
           <label className="text-xs font-bold text-on-surface-variant uppercase tracking-wider">Field</label>
-          <select
-            value={fieldKey}
-            onChange={(e) => setFieldKey(e.target.value)}
-            className="mt-1.5 w-full rounded-xl border border-outline-variant/15 bg-surface-container px-4 py-2.5 text-sm text-on-surface focus:outline-none focus:ring-2 focus:ring-primary/40"
-          >
+          <select value={fieldKey} onChange={(e) => setFieldKey(e.target.value)}
+            className="mt-1.5 w-full rounded-xl border border-outline-variant/15 bg-surface-container px-4 py-2.5 text-sm text-on-surface focus:outline-none focus:ring-2 focus:ring-primary/40">
             <optgroup label="System Fields">
-              {SYSTEM_FIELDS.map((f) => (
-                <option key={f.key} value={f.key}>{f.label}</option>
-              ))}
+              {SYSTEM_FIELDS.map((f) => <option key={f.key} value={f.key}>{f.label}</option>)}
             </optgroup>
             {formId && fieldMap[formId] && (
               <optgroup label="Form Fields">
-                {fieldMap[formId].map((f) => (
-                  <option key={f.key} value={f.key}>{f.label} ({f.type})</option>
-                ))}
+                {fieldMap[formId].map((f) => <option key={f.key} value={f.key}>{f.label} ({f.type})</option>)}
               </optgroup>
             )}
           </select>
         </div>
 
-        {/* Aggregate */}
         <div>
           <label className="text-xs font-bold text-on-surface-variant uppercase tracking-wider">Aggregate</label>
-          <select
-            value={aggregate}
-            onChange={(e) => setAggregate(e.target.value as AggregateFunction)}
-            className="mt-1.5 w-full rounded-xl border border-outline-variant/15 bg-surface-container px-4 py-2.5 text-sm text-on-surface focus:outline-none focus:ring-2 focus:ring-primary/40"
-          >
-            {Object.entries(AGGREGATE_LABELS).map(([k, label]) => (
-              <option key={k} value={k}>{label}</option>
-            ))}
+          <select value={aggregate} onChange={(e) => setAggregate(e.target.value as AggregateFunction)}
+            className="mt-1.5 w-full rounded-xl border border-outline-variant/15 bg-surface-container px-4 py-2.5 text-sm text-on-surface focus:outline-none focus:ring-2 focus:ring-primary/40">
+            {Object.entries(AGGREGATE_LABELS).map(([k, label]) => <option key={k} value={k}>{label}</option>)}
           </select>
         </div>
 
-        {/* Group by (for charts) */}
         {type === "chart" && (
           <div>
             <label className="text-xs font-bold text-on-surface-variant uppercase tracking-wider">Group By</label>
-            <select
-              value={groupByField}
-              onChange={(e) => setGroupByField(e.target.value)}
-              className="mt-1.5 w-full rounded-xl border border-outline-variant/15 bg-surface-container px-4 py-2.5 text-sm text-on-surface focus:outline-none focus:ring-2 focus:ring-primary/40"
-            >
+            <select value={groupByField} onChange={(e) => setGroupByField(e.target.value)}
+              className="mt-1.5 w-full rounded-xl border border-outline-variant/15 bg-surface-container px-4 py-2.5 text-sm text-on-surface focus:outline-none focus:ring-2 focus:ring-primary/40">
               <option value="">Same as field</option>
-              {SYSTEM_FIELDS.map((f) => (
-                <option key={f.key} value={f.key}>{f.label}</option>
-              ))}
-              {formId && fieldMap[formId]?.map((f) => (
-                <option key={f.key} value={f.key}>{f.label}</option>
-              ))}
+              {SYSTEM_FIELDS.map((f) => <option key={f.key} value={f.key}>{f.label}</option>)}
+              {formId && fieldMap[formId]?.map((f) => <option key={f.key} value={f.key}>{f.label}</option>)}
             </select>
           </div>
         )}
 
-        {/* Time range */}
         <div>
           <label className="text-xs font-bold text-on-surface-variant uppercase tracking-wider">Time Range</label>
-          <select
-            value={timeRange}
-            onChange={(e) => setTimeRange(Number(e.target.value))}
-            className="mt-1.5 w-full rounded-xl border border-outline-variant/15 bg-surface-container px-4 py-2.5 text-sm text-on-surface focus:outline-none focus:ring-2 focus:ring-primary/40"
-          >
+          <select value={timeRange} onChange={(e) => setTimeRange(Number(e.target.value))}
+            className="mt-1.5 w-full rounded-xl border border-outline-variant/15 bg-surface-container px-4 py-2.5 text-sm text-on-surface focus:outline-none focus:ring-2 focus:ring-primary/40">
             <option value={7}>Last 7 days</option>
             <option value={30}>Last 30 days</option>
             <option value={90}>Last 90 days</option>
@@ -690,46 +800,26 @@ function AddWidgetPanel({ forms, fieldMap, editing, onAdd, onClose }: AddWidgetP
           </select>
         </div>
 
-        {/* Size & Orientation */}
         <div className="grid grid-cols-2 gap-4">
           <div>
             <label className="text-xs font-bold text-on-surface-variant uppercase tracking-wider">Size</label>
-            <select
-              value={size}
-              onChange={(e) => setSize(e.target.value as WidgetSize)}
-              className="mt-1.5 w-full rounded-xl border border-outline-variant/15 bg-surface-container px-4 py-2.5 text-sm text-on-surface focus:outline-none focus:ring-2 focus:ring-primary/40"
-            >
-              {Object.entries(SIZE_LABELS).map(([k, label]) => (
-                <option key={k} value={k}>{label}</option>
-              ))}
+            <select value={size} onChange={(e) => setSize(e.target.value as WidgetSize)}
+              className="mt-1.5 w-full rounded-xl border border-outline-variant/15 bg-surface-container px-4 py-2.5 text-sm text-on-surface focus:outline-none focus:ring-2 focus:ring-primary/40">
+              {Object.entries(SIZE_LABELS).map(([k, label]) => <option key={k} value={k}>{label}</option>)}
             </select>
           </div>
           <div>
             <label className="text-xs font-bold text-on-surface-variant uppercase tracking-wider">Orientation</label>
-            <select
-              value={orientation}
-              onChange={(e) => setOrientation(e.target.value as WidgetOrientation)}
-              className="mt-1.5 w-full rounded-xl border border-outline-variant/15 bg-surface-container px-4 py-2.5 text-sm text-on-surface focus:outline-none focus:ring-2 focus:ring-primary/40"
-            >
-              {Object.entries(ORIENTATION_LABELS).map(([k, label]) => (
-                <option key={k} value={k}>{label}</option>
-              ))}
+            <select value={orientation} onChange={(e) => setOrientation(e.target.value as WidgetOrientation)}
+              className="mt-1.5 w-full rounded-xl border border-outline-variant/15 bg-surface-container px-4 py-2.5 text-sm text-on-surface focus:outline-none focus:ring-2 focus:ring-primary/40">
+              {Object.entries(ORIENTATION_LABELS).map(([k, label]) => <option key={k} value={k}>{label}</option>)}
             </select>
           </div>
         </div>
 
-        {/* Actions */}
         <div className="flex justify-end gap-3 pt-2">
-          <button
-            onClick={onClose}
-            className="px-4 py-2 rounded-xl text-sm font-bold text-on-surface-variant hover:bg-white/[0.04] transition-colors"
-          >
-            Cancel
-          </button>
-          <button
-            onClick={handleAdd}
-            className="px-5 py-2 rounded-xl bg-primary text-on-primary text-sm font-bold hover:opacity-90 transition-opacity"
-          >
+          <button onClick={onClose} className="px-4 py-2 rounded-xl text-sm font-bold text-on-surface-variant hover:bg-white/[0.04] transition-colors">Cancel</button>
+          <button onClick={handleAdd} className="px-5 py-2 rounded-xl bg-primary text-on-primary text-sm font-bold hover:opacity-90 transition-opacity">
             {editing ? "Update" : "Add Widget"}
           </button>
         </div>
@@ -744,43 +834,21 @@ function computeAggregate(values: unknown[], fn: AggregateFunction): number {
   const nonNull = values.filter((v) => v != null);
   switch (fn) {
     case "count": return nonNull.length;
-    case "sum": {
-      let t = 0;
-      for (const v of nonNull) { const n = typeof v === "number" ? v : parseFloat(String(v)); if (!isNaN(n)) t += n; }
-      return t;
-    }
-    case "avg": {
-      let s = 0, c = 0;
-      for (const v of nonNull) { const n = typeof v === "number" ? v : parseFloat(String(v)); if (!isNaN(n)) { s += n; c++; } }
-      return c > 0 ? Math.round((s / c) * 100) / 100 : 0;
-    }
-    case "min": {
-      let m = Infinity;
-      for (const v of nonNull) { const n = typeof v === "number" ? v : parseFloat(String(v)); if (!isNaN(n) && n < m) m = n; }
-      return m === Infinity ? 0 : m;
-    }
-    case "max": {
-      let m = -Infinity;
-      for (const v of nonNull) { const n = typeof v === "number" ? v : parseFloat(String(v)); if (!isNaN(n) && n > m) m = n; }
-      return m === -Infinity ? 0 : m;
-    }
+    case "sum": { let t = 0; for (const v of nonNull) { const n = typeof v === "number" ? v : parseFloat(String(v)); if (!isNaN(n)) t += n; } return t; }
+    case "avg": { let s = 0, c = 0; for (const v of nonNull) { const n = typeof v === "number" ? v : parseFloat(String(v)); if (!isNaN(n)) { s += n; c++; } } return c > 0 ? Math.round((s / c) * 100) / 100 : 0; }
+    case "min": { let m = Infinity; for (const v of nonNull) { const n = typeof v === "number" ? v : parseFloat(String(v)); if (!isNaN(n) && n < m) m = n; } return m === Infinity ? 0 : m; }
+    case "max": { let m = -Infinity; for (const v of nonNull) { const n = typeof v === "number" ? v : parseFloat(String(v)); if (!isNaN(n) && n > m) m = n; } return m === -Infinity ? 0 : m; }
     case "unique": return new Set(nonNull.map(String)).size;
     default: return nonNull.length;
   }
 }
 
-function groupByValues(
-  values: unknown[],
-  groupKeys: unknown[],
-  aggregate: AggregateFunction,
-): { name: string; value: number }[] {
+function groupByValues(values: unknown[], groupKeys: unknown[], aggregate: AggregateFunction): { name: string; value: number }[] {
   const groups: Record<string, unknown[]> = {};
   for (let i = 0; i < values.length; i++) {
     const key = String(groupKeys[i] ?? "Unknown");
     if (!groups[key]) groups[key] = [];
     groups[key].push(values[i]);
   }
-  return Object.entries(groups)
-    .map(([name, vals]) => ({ name, value: computeAggregate(vals, aggregate) }))
-    .sort((a, b) => b.value - a.value);
+  return Object.entries(groups).map(([name, vals]) => ({ name, value: computeAggregate(vals, aggregate) })).sort((a, b) => b.value - a.value);
 }

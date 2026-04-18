@@ -71,12 +71,13 @@ export async function getDashboard(): Promise<InsightDashboard | null> {
   return data as InsightDashboard | null;
 }
 
-export async function saveDashboardWidgets(widgets: Widget[]): Promise<void> {
+export async function saveDashboardWidgets(widgets: Widget[], tabKey = "all"): Promise<void> {
   const session = await requireSession();
   const account = await getCurrentAccount(session.userId);
   if (!account) throw new Error("No workspace");
 
   const admin = createAdminClient();
+  const name = tabKey === "all" ? "My Dashboard" : `form:${tabKey}`;
 
   // Upsert — create if first time, update if exists
   const { error } = await admin
@@ -84,7 +85,7 @@ export async function saveDashboardWidgets(widgets: Widget[]): Promise<void> {
     .upsert(
       {
         partner_id: account.id,
-        name: "My Dashboard",
+        name,
         widgets: JSON.parse(JSON.stringify(widgets)),
         updated_at: new Date().toISOString(),
       },

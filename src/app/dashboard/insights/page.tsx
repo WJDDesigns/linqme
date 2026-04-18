@@ -18,13 +18,21 @@ export default async function InsightsPage() {
 
   const admin = createAdminClient();
 
-  // Load dashboard config
-  const { data: dashboard } = await admin
+  // Load ALL dashboard configs for this partner (all tabs)
+  const { data: dashboards } = await admin
     .from("insight_dashboards")
     .select("*")
-    .eq("partner_id", account.id)
-    .eq("name", "My Dashboard")
-    .maybeSingle();
+    .eq("partner_id", account.id);
+
+  // Build a map: tabKey → widgets
+  const dashboardMap: Record<string, InsightDashboard> = {};
+  for (const d of (dashboards ?? []) as InsightDashboard[]) {
+    if (d.name === "My Dashboard") {
+      dashboardMap["all"] = d;
+    } else if (d.name.startsWith("form:")) {
+      dashboardMap[d.name.replace("form:", "")] = d;
+    }
+  }
 
   // Load forms + field schemas for widget editor
   const { data: forms } = await admin
@@ -66,7 +74,7 @@ export default async function InsightsPage() {
 
   return (
     <InsightsDashboard
-      dashboard={dashboard as InsightDashboard | null}
+      dashboardMap={dashboardMap}
       forms={formList}
       fieldMap={fieldMap}
       submissions={(submissions ?? []) as Record<string, unknown>[]}
