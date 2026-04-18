@@ -109,6 +109,7 @@ export default function PricingPage() {
           <Link className="text-sm text-on-surface-variant hover:text-on-surface transition-colors duration-300" href="/#features">Features</Link>
           <Link className="text-sm text-on-surface-variant hover:text-on-surface transition-colors duration-300" href="/#how-it-works">How It Works</Link>
           <Link className="text-sm text-primary font-semibold transition-colors duration-300" href="/pricing">Pricing</Link>
+          <Link className="text-sm text-on-surface-variant hover:text-on-surface transition-colors duration-300" href="/docs">Docs</Link>
         </div>
         <div className="flex items-center gap-4">
           <ThemeToggle showAuto={false} />
@@ -261,6 +262,7 @@ export default function PricingPage() {
           <div className="flex flex-wrap justify-center gap-8 text-xs text-on-surface-variant/40 uppercase tracking-widest font-label">
             <Link className="hover:text-primary transition-colors duration-300" href="/privacy">Privacy Policy</Link>
             <Link className="hover:text-primary transition-colors duration-300" href="/terms">Terms of Service</Link>
+            <Link className="hover:text-primary transition-colors duration-300" href="/docs">Docs</Link>
             <Link className="hover:text-primary transition-colors duration-300" href="/status">Status</Link>
             <Link className="hover:text-primary transition-colors duration-300" href="/support">Contact</Link>
           </div>

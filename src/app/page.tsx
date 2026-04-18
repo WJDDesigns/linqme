@@ -21,6 +21,7 @@ export default async function LandingPage() {
           <a className="text-sm text-on-surface-variant hover:text-on-surface transition-colors duration-300" href="#features">Features</a>
           <a className="text-sm text-on-surface-variant hover:text-on-surface transition-colors duration-300" href="#how-it-works">How It Works</a>
           <Link className="text-sm text-on-surface-variant hover:text-on-surface transition-colors duration-300" href="/pricing">Pricing</Link>
+          <Link className="text-sm text-on-surface-variant hover:text-on-surface transition-colors duration-300" href="/docs">Docs</Link>
         </div>
         <div className="flex items-center gap-4">
           <ThemeToggle showAuto={false} />
@@ -611,6 +612,7 @@ export default async function LandingPage() {
             <Link className="hover:text-primary transition-colors duration-300" href="/privacy">Privacy Policy</Link>
             <Link className="hover:text-primary transition-colors duration-300" href="/terms">Terms of Service</Link>
             <Link className="hover:text-primary transition-colors duration-300" href="/pricing">Pricing</Link>
+            <Link className="hover:text-primary transition-colors duration-300" href="/docs">Docs</Link>
             <Link className="hover:text-primary transition-colors duration-300" href="/status">Status</Link>
             <Link className="hover:text-primary transition-colors duration-300" href="/support">Contact</Link>
           </div>
