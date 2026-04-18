@@ -2,7 +2,9 @@ import { requireSuperadmin } from "@/lib/auth";
 import { createAdminClient } from "@/lib/supabase/admin";
 import AnnouncementForm from "./AnnouncementForm";
 import AnnouncementList from "./AnnouncementList";
+import StatusUpdatesSection from "./StatusUpdatesSection";
 import type { AnnouncementRow } from "./actions";
+import { getStatusUpdates, type StatusUpdateRow } from "./status-actions";
 
 export default async function AnnouncePage() {
   await requireSuperadmin();
@@ -13,17 +15,25 @@ export default async function AnnouncePage() {
     .select("*")
     .order("created_at", { ascending: false });
 
+  const statusUpdates = await getStatusUpdates();
+
   return (
     <div className="max-w-3xl mx-auto px-4 sm:px-6 md:px-10 py-8 space-y-8">
       <header>
         <h1 className="text-3xl font-extrabold font-headline tracking-tight text-on-surface">
           <i className="fa-solid fa-bullhorn text-primary mr-3" />
-          Announcements
+          Announcements & Status
         </h1>
         <p className="text-on-surface-variant mt-1">
-          Create banners that appear at the top of the dashboard for your users.
+          Create dashboard banners and manage the public status page.
         </p>
       </header>
+
+      {/* Status updates section */}
+      <StatusUpdatesSection statusUpdates={statusUpdates} />
+
+      {/* Divider */}
+      <div className="border-t border-outline-variant/10 pt-2" />
 
       {/* New announcement form */}
       <section className="glass-panel rounded-2xl border border-outline-variant/15 p-6">
