@@ -70,9 +70,9 @@ export default async function LandingPage() {
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[750px] h-[750px] rounded-full border border-primary/[0.06] animate-glow-breathe pointer-events-none hidden md:block" style={{ animationDelay: "2s" }} />
 
         <div className="max-w-5xl mx-auto text-center relative z-10">
-          <div className="animate-fade-up inline-flex items-center gap-2 px-4 py-1.5 rounded-full glass-panel border border-primary/15 mb-8">
+          <div className="animate-fade-up inline-flex items-center gap-2 px-4 py-1.5 rounded-full glass-panel border border-primary/20 mb-8 shadow-[0_0_20px_rgba(var(--color-primary),0.08)]">
             <span className="w-1.5 h-1.5 rounded-full bg-tertiary animate-glow-pulse" />
-            <span className="text-xs font-semibold text-on-surface-variant tracking-wide">Now in Public Beta</span>
+            <span className="text-xs font-semibold text-primary tracking-wide">Now in Public Beta</span>
           </div>
 
           <h1 className="animate-fade-up delay-1 text-4xl md:text-5xl lg:text-6xl font-headline font-extrabold tracking-tight mb-8 leading-[1.1]">
@@ -115,7 +115,7 @@ export default async function LandingPage() {
           </div>
 
           <p className="animate-fade-up delay-4 text-xs text-on-surface-variant/50">
-            Free forever &middot; No credit card required &middot; White-label ready
+            <span className="text-primary/60">Free forever</span> &middot; <span className="text-tertiary/60">No credit card required</span> &middot; <span className="text-primary/60">White-label ready</span>
           </p>
         </div>
 
@@ -183,19 +183,19 @@ export default async function LandingPage() {
 
                     {/* Stats row */}
                     <div className="grid grid-cols-3 gap-3">
-                      <div className="rounded-xl bg-surface-container-low/80 border border-outline-variant/[0.06] p-3.5">
+                      <div className="rounded-xl bg-surface-container-low/80 border border-outline-variant/[0.06] border-l-2 border-l-primary/40 p-3.5">
                         <div className="text-[10px] text-on-surface-variant/50 mb-1">Active Forms</div>
-                        <div className="text-xl font-bold text-on-surface">12</div>
+                        <div className="text-xl font-bold text-primary">12</div>
                         <div className="text-[10px] text-tertiary mt-0.5"><i className="fa-solid fa-arrow-up text-[8px]" /> 3 new this month</div>
                       </div>
-                      <div className="rounded-xl bg-surface-container-low/80 border border-outline-variant/[0.06] p-3.5">
+                      <div className="rounded-xl bg-surface-container-low/80 border border-outline-variant/[0.06] border-l-2 border-l-tertiary/40 p-3.5">
                         <div className="text-[10px] text-on-surface-variant/50 mb-1">Total Entries</div>
-                        <div className="text-xl font-bold text-on-surface">248</div>
+                        <div className="text-xl font-bold text-tertiary">248</div>
                         <div className="text-[10px] text-tertiary mt-0.5"><i className="fa-solid fa-arrow-up text-[8px]" /> 18 this week</div>
                       </div>
-                      <div className="rounded-xl bg-surface-container-low/80 border border-outline-variant/[0.06] p-3.5">
+                      <div className="rounded-xl bg-surface-container-low/80 border border-outline-variant/[0.06] border-l-2 border-l-primary/40 p-3.5">
                         <div className="text-[10px] text-on-surface-variant/50 mb-1">Accounts</div>
-                        <div className="text-xl font-bold text-on-surface">36</div>
+                        <div className="text-xl font-bold text-primary">36</div>
                         <div className="text-[10px] text-primary mt-0.5"><i className="fa-solid fa-check text-[8px]" /> 92% complete</div>
                       </div>
                     </div>
@@ -292,14 +292,14 @@ export default async function LandingPage() {
       {/* ═══════════════════════════════════════════════
           TRUST STRIP — scanlines + bright spotlight
          ═══════════════════════════════════════════════ */}
-      <section className="relative py-14 border-y border-on-surface/[0.04] overflow-hidden">
+      <section className="relative py-14 border-y border-primary/[0.08] overflow-hidden">
         <div className="absolute inset-0 bg-scanlines pointer-events-none" />
         <div className="absolute inset-0 bg-spotlight pointer-events-none" />
         <div className="max-w-5xl mx-auto px-6 text-center relative z-10">
           <p className="text-xs uppercase tracking-[0.25em] text-on-surface-variant/40 font-semibold mb-6">Powering agencies and creative teams worldwide</p>
           <div className="flex flex-wrap justify-center gap-x-12 gap-y-4 items-center text-on-surface-variant/20">
-            {["Agency Co", "Studio X", "PixelForge", "BrandHive", "CreativOps"].map((name) => (
-              <span key={name} className="text-lg md:text-xl font-headline font-bold tracking-tight hover:text-on-surface-variant/40 transition-colors duration-500">{name}</span>
+            {["Agency Co", "Studio X", "PixelForge", "BrandHive", "CreativOps"].map((name, i) => (
+              <span key={name} className={`text-lg md:text-xl font-headline font-bold tracking-tight ${i % 2 === 0 ? "hover:text-primary/50" : "hover:text-tertiary/50"} transition-colors duration-500`}>{name}</span>
             ))}
           </div>
         </div>
@@ -312,7 +312,8 @@ export default async function LandingPage() {
         <div className="absolute inset-0 bg-ripple pointer-events-none" />
         <div className="absolute inset-0 bg-corner-glow pointer-events-none" />
         {/* Extra color wash */}
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[700px] h-[400px] bg-primary/[0.06] rounded-full blur-[100px] pointer-events-none" />
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[700px] h-[400px] bg-primary/[0.08] rounded-full blur-[100px] pointer-events-none" />
+        <div className="absolute top-[20%] right-[-5%] w-[400px] h-[350px] bg-tertiary/[0.06] rounded-full blur-[120px] pointer-events-none" />
 
         <div className="max-w-5xl mx-auto relative z-10">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-6 md:gap-8">
@@ -359,7 +360,9 @@ export default async function LandingPage() {
         <div className="absolute inset-0 bg-aurora pointer-events-none" />
         <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-primary/20 to-transparent" />
         {/* Big tertiary blob */}
-        <div className="absolute bottom-[10%] left-[-5%] w-[500px] h-[400px] bg-tertiary/[0.07] rounded-full blur-[130px] pointer-events-none" />
+        <div className="absolute bottom-[10%] left-[-5%] w-[500px] h-[400px] bg-tertiary/[0.09] rounded-full blur-[130px] pointer-events-none" />
+        {/* Additional primary blob top-right */}
+        <div className="absolute top-[15%] right-[-3%] w-[400px] h-[350px] bg-primary/[0.06] rounded-full blur-[120px] pointer-events-none" />
 
         <div className="max-w-6xl mx-auto relative z-10">
           <div className="text-center mb-16 md:mb-20">
@@ -414,7 +417,8 @@ export default async function LandingPage() {
             </div>
           </div>
 
-          <div className="mt-12 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+          <div className="mt-12 mb-2 h-px bg-gradient-to-r from-transparent via-primary/20 to-transparent" />
+          <div className="mt-8 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
             <MiniFeature icon="fa-file-csv" title="CSV & PDF Exports" desc="Download entries as spreadsheets or branded PDFs anytime." accent="primary" />
             <MiniFeature icon="fa-clock-rotate-left" title="Auto-save Drafts" desc="Clients can leave and come back. Progress is never lost." accent="tertiary" />
             <MiniFeature icon="fa-code-branch" title="Conditional Logic" desc="Show or hide fields and steps based on previous answers." accent="primary" />
@@ -459,10 +463,11 @@ export default async function LandingPage() {
         <div className="absolute inset-0 bg-spotlight pointer-events-none" />
         <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-primary/20 to-transparent" />
         {/* Diagonal accent lines */}
-        <div className="absolute top-[25%] -left-[10%] w-[70%] h-[2px] bg-gradient-to-r from-transparent via-primary/15 to-transparent rotate-[6deg] pointer-events-none" />
-        <div className="absolute bottom-[25%] -right-[10%] w-[70%] h-[2px] bg-gradient-to-r from-transparent via-tertiary/12 to-transparent -rotate-[4deg] pointer-events-none" />
-        {/* Bottom glow */}
-        <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-[600px] h-[300px] bg-primary/[0.07] rounded-full blur-[100px] pointer-events-none" />
+        <div className="absolute top-[25%] -left-[10%] w-[70%] h-[2px] bg-gradient-to-r from-transparent via-primary/20 to-transparent rotate-[6deg] pointer-events-none" />
+        <div className="absolute bottom-[25%] -right-[10%] w-[70%] h-[2px] bg-gradient-to-r from-transparent via-tertiary/18 to-transparent -rotate-[4deg] pointer-events-none" />
+        {/* Color blobs */}
+        <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-[600px] h-[300px] bg-primary/[0.08] rounded-full blur-[100px] pointer-events-none" />
+        <div className="absolute top-[10%] left-[-3%] w-[350px] h-[300px] bg-tertiary/[0.07] rounded-full blur-[100px] pointer-events-none" />
 
         <div className="max-w-6xl mx-auto relative z-10">
           <div className="text-center mb-16 md:mb-20">
@@ -493,7 +498,7 @@ export default async function LandingPage() {
 
         <div className="max-w-4xl mx-auto relative z-10 text-center">
           <span className="inline-block text-xs font-bold text-primary uppercase tracking-[0.2em] mb-4">Pricing</span>
-          <h2 className="text-4xl md:text-5xl font-headline font-bold mb-4">Plans for every stage</h2>
+          <h2 className="text-4xl md:text-5xl font-headline font-bold mb-4">Plans for <span className="gradient-text">every stage</span></h2>
           <p className="text-on-surface-variant text-lg mb-12 max-w-xl mx-auto">
             Start free with Free, grow with Starter, and go unlimited with Agency.
           </p>
@@ -517,6 +522,8 @@ export default async function LandingPage() {
         <div className="absolute inset-0 bg-iso-grid pointer-events-none" />
         <div className="absolute inset-0 bg-corner-glow pointer-events-none" />
         <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-primary/20 to-transparent" />
+        <div className="absolute top-[30%] left-[-5%] w-[350px] h-[300px] bg-tertiary/[0.06] rounded-full blur-[100px] pointer-events-none" />
+        <div className="absolute bottom-[20%] right-[-5%] w-[300px] h-[250px] bg-primary/[0.05] rounded-full blur-[100px] pointer-events-none" />
 
         <div className="max-w-3xl mx-auto relative z-10">
           <div className="text-center mb-16 md:mb-20">
@@ -546,13 +553,14 @@ export default async function LandingPage() {
         <div className="max-w-4xl mx-auto relative z-10">
           <div className="gradient-border rounded-3xl">
             <div className="relative glass-panel noise-overlay p-12 md:p-20 rounded-3xl overflow-hidden">
-              <div className="absolute top-0 left-1/4 w-1/2 h-1/2 bg-primary/[0.12] rounded-full blur-[80px] pointer-events-none animate-glow-breathe" />
-              <div className="absolute bottom-0 right-1/4 w-1/3 h-1/3 bg-tertiary/[0.10] rounded-full blur-[60px] pointer-events-none animate-glow-breathe" style={{ animationDelay: "2s" }} />
-              <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[400px] h-[400px] rounded-full border border-primary/[0.08] pointer-events-none" />
-              <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] rounded-full border border-primary/[0.04] pointer-events-none" />
+              <div className="absolute top-0 left-1/4 w-1/2 h-1/2 bg-primary/[0.18] rounded-full blur-[80px] pointer-events-none animate-glow-breathe" />
+              <div className="absolute bottom-0 right-1/4 w-1/3 h-1/3 bg-tertiary/[0.14] rounded-full blur-[60px] pointer-events-none animate-glow-breathe" style={{ animationDelay: "2s" }} />
+              <div className="absolute top-[20%] right-[10%] w-1/4 h-1/4 bg-inverse-primary/[0.10] rounded-full blur-[50px] pointer-events-none animate-glow-breathe" style={{ animationDelay: "4s" }} />
+              <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[400px] h-[400px] rounded-full border border-primary/[0.10] pointer-events-none" />
+              <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] rounded-full border border-tertiary/[0.05] pointer-events-none" />
 
               <h2 className="text-4xl md:text-5xl font-headline font-bold mb-6 relative z-10">
-                Ready to run your agency smarter?
+                Ready to run your agency <span className="gradient-text-hero">smarter?</span>
               </h2>
               <p className="text-on-surface-variant mb-10 text-lg relative z-10 max-w-xl mx-auto">
                 Join agencies using linqme to collect data, manage clients, and make better decisions with real-time insights.
