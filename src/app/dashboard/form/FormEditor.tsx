@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useCallback, useRef, useEffect } from "react";
-import type { FormSchema, StepDef, FieldDef, FieldType, PackageConfig, PackageOption, PackageFeature, PackageRule, PackageLayout, RepeaterConfig, RepeaterSubField, AssetCollectionConfig, AssetCategory, SiteStructureConfig, FeatureSelectorConfig, FeatureOption, GoalBuilderConfig, GoalOption, GoalRefinement, ApprovalConfig } from "@/lib/forms";
+import type { FormSchema, StepDef, FieldDef, FieldType, PackageConfig, PackageOption, PackageFeature, PackageRule, PackageLayout, RepeaterConfig, RepeaterSubField, AssetCollectionConfig, AssetCategory, SiteStructureConfig, FeatureSelectorConfig, FeatureOption, GoalBuilderConfig, GoalOption, GoalRefinement, ApprovalConfig, PaymentConfig, PaymentProvider, CaptchaConfig, CaptchaProvider } from "@/lib/forms";
 import { PROVIDER_META, type CloudProvider } from "@/lib/cloud/providers";
 import CloudDestinationButton from "@/components/CloudDestinationButton";
 import IconPicker from "@/components/IconPicker";
@@ -58,9 +58,12 @@ const FIELD_CATALOGUE: FieldTypeInfo[] = [
   { type: "competitor_analyzer", label: "Competitor Analyzer", icon: "fa-magnifying-glass-chart", group: "advanced", category: "smart", description: "Enter competitors, auto-scrape & AI summarize" },
   { type: "timeline", label: "Timeline Selector", icon: "fa-calendar-days", group: "advanced", category: "smart", description: "Project dates, milestones & blackout dates" },
   { type: "budget_allocator", label: "Budget Allocator", icon: "fa-sliders", group: "advanced", category: "smart", description: "Visual budget sliders across channels" },
+  // Payments
+  { type: "payment", label: "Payment", icon: "fa-credit-card", group: "advanced", category: "smart", description: "Collect payments via Stripe, PayPal, or Square" },
   // Layout & Logic
   { type: "heading", label: "Section Heading", icon: "fa-heading", group: "advanced", category: "layout", description: "Display-only section header" },
   { type: "consent", label: "Consent / Terms", icon: "fa-file-contract", group: "advanced", category: "layout", description: "Agreement with checkbox" },
+  { type: "captcha", label: "Bot Protection", icon: "fa-shield-halved", group: "advanced", category: "layout", description: "reCAPTCHA or Cloudflare Turnstile" },
 ];
 
 function iconFor(type: FieldType) {
@@ -250,6 +253,25 @@ function makeField(type: FieldType, label: string): FieldDef {
         { id: "seo", label: "SEO", icon: "fa-magnifying-glass", defaultValue: 20 },
         { id: "other", label: "Other", icon: "fa-ellipsis", defaultValue: 10 },
       ],
+    };
+  }
+  if (type === "payment") {
+    base.label = "Payment";
+    base.paymentConfig = {
+      provider: "stripe",
+      mode: "one_time",
+      currency: "usd",
+      customAmount: false,
+      amountCents: 0,
+      buttonLabel: "Pay Now",
+      collectBillingAddress: false,
+    };
+  }
+  if (type === "captcha") {
+    base.label = "Bot Protection";
+    base.captchaConfig = {
+      provider: "recaptcha",
+      mode: "visible",
     };
   }
   return base;
@@ -1627,6 +1649,96 @@ function FieldSettingsPanel({ field, onUpdate, onClose, allFields, hasAI }: {
             </div>
           )}
         </section>
+
+        {/* Payment settings */}
+        {field.type === "payment" && field.paymentConfig && (
+          <section className="space-y-3">
+            <div className="text-[10px] font-bold text-on-surface-variant uppercase tracking-widest">Payment Settings</div>
+            <div className="flex items-center gap-2 px-3 py-2 rounded-xl bg-primary/[0.04] border border-primary/15">
+              <i className="fa-solid fa-circle-info text-[10px] text-primary" />
+              <span className="text-[10px] text-on-surface-variant/70">Connect your payment provider in <strong>Settings &rarr; Integrations</strong> before publishing.</span>
+            </div>
+            <div>
+              <span className="text-[11px] font-medium text-on-surface-variant mb-1 block">Provider</span>
+              <select value={field.paymentConfig.provider} onChange={e => onUpdate({ paymentConfig: { ...field.paymentConfig!, provider: e.target.value as PaymentProvider } })} className={INPUT_CLS}>
+                <option value="stripe">Stripe</option>
+                <option value="paypal">PayPal</option>
+                <option value="square">Square</option>
+              </select>
+              <p className="text-[10px] text-on-surface-variant/50 mt-0.5">Which payment processor handles the transaction.</p>
+            </div>
+            <div>
+              <span className="text-[11px] font-medium text-on-surface-variant mb-1 block">Payment Mode</span>
+              <select value={field.paymentConfig.mode ?? "one_time"} onChange={e => onUpdate({ paymentConfig: { ...field.paymentConfig!, mode: e.target.value as "one_time" | "subscription" } })} className={INPUT_CLS}>
+                <option value="one_time">One-time payment</option>
+                <option value="subscription">Recurring subscription</option>
+              </select>
+            </div>
+            <div>
+              <span className="text-[11px] font-medium text-on-surface-variant mb-1 block">Currency</span>
+              <input value={field.paymentConfig.currency ?? "usd"} onChange={e => onUpdate({ paymentConfig: { ...field.paymentConfig!, currency: e.target.value } })} className={INPUT_CLS} maxLength={3} placeholder="e.g. usd, eur, gbp" />
+            </div>
+            <div className="flex items-center justify-between p-3 bg-surface-container rounded-lg">
+              <div>
+                <span className="text-xs font-medium text-on-surface block">Custom Amount</span>
+                <p className="text-[10px] text-on-surface-variant/50 mt-0.5">Let the client enter their own amount.</p>
+              </div>
+              <label className="relative cursor-pointer shrink-0 ml-3">
+                <input type="checkbox" checked={!!field.paymentConfig.customAmount} onChange={e => onUpdate({ paymentConfig: { ...field.paymentConfig!, customAmount: e.target.checked } })} className="sr-only peer" />
+                <div className="w-8 h-4 bg-surface-container-highest rounded-full peer-checked:bg-primary transition-colors" />
+                <div className="absolute left-0.5 top-0.5 w-3 h-3 bg-on-surface-variant rounded-full peer-checked:translate-x-4 peer-checked:bg-on-primary transition-all" />
+              </label>
+            </div>
+            {!field.paymentConfig.customAmount && (
+              <div>
+                <span className="text-[11px] font-medium text-on-surface-variant mb-1 block">Amount (in cents)</span>
+                <input type="number" min={0} value={field.paymentConfig.amountCents ?? 0} onChange={e => onUpdate({ paymentConfig: { ...field.paymentConfig!, amountCents: Number(e.target.value) } })} className={INPUT_CLS} placeholder="e.g. 9900 for $99.00" />
+                <p className="text-[10px] text-on-surface-variant/50 mt-0.5">Amount in smallest currency unit. 9900 = $99.00</p>
+              </div>
+            )}
+            <div>
+              <span className="text-[11px] font-medium text-on-surface-variant mb-1 block">Button Label</span>
+              <input value={field.paymentConfig.buttonLabel ?? "Pay Now"} onChange={e => onUpdate({ paymentConfig: { ...field.paymentConfig!, buttonLabel: e.target.value } })} className={INPUT_CLS} placeholder="e.g. Pay Now, Subscribe, Complete Purchase" />
+            </div>
+            <div className="flex items-center justify-between p-3 bg-surface-container rounded-lg">
+              <div>
+                <span className="text-xs font-medium text-on-surface block">Collect Billing Address</span>
+                <p className="text-[10px] text-on-surface-variant/50 mt-0.5">Require billing address before payment.</p>
+              </div>
+              <label className="relative cursor-pointer shrink-0 ml-3">
+                <input type="checkbox" checked={!!field.paymentConfig.collectBillingAddress} onChange={e => onUpdate({ paymentConfig: { ...field.paymentConfig!, collectBillingAddress: e.target.checked } })} className="sr-only peer" />
+                <div className="w-8 h-4 bg-surface-container-highest rounded-full peer-checked:bg-primary transition-colors" />
+                <div className="absolute left-0.5 top-0.5 w-3 h-3 bg-on-surface-variant rounded-full peer-checked:translate-x-4 peer-checked:bg-on-primary transition-all" />
+              </label>
+            </div>
+          </section>
+        )}
+
+        {/* Captcha / Bot Protection settings */}
+        {field.type === "captcha" && field.captchaConfig && (
+          <section className="space-y-3">
+            <div className="text-[10px] font-bold text-on-surface-variant uppercase tracking-widest">Bot Protection</div>
+            <div className="flex items-center gap-2 px-3 py-2 rounded-xl bg-primary/[0.04] border border-primary/15">
+              <i className="fa-solid fa-circle-info text-[10px] text-primary" />
+              <span className="text-[10px] text-on-surface-variant/70">Add your site key in <strong>Settings &rarr; Integrations</strong> to activate.</span>
+            </div>
+            <div>
+              <span className="text-[11px] font-medium text-on-surface-variant mb-1 block">Provider</span>
+              <select value={field.captchaConfig.provider} onChange={e => onUpdate({ captchaConfig: { ...field.captchaConfig!, provider: e.target.value as CaptchaProvider } })} className={INPUT_CLS}>
+                <option value="recaptcha">Google reCAPTCHA v3</option>
+                <option value="turnstile">Cloudflare Turnstile</option>
+              </select>
+              <p className="text-[10px] text-on-surface-variant/50 mt-0.5">{field.captchaConfig.provider === "recaptcha" ? "Google reCAPTCHA runs invisibly and scores visitors." : "Cloudflare Turnstile is a privacy-friendly CAPTCHA alternative."}</p>
+            </div>
+            <div>
+              <span className="text-[11px] font-medium text-on-surface-variant mb-1 block">Mode</span>
+              <select value={field.captchaConfig.mode ?? "visible"} onChange={e => onUpdate({ captchaConfig: { ...field.captchaConfig!, mode: e.target.value as "visible" | "invisible" } })} className={INPUT_CLS}>
+                <option value="visible">Visible — shows the widget to the user</option>
+                <option value="invisible">Invisible — runs in background, no widget shown</option>
+              </select>
+            </div>
+          </section>
+        )}
 
         <div className="pt-4">
           <button

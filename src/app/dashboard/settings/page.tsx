@@ -15,6 +15,8 @@ import ProfileSection from "./ProfileSection";
 import SettingsTabs from "./SettingsTabs";
 import IntegrationsSection from "./IntegrationsSection";
 import AIIntegrationsSection from "./AIIntegrationsSection";
+import PaymentIntegrationsSection from "./PaymentIntegrationsSection";
+import CaptchaIntegrationsSection from "./CaptchaIntegrationsSection";
 import SupportForm from "../../support/SupportForm";
 import {
   uploadWorkspaceLogoAction,
@@ -163,10 +165,24 @@ export default async function SettingsPage() {
     .select("id, provider, model_preference, connected_at")
     .eq("partner_id", account.id);
 
+  // Payment integrations
+  const { data: paymentIntegrationRows } = await admin
+    .from("payment_integrations")
+    .select("id, provider, connected_at")
+    .eq("partner_id", account.id);
+
+  // Captcha integrations
+  const { data: captchaIntegrationRows } = await admin
+    .from("captcha_integrations")
+    .select("id, provider, connected_at")
+    .eq("partner_id", account.id);
+
   const integrationsContent = (
     <>
       <IntegrationsSection integrations={cloudIntegrations ?? []} />
       <AIIntegrationsSection aiIntegrations={aiIntegrationRows ?? []} />
+      <PaymentIntegrationsSection integrations={paymentIntegrationRows ?? []} />
+      <CaptchaIntegrationsSection integrations={captchaIntegrationRows ?? []} />
     </>
   );
 

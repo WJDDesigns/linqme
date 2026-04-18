@@ -27,7 +27,9 @@ export type FieldType =
   | "brand_style"
   | "competitor_analyzer"
   | "timeline"
-  | "budget_allocator";
+  | "budget_allocator"
+  | "payment"
+  | "captcha";
 
 /* ââ Package Selector types âââââââââââââââââââââââââââââââ */
 
@@ -303,6 +305,38 @@ export interface BudgetAllocatorConfig {
   showAsPercentage?: boolean;
 }
 
+/* ── Payment Field types ────────────────────────────────── */
+
+export type PaymentProvider = "stripe" | "paypal" | "square";
+
+export interface PaymentConfig {
+  /** Which payment provider to use */
+  provider: PaymentProvider;
+  /** Payment mode: "one_time" or "subscription" */
+  mode?: "one_time" | "subscription";
+  /** Currency code (default "usd") */
+  currency?: string;
+  /** Fixed amount in cents (if set, user cannot change) */
+  amountCents?: number;
+  /** Whether the amount is user-editable */
+  customAmount?: boolean;
+  /** Label shown above the payment button */
+  buttonLabel?: string;
+  /** Whether to collect billing address */
+  collectBillingAddress?: boolean;
+}
+
+/* ── Captcha / Bot Protection types ─────────────────────── */
+
+export type CaptchaProvider = "recaptcha" | "turnstile";
+
+export interface CaptchaConfig {
+  /** Which captcha provider to use */
+  provider: CaptchaProvider;
+  /** Captcha mode: "visible" shows the widget, "invisible" runs in background */
+  mode?: "visible" | "invisible";
+}
+
 /** Condition to show/hide a field or step based on another field's value */
 export interface ShowCondition {
   /** ID of the field to evaluate (from any step) */
@@ -359,6 +393,10 @@ export interface FieldDef {
   timelineConfig?: TimelineConfig;
   /** For budget_allocator fields — slider configuration */
   budgetAllocatorConfig?: BudgetAllocatorConfig;
+  /** For payment fields — payment provider configuration */
+  paymentConfig?: PaymentConfig;
+  /** For captcha fields — bot protection configuration */
+  captchaConfig?: CaptchaConfig;
   /** Show this field only when the condition is met */
   showCondition?: ShowCondition;
   /** For file/files fields: optional cloud storage destination */

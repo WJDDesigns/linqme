@@ -99,9 +99,8 @@ export default function IconPicker({ value, onChange }: Props) {
         onClick={() => setOpen(!open)}
         className="flex items-center gap-2 px-4 py-2.5 bg-surface-container-lowest rounded-xl border-0 text-on-surface hover:ring-1 hover:ring-primary/40 transition-all"
       >
-        <i className={`fa-solid ${value || "fa-bullhorn"} text-primary`} />
-        <span className="text-xs text-on-surface-variant/60">{value || "fa-bullhorn"}</span>
-        <i className="fa-solid fa-chevron-down text-[8px] text-on-surface-variant/40 ml-1" />
+        <i className={`fa-solid ${value || "fa-bullhorn"} text-primary text-base`} />
+        <i className="fa-solid fa-chevron-down text-[8px] text-on-surface-variant/40 ml-0.5" />
       </button>
 
       {open && (
