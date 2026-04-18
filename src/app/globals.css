@@ -2,6 +2,10 @@
 @tailwind components;
 @tailwind utilities;
 
+/* ── Color scheme for native controls (date pickers, scrollbars, etc.) ── */
+:root { color-scheme: light; }
+:root.dark { color-scheme: dark; }
+
 /* ── Celestial Editorial – Theme Variables ─────── */
 
 :root {

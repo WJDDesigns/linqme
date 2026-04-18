@@ -2684,7 +2684,7 @@ function CelestialField({
         </label>
 
       ) : field.type === "date" ? (
-        <input id={field.id} name={field.id} required={field.required} type="date" value={str} onChange={(e) => onChange(e.target.value)} className={`${INPUT_CLS} dark:[color-scheme:dark]`} style={{ ...focusRing, borderColor: errBorder }} />
+        <input id={field.id} name={field.id} required={field.required} type="date" value={str} onChange={(e) => onChange(e.target.value)} className={INPUT_CLS} style={{ ...focusRing, borderColor: errBorder }} />
 
       ) : field.type === "color" ? (
         <div className="flex items-center gap-3">
