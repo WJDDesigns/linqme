@@ -683,7 +683,7 @@ export default function FormEditor({ initialSchema, onOpenTemplates, formId, has
             ) : autoSaveStatus === "saving" ? (
               <><i className="fa-solid fa-circle-notch fa-spin text-[8px] text-on-surface-variant/50" /> <span className="text-on-surface-variant/50">Saving…</span></>
             ) : autoSaveStatus === "saved" ? (
-              <><i className="fa-solid fa-check text-[8px] text-tertiary" /> <span className="text-tertiary">Saved</span></>
+              <><i className="fa-solid fa-check text-[8px] text-tertiary" /> <span className="text-tertiary">Auto-saved</span></>
             ) : (
               <><i className="fa-solid fa-circle text-[6px] text-amber-400" /> <span className="text-on-surface-variant/50">Unsaved</span></>
             )}

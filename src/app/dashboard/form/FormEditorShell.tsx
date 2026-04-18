@@ -137,7 +137,7 @@ export default function FormEditorShell({
           </div>
         </div>
 
-        {/* Right: status dropdown + settings + permalink */}
+        {/* Right: status → link → copy link → notifications → settings (cog) */}
         <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
           {publishMsg && (
             <span className="text-[10px] text-error font-medium hidden sm:inline">{publishMsg}</span>
@@ -165,7 +165,7 @@ export default function FormEditorShell({
               <i className="fa-solid fa-chevron-down text-[7px] absolute right-1.5 sm:right-2.5 top-1/2 -translate-y-1/2 pointer-events-none text-on-surface-variant/40" />
             </div>
           )}
-          {settingsSlot}
+          {/* Link URL + Copy Link */}
           {publicUrl && isActive && (
             <>
               <a
@@ -188,6 +188,8 @@ export default function FormEditorShell({
               </button>
             </>
           )}
+          {/* Settings slot (notifications button + settings cog) */}
+          {settingsSlot}
         </div>
       </div>
 
