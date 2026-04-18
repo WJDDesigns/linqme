@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { requireSession, getCurrentAccount } from "@/lib/auth";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { createNotification } from "@/lib/notifications";
 
 type SubmissionStatus = "draft" | "submitted" | "in_review" | "complete" | "archived";
 
@@ -35,6 +36,14 @@ async function authorizeSubmissions(submissionIds: string[]): Promise<void> {
   }
 }
 
+const STATUS_LABELS: Record<SubmissionStatus, string> = {
+  draft: "Draft",
+  submitted: "Submitted",
+  in_review: "In Review",
+  complete: "Complete",
+  archived: "Archived",
+};
+
 export async function updateSubmissionStatusAction(submissionId: string, status: SubmissionStatus) {
   await authorizeSubmissions([submissionId]);
   const admin = createAdminClient();
@@ -43,6 +52,34 @@ export async function updateSubmissionStatusAction(submissionId: string, status:
     .update({ status })
     .eq("id", submissionId);
   if (error) throw new Error(error.message);
+
+  // Send notification to partner team members
+  const { data: sub } = await admin
+    .from("submissions")
+    .select("client_name, partner_id")
+    .eq("id", submissionId)
+    .maybeSingle();
+
+  if (sub) {
+    const clientName = sub.client_name || "A client";
+    const { data: members } = await admin
+      .from("partner_members")
+      .select("user_id")
+      .eq("partner_id", sub.partner_id);
+
+    if (members) {
+      for (const member of members) {
+        await createNotification(
+          member.user_id,
+          "entry_status",
+          `Entry marked ${STATUS_LABELS[status]}`,
+          `${clientName}'s submission was updated to ${STATUS_LABELS[status]}.`,
+          `/dashboard/submissions/${submissionId}`,
+        );
+      }
+    }
+  }
+
   revalidatePath("/dashboard/submissions");
   revalidatePath("/dashboard/entries");
   revalidatePath(`/dashboard/submissions/${submissionId}`);
@@ -110,6 +147,35 @@ export async function bulkUpdateStatusAction(submissionIds: string[], status: Su
     .update({ status })
     .in("id", submissionIds);
   if (error) throw new Error(error.message);
+
+  // Notify partner team members about the bulk update
+  const { data: subs } = await admin
+    .from("submissions")
+    .select("partner_id")
+    .in("id", submissionIds)
+    .limit(1);
+
+  if (subs && subs.length > 0) {
+    const partnerId = subs[0].partner_id;
+    const { data: members } = await admin
+      .from("partner_members")
+      .select("user_id")
+      .eq("partner_id", partnerId);
+
+    if (members) {
+      const count = submissionIds.length;
+      for (const member of members) {
+        await createNotification(
+          member.user_id,
+          "entry_status",
+          `${count} entries marked ${STATUS_LABELS[status]}`,
+          `${count} submissions were bulk-updated to ${STATUS_LABELS[status]}.`,
+          "/dashboard/entries",
+        );
+      }
+    }
+  }
+
   revalidatePath("/dashboard/submissions");
   revalidatePath("/dashboard/entries");
 }

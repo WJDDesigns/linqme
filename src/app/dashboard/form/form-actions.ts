@@ -5,6 +5,7 @@ import { requireSession, getCurrentAccount } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { getFormsLimitForTier } from "@/lib/plans";
+import { createNotification } from "@/lib/notifications";
 import type { FormSchema } from "@/lib/forms";
 
 interface ActionResult {
@@ -222,12 +223,46 @@ export async function toggleFormActiveAction(formId: string, isActive: boolean):
     return { ok: false, error: "Cannot unpublish the default form. Set another form as default first." };
   }
 
+  // Fetch form name before updating
+  const { data: formRow } = await admin
+    .from("partner_forms")
+    .select("name")
+    .eq("id", formId)
+    .maybeSingle();
+
   const { error } = await admin
     .from("partner_forms")
     .update({ is_active: isActive })
     .eq("id", formId);
 
   if (error) return { ok: false, error: error.message };
+
+  // Notify all partner team members about the status change
+  const formName = formRow?.name ?? "Untitled form";
+  const { data: members } = await admin
+    .from("partner_members")
+    .select("user_id")
+    .eq("partner_id", account.id);
+
+  if (members) {
+    const notifType = isActive ? "form_published" : "form_unpublished";
+    const title = isActive
+      ? `Form published: ${formName}`
+      : `Form unpublished: ${formName}`;
+    const message = isActive
+      ? `"${formName}" is now live and accepting submissions.`
+      : `"${formName}" has been taken offline.`;
+
+    for (const member of members) {
+      await createNotification(
+        member.user_id,
+        notifType,
+        title,
+        message,
+        `/dashboard/form/${formId}`,
+      );
+    }
+  }
 
   revalidatePath("/dashboard/form");
   revalidatePath(`/dashboard/form/${formId}`);

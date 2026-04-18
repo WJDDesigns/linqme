@@ -15,6 +15,11 @@ interface Notification {
 const TYPE_ICONS: Record<string, string> = {
   submission: "fa-inbox",
   team_invite: "fa-user-plus",
+  team_invite_accepted: "fa-user-check",
+  account_created: "fa-address-card",
+  form_published: "fa-rocket",
+  form_unpublished: "fa-eye-slash",
+  entry_status: "fa-arrows-rotate",
   passkey_added: "fa-key",
   system: "fa-circle-info",
 };

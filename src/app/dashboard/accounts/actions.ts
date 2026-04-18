@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { requireSession, getCurrentAccount } from "@/lib/auth";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { createNotification } from "@/lib/notifications";
 
 /* ------------------------------------------------------------------ */
 /*  Authorization helpers                                              */
@@ -69,6 +70,26 @@ export async function createAccountAction(fields: {
     if (error.code === "23505") return { ok: false, error: "An account with this email already exists." };
     return { ok: false, error: error.message };
   }
+
+  // Notify all partner members about the new client account
+  const displayName = fields.name?.trim() || fields.email.trim();
+  const { data: members } = await admin
+    .from("partner_members")
+    .select("user_id")
+    .eq("partner_id", partnerId);
+
+  if (members) {
+    for (const member of members) {
+      await createNotification(
+        member.user_id,
+        "account_created",
+        `New account: ${displayName}`,
+        `A new client account was created for ${fields.email.trim()}.`,
+        `/dashboard/accounts/${data.id}`,
+      );
+    }
+  }
+
   revalidatePath("/dashboard/accounts");
   return { ok: true, id: data.id };
 }

@@ -3,6 +3,7 @@
 import { createAdminClient } from "@/lib/supabase/admin";
 import { sendMail } from "@/lib/email";
 import { getRenderedEmail } from "@/lib/email-templates";
+import { createNotification } from "@/lib/notifications";
 import crypto from "crypto";
 
 function escapeHtml(s: string): string {
@@ -259,6 +260,41 @@ export async function acceptPartnerInvite(args: {
     name: "partner_invite_accepted",
     props: { invite_id: invite.id, email: invite.email },
   });
+
+  // Notify the new member
+  await createNotification(
+    userId,
+    "team_invite",
+    "Welcome to the team!",
+    "You've joined as a team member. Head to your dashboard to get started.",
+    "/dashboard",
+  );
+
+  // Notify existing team members (owners) that someone joined
+  const { data: owners } = await admin
+    .from("partner_members")
+    .select("user_id")
+    .eq("partner_id", invite.partner_id)
+    .eq("role", "partner_owner");
+
+  const { data: partnerRow } = await admin
+    .from("partners")
+    .select("name")
+    .eq("id", invite.partner_id)
+    .maybeSingle();
+
+  if (owners) {
+    for (const owner of owners) {
+      if (owner.user_id === userId) continue; // don't double-notify the new member
+      await createNotification(
+        owner.user_id,
+        "team_invite_accepted",
+        `${args.fullName} joined your team`,
+        `${invite.email} accepted their invite to ${partnerRow?.name ?? "your team"}.`,
+        `/dashboard/team`,
+      );
+    }
+  }
 
   return { ok: true };
 }
