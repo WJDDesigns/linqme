@@ -22,7 +22,7 @@ export default function SignupPage() {
             Start with linqme
           </h1>
           <p className="text-sm text-on-surface-variant/70 mt-1">
-            Free forever for one submission a month. Upgrade whenever you&apos;re ready.
+            Build forms, collect entries, and get insights — free forever. Upgrade when you&apos;re ready.
           </p>
         </div>
 

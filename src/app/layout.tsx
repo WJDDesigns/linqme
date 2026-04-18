@@ -7,37 +7,37 @@ import type { ThemeMode } from "@/components/ThemeProvider";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: { default: "linqme | Client Onboarding for Agencies", template: "%s · linqme" },
+  title: { default: "linqme | Forms, Entries & Insights for Agencies", template: "%s · linqme" },
   description:
-    "Collect client content, files, and approvals in one branded workspace. linqme replaces scattered emails with a clean onboarding portal your clients will love.",
+    "Build custom forms, collect client data and files, manage entries, and visualize everything with real-time insights — all under your own brand.",
   applicationName: "linqme",
   manifest: "/manifest.webmanifest",
   metadataBase: new URL(process.env.NEXT_PUBLIC_MARKETING_URL || "https://linqme.io"),
-  keywords: ["client onboarding", "agency tools", "content collection", "white-label portal", "SaaS"],
+  keywords: ["agency platform", "form builder", "client portal", "data insights", "white-label", "entry management", "SaaS"],
   authors: [{ name: "WJD Designs", url: "https://wjddesigns.com" }],
   creator: "WJD Designs",
   openGraph: {
     type: "website",
     locale: "en_US",
     siteName: "linqme",
-    title: "linqme | Client Onboarding for Agencies",
+    title: "linqme | Forms, Entries & Insights for Agencies",
     description:
-      "Collect client content, files, and approvals in one branded workspace. Replace scattered emails with a clean onboarding portal.",
+      "Build custom forms, collect client data, manage entries, and visualize it all with real-time insights — under your own brand.",
     url: "/",
     images: [
       {
         url: "/og-image.png",
         width: 1200,
         height: 630,
-        alt: "linqme — Client Onboarding for Agencies",
+        alt: "linqme — Forms, Entries & Insights for Agencies",
       },
     ],
   },
   twitter: {
     card: "summary_large_image",
-    title: "linqme | Client Onboarding for Agencies",
+    title: "linqme | Forms, Entries & Insights for Agencies",
     description:
-      "Collect client content, files, and approvals in one branded workspace.",
+      "Build custom forms, collect client data, and visualize it all with real-time insights.",
     images: ["/og-image.png"],
   },
   icons: {

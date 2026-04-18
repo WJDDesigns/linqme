@@ -76,14 +76,14 @@ export default async function LandingPage() {
           </div>
 
           <h1 className="animate-fade-up delay-1 text-4xl md:text-5xl lg:text-6xl font-headline font-extrabold tracking-tight mb-8 leading-[1.1]">
-            Client Onboarding,
+            Your Agency&apos;s
             <br />
-            <span className="gradient-text-hero">Simplified.</span>
+            <span className="gradient-text-hero">Command Center.</span>
           </h1>
 
           <p className="animate-fade-up delay-2 max-w-2xl mx-auto text-lg md:text-xl text-on-surface-variant/80 font-body mb-12 leading-relaxed">
-            Your agency&apos;s client onboarding on autopilot. A white-label portal that
-            collects assets, feedback, and approvals while you sleep.
+            Build custom forms, collect client data and files, manage entries,
+            and visualize it all with real-time insights — under your own brand.
           </p>
 
           <div className="animate-fade-up delay-3 flex flex-col sm:flex-row gap-4 justify-center items-center mb-8">
@@ -101,7 +101,7 @@ export default async function LandingPage() {
                   href="/signup"
                   className="group relative px-8 py-4 bg-primary text-on-primary font-bold rounded-xl hover:shadow-[0_0_40px_rgba(var(--color-primary),0.35)] transition-all duration-500 text-base"
                 >
-                  Start Your Free Portal
+                  Get Started Free
                   <i className="fa-solid fa-arrow-right ml-2 text-sm group-hover:translate-x-1 transition-transform" />
                 </Link>
                 <Link
@@ -115,7 +115,7 @@ export default async function LandingPage() {
           </div>
 
           <p className="animate-fade-up delay-4 text-xs text-on-surface-variant/50">
-            Free forever &middot; No credit card required &middot; Setup in 2 minutes
+            Free forever &middot; No credit card required &middot; White-label ready
           </p>
         </div>
 
@@ -151,11 +151,12 @@ export default async function LandingPage() {
                     </div>
                     <div className="space-y-1">
                       {[
-                        { icon: "fa-gauge-high", label: "Dashboard", active: true },
-                        { icon: "fa-users", label: "Clients", active: false },
-                        { icon: "fa-inbox", label: "Submissions", active: false },
-                        { icon: "fa-file-lines", label: "Forms", active: false },
-                        { icon: "fa-gear", label: "Settings", active: false },
+                        { icon: "fa-table-cells", label: "Dashboard", active: true },
+                        { icon: "fa-pen-ruler", label: "Forms", active: false },
+                        { icon: "fa-inbox", label: "Entries", active: false },
+                        { icon: "fa-users", label: "Accounts", active: false },
+                        { icon: "fa-lightbulb", label: "Insights", active: false },
+                        { icon: "fa-chart-pie", label: "Analytics", active: false },
                       ].map((item) => (
                         <div key={item.label} className={`flex items-center gap-2.5 px-3 py-2 rounded-lg text-[11px] ${item.active ? "bg-primary/10 text-primary font-semibold" : "text-on-surface-variant/50"}`}>
                           <i className={`fa-solid ${item.icon} text-[10px]`} />
@@ -171,11 +172,11 @@ export default async function LandingPage() {
                     <div className="flex items-center justify-between">
                       <div>
                         <div className="text-sm font-bold text-on-surface">Welcome back, Sarah</div>
-                        <div className="text-[11px] text-on-surface-variant/50">3 submissions awaiting review</div>
+                        <div className="text-[11px] text-on-surface-variant/50">5 new entries this week</div>
                       </div>
                       <div className="flex items-center gap-2">
                         <div className="h-8 px-3 bg-primary/15 rounded-lg flex items-center gap-1.5 text-[11px] text-primary font-semibold">
-                          <i className="fa-solid fa-plus text-[9px]" /> New Client
+                          <i className="fa-solid fa-plus text-[9px]" /> New Form
                         </div>
                       </div>
                     </div>
@@ -183,25 +184,25 @@ export default async function LandingPage() {
                     {/* Stats row */}
                     <div className="grid grid-cols-3 gap-3">
                       <div className="rounded-xl bg-surface-container-low/80 border border-outline-variant/[0.06] p-3.5">
-                        <div className="text-[10px] text-on-surface-variant/50 mb-1">Active Clients</div>
-                        <div className="text-xl font-bold text-on-surface">24</div>
-                        <div className="text-[10px] text-tertiary mt-0.5"><i className="fa-solid fa-arrow-up text-[8px]" /> 12% this month</div>
+                        <div className="text-[10px] text-on-surface-variant/50 mb-1">Active Forms</div>
+                        <div className="text-xl font-bold text-on-surface">12</div>
+                        <div className="text-[10px] text-tertiary mt-0.5"><i className="fa-solid fa-arrow-up text-[8px]" /> 3 new this month</div>
                       </div>
                       <div className="rounded-xl bg-surface-container-low/80 border border-outline-variant/[0.06] p-3.5">
-                        <div className="text-[10px] text-on-surface-variant/50 mb-1">Submissions</div>
-                        <div className="text-xl font-bold text-on-surface">18</div>
-                        <div className="text-[10px] text-tertiary mt-0.5"><i className="fa-solid fa-arrow-up text-[8px]" /> 8 this week</div>
+                        <div className="text-[10px] text-on-surface-variant/50 mb-1">Total Entries</div>
+                        <div className="text-xl font-bold text-on-surface">248</div>
+                        <div className="text-[10px] text-tertiary mt-0.5"><i className="fa-solid fa-arrow-up text-[8px]" /> 18 this week</div>
                       </div>
                       <div className="rounded-xl bg-surface-container-low/80 border border-outline-variant/[0.06] p-3.5">
-                        <div className="text-[10px] text-on-surface-variant/50 mb-1">Completion Rate</div>
-                        <div className="text-xl font-bold text-on-surface">92%</div>
-                        <div className="text-[10px] text-primary mt-0.5"><i className="fa-solid fa-check text-[8px]" /> Above average</div>
+                        <div className="text-[10px] text-on-surface-variant/50 mb-1">Accounts</div>
+                        <div className="text-xl font-bold text-on-surface">36</div>
+                        <div className="text-[10px] text-primary mt-0.5"><i className="fa-solid fa-check text-[8px]" /> 92% complete</div>
                       </div>
                     </div>
 
                     {/* Recent submissions list */}
                     <div className="space-y-2">
-                      <div className="text-[11px] font-semibold text-on-surface-variant/60 uppercase tracking-wider mb-2">Recent Submissions</div>
+                      <div className="text-[11px] font-semibold text-on-surface-variant/60 uppercase tracking-wider mb-2">Recent Entries</div>
                       {[
                         { name: "Bloom Agency", status: "Complete", statusColor: "tertiary", time: "2h ago", progress: 100 },
                         { name: "Horizon Digital", status: "In Progress", statusColor: "primary", time: "5h ago", progress: 65 },
@@ -238,12 +239,12 @@ export default async function LandingPage() {
                   <i className="fa-solid fa-bell text-[10px] text-tertiary" />
                 </div>
                 <div>
-                  <div className="text-[11px] font-semibold text-on-surface">New Submission</div>
+                  <div className="text-[11px] font-semibold text-on-surface">New Entry</div>
                   <div className="text-[9px] text-on-surface-variant/50">Just now</div>
                 </div>
               </div>
               <div className="text-[10px] text-on-surface-variant/70 leading-relaxed">
-                Bloom Agency completed their onboarding form with 12 uploaded files.
+                Bloom Agency submitted their brand intake form with 12 uploaded files.
               </div>
             </div>
           </div>
@@ -254,7 +255,7 @@ export default async function LandingPage() {
               <div className="text-[10px] text-on-surface-variant/50 uppercase tracking-wider font-semibold mb-2">This Month</div>
               <div className="flex items-baseline gap-1.5">
                 <span className="text-2xl font-headline font-bold gradient-text">18</span>
-                <span className="text-[11px] text-on-surface-variant/60">submissions</span>
+                <span className="text-[11px] text-on-surface-variant/60">entries</span>
               </div>
               <div className="flex items-center gap-1 mt-1.5">
                 <i className="fa-solid fa-arrow-trend-up text-[10px] text-tertiary" />
@@ -295,7 +296,7 @@ export default async function LandingPage() {
         <div className="absolute inset-0 bg-scanlines pointer-events-none" />
         <div className="absolute inset-0 bg-spotlight pointer-events-none" />
         <div className="max-w-5xl mx-auto px-6 text-center relative z-10">
-          <p className="text-xs uppercase tracking-[0.25em] text-on-surface-variant/40 font-semibold mb-6">Trusted by agencies and creative teams worldwide</p>
+          <p className="text-xs uppercase tracking-[0.25em] text-on-surface-variant/40 font-semibold mb-6">Powering agencies and creative teams worldwide</p>
           <div className="flex flex-wrap justify-center gap-x-12 gap-y-4 items-center text-on-surface-variant/20">
             {["Agency Co", "Studio X", "PixelForge", "BrandHive", "CreativOps"].map((name) => (
               <span key={name} className="text-lg md:text-xl font-headline font-bold tracking-tight hover:text-on-surface-variant/40 transition-colors duration-500">{name}</span>
@@ -315,10 +316,10 @@ export default async function LandingPage() {
 
         <div className="max-w-5xl mx-auto relative z-10">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-6 md:gap-8">
-            <StatBlock value="10,000+" label="Submissions collected" icon="fa-paper-plane" />
+            <StatBlock value="10,000+" label="Entries collected" icon="fa-paper-plane" />
             <StatBlock value="500+" label="Agencies onboard" icon="fa-building" />
             <StatBlock value="99.9%" label="Uptime SLA" icon="fa-shield-halved" />
-            <StatBlock value="2 min" label="Average setup time" icon="fa-bolt" />
+            <StatBlock value="30+" label="Field types available" icon="fa-cube" />
           </div>
         </div>
       </section>
@@ -338,14 +339,14 @@ export default async function LandingPage() {
           <div className="text-center mb-16 md:mb-20">
             <span className="inline-block text-xs font-bold text-tertiary uppercase tracking-[0.2em] mb-4">How It Works</span>
             <h2 className="text-4xl md:text-5xl font-headline font-bold text-on-surface leading-tight">
-              Zero friction from<br className="hidden md:block" /> draft to launch.
+              Build it. Share it.<br className="hidden md:block" /> Know everything.
             </h2>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-8">
-            <StepCard num={1} title="Deploy Your Portal" desc="Send a personalized, white-labeled link to your client. No login required for them, full control for you." icon="fa-rocket" delay="delay-1" accent="primary" />
-            <StepCard num={2} title="Collect with Precision" desc="Clients fill out a step-by-step onboarding form and drag-and-drop assets into pre-defined containers." icon="fa-bullseye" delay="delay-2" accent="tertiary" />
-            <StepCard num={3} title="Launch Faster" desc="Get notified the moment everything is submitted. All files and data organized in one dashboard." icon="fa-bolt" delay="delay-3" accent="primary" />
+            <StepCard num={1} title="Build Your Forms" desc="Use the drag-and-drop builder to create multi-step forms with 30+ field types — file uploads, packages, repeaters, conditional logic, and more." icon="fa-pen-ruler" delay="delay-1" accent="primary" />
+            <StepCard num={2} title="Collect Data & Files" desc="Share a white-labeled link with clients. They fill it out step by step, upload files, and auto-save as they go. No login needed." icon="fa-inbox" delay="delay-2" accent="tertiary" />
+            <StepCard num={3} title="Analyze & Act" desc="Every entry flows into your dashboard. Build custom Insights widgets, export to CSV or PDF, manage accounts, and track trends over time." icon="fa-chart-pie" delay="delay-3" accent="primary" />
           </div>
         </div>
       </section>
@@ -363,8 +364,8 @@ export default async function LandingPage() {
         <div className="max-w-6xl mx-auto relative z-10">
           <div className="text-center mb-16 md:mb-20">
             <span className="inline-block text-xs font-bold text-primary uppercase tracking-[0.2em] mb-4">Features</span>
-            <h2 className="text-4xl md:text-5xl font-headline font-bold mb-4">Built for the Modern Agency</h2>
-            <p className="text-on-surface-variant text-lg max-w-xl mx-auto">Sophisticated tools wrapped in a silent, beautiful interface.</p>
+            <h2 className="text-4xl md:text-5xl font-headline font-bold mb-4">Everything Your Agency Needs</h2>
+            <p className="text-on-surface-variant text-lg max-w-xl mx-auto">Forms, entries, insights, team management, and white-label branding — all in one platform.</p>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
@@ -375,7 +376,7 @@ export default async function LandingPage() {
                     <i className="fa-solid fa-wand-magic-sparkles text-lg" />
                   </div>
                   <h3 className="text-2xl font-bold mb-2 relative z-10">Total White-Labeling</h3>
-                  <p className="text-on-surface-variant max-w-md relative z-10">Your brand, your domain, your favicon. Your clients will never know linqme exists.</p>
+                  <p className="text-on-surface-variant max-w-md relative z-10">Your brand, your domain, your colors. Clients see your portal — not ours.</p>
                 </div>
               </div>
             </div>
@@ -385,8 +386,8 @@ export default async function LandingPage() {
                 <div className="absolute top-6 right-6 w-12 h-12 rounded-xl bg-tertiary/10 flex items-center justify-center text-tertiary group-hover:scale-110 group-hover:bg-tertiary/20 transition-all duration-500">
                   <i className="fa-solid fa-sitemap text-lg" />
                 </div>
-                <h3 className="text-xl font-bold mb-2 relative z-10">Multi-tenant Control</h3>
-                <p className="text-on-surface-variant text-sm relative z-10">Manage many projects from a single unified workspace with team permissions.</p>
+                <h3 className="text-xl font-bold mb-2 relative z-10">Accounts & Team Management</h3>
+                <p className="text-on-surface-variant text-sm relative z-10">Track client accounts, invite team members, and control permissions from one workspace.</p>
               </div>
             </div>
 
@@ -395,8 +396,8 @@ export default async function LandingPage() {
                 <div className="absolute top-6 right-6 w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center text-primary group-hover:scale-110 group-hover:bg-primary/20 transition-all duration-500">
                   <i className="fa-solid fa-pen-ruler text-lg" />
                 </div>
-                <h3 className="text-xl font-bold mb-2 relative z-10">Drag-and-Drop Builder</h3>
-                <p className="text-on-surface-variant text-sm relative z-10">Create custom onboarding flows in seconds. No code required.</p>
+                <h3 className="text-xl font-bold mb-2 relative z-10">Powerful Form Builder</h3>
+                <p className="text-on-surface-variant text-sm relative z-10">30+ field types, multi-step flows, conditional logic, file uploads, and repeater fields.</p>
               </div>
             </div>
 
@@ -404,21 +405,21 @@ export default async function LandingPage() {
               <div className="gradient-border rounded-2xl h-full">
                 <div className="relative glass-panel noise-overlay p-8 md:p-10 rounded-2xl min-h-[220px] flex flex-col justify-end">
                   <div className="absolute top-6 right-6 w-12 h-12 rounded-xl bg-tertiary/10 flex items-center justify-center text-tertiary group-hover:scale-110 group-hover:bg-tertiary/20 transition-all duration-500">
-                    <i className="fa-solid fa-shield-halved text-lg" />
+                    <i className="fa-solid fa-chart-pie text-lg" />
                   </div>
-                  <h3 className="text-2xl font-bold mb-2 relative z-10">Encrypted Asset Storage</h3>
-                  <p className="text-on-surface-variant max-w-md relative z-10">Secure file storage with signed URLs. Your client&apos;s data is safe and accessible only to authorized users.</p>
+                  <h3 className="text-2xl font-bold mb-2 relative z-10">Insights Dashboard</h3>
+                  <p className="text-on-surface-variant max-w-md relative z-10">Build custom dashboards with charts, number cards, and tables. Auto-generate widgets per form or create your own from scratch.</p>
                 </div>
               </div>
             </div>
           </div>
 
           <div className="mt-12 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
-            <MiniFeature icon="fa-file-csv" title="CSV & PDF Exports" desc="Download submissions as spreadsheets or branded PDFs." />
-            <MiniFeature icon="fa-clock-rotate-left" title="Auto-save Drafts" desc="Clients can leave and come back. Nothing is ever lost." />
-            <MiniFeature icon="fa-palette" title="Custom Branding" desc="Colors, logos, favicons, and custom domains per workspace." />
-            <MiniFeature icon="fa-bell" title="Instant Notifications" desc="Get emailed the moment a client submits their onboarding." />
-            <MiniFeature icon="fa-users-gear" title="Team Permissions" desc="Invite team members with owner or member-level access." />
+            <MiniFeature icon="fa-file-csv" title="CSV & PDF Exports" desc="Download entries as spreadsheets or branded PDFs anytime." />
+            <MiniFeature icon="fa-clock-rotate-left" title="Auto-save Drafts" desc="Clients can leave and come back. Progress is never lost." />
+            <MiniFeature icon="fa-code-branch" title="Conditional Logic" desc="Show or hide fields and steps based on previous answers." />
+            <MiniFeature icon="fa-bell" title="Instant Notifications" desc="Get notified the moment a client submits an entry." />
+            <MiniFeature icon="fa-shield-halved" title="Secure File Storage" desc="Encrypted uploads with signed URLs. Only authorized users can access." />
             <MiniFeature icon="fa-arrows-repeat" title="Repeater Fields" desc="Let clients add dynamic rows of data like team members or pages." />
           </div>
         </div>
@@ -439,13 +440,13 @@ export default async function LandingPage() {
           <div className="text-center mb-16 md:mb-20">
             <span className="inline-block text-xs font-bold text-tertiary uppercase tracking-[0.2em] mb-4">Testimonials</span>
             <h2 className="text-4xl md:text-5xl font-headline font-bold mb-4">Loved by agencies everywhere</h2>
-            <p className="text-on-surface-variant text-lg max-w-xl mx-auto">See what teams are saying about their onboarding workflow.</p>
+            <p className="text-on-surface-variant text-lg max-w-xl mx-auto">See what teams are saying about running their workflow on linqme.</p>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <TestimonialCard quote="linqme cut our client onboarding time from 2 weeks to 2 days. The white-labeling means clients think it's our own tool." name="Lena Morales" role="Founder, PixelForge Studio" />
-            <TestimonialCard quote="We used to chase clients for assets across email, Slack, and Dropbox. Now everything lands in one place, organized and ready." name="Jordan Ellis" role="Creative Director, BrandHive" featured />
-            <TestimonialCard quote="The form builder is incredibly flexible. We've built different onboarding flows for web design, branding, and SEO clients." name="Priya Sandoval" role="Operations Lead, CreativOps" />
+            <TestimonialCard quote="We replaced three tools with linqme. Forms, client data, and analytics — it's all in one place now, and our clients think it's our own platform." name="Lena Morales" role="Founder, PixelForge Studio" />
+            <TestimonialCard quote="The Insights dashboard changed how we report to stakeholders. We auto-generate charts per form and the data updates in real time." name="Jordan Ellis" role="Creative Director, BrandHive" featured />
+            <TestimonialCard quote="30+ field types, conditional logic, repeater fields — we've built intake forms for web design, branding, and SEO that each feel completely different." name="Priya Sandoval" role="Operations Lead, CreativOps" />
           </div>
         </div>
       </section>
@@ -466,15 +467,15 @@ export default async function LandingPage() {
         <div className="max-w-6xl mx-auto relative z-10">
           <div className="text-center mb-16 md:mb-20">
             <span className="inline-block text-xs font-bold text-primary uppercase tracking-[0.2em] mb-4">Use Cases</span>
-            <h2 className="text-4xl md:text-5xl font-headline font-bold mb-4">Works for every kind of agency</h2>
-            <p className="text-on-surface-variant text-lg max-w-xl mx-auto">From web design to marketing, linqme adapts to your workflow.</p>
+            <h2 className="text-4xl md:text-5xl font-headline font-bold mb-4">Built for any workflow</h2>
+            <p className="text-on-surface-variant text-lg max-w-xl mx-auto">From client intake to ongoing data collection, linqme adapts to how you work.</p>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <UseCaseCard icon="fa-laptop-code" title="Web Design & Development" desc="Collect copy, images, brand guidelines, and sitemap approvals before a single pixel is pushed. Stop waiting on clients to dig through their Google Drive." accent="primary" />
-            <UseCaseCard icon="fa-bullhorn" title="Marketing & Social Media" desc="Gather brand voice guidelines, campaign briefs, target audience details, and creative assets in a structured, repeatable flow." accent="tertiary" />
-            <UseCaseCard icon="fa-paintbrush" title="Branding & Identity" desc="Onboard new branding clients with questionnaires about their vision, competitors, color preferences, and inspiration boards." accent="tertiary" />
-            <UseCaseCard icon="fa-handshake" title="Consulting & Freelance" desc="Standardize your intake process across clients. Collect project requirements, timelines, budgets, and stakeholder info upfront." accent="primary" />
+            <UseCaseCard icon="fa-laptop-code" title="Web Design & Development" desc="Collect copy, images, sitemaps, and brand assets before starting a project. Track every client with accounts and visualize progress in Insights." accent="primary" />
+            <UseCaseCard icon="fa-bullhorn" title="Marketing & Social Media" desc="Build intake forms for campaign briefs, brand guidelines, and creative assets. Use conditional logic to tailor questions per service type." accent="tertiary" />
+            <UseCaseCard icon="fa-paintbrush" title="Branding & Identity" desc="Create questionnaires with package selectors, mood board uploads, and competitor analysis fields. Export entries as branded PDFs for your team." accent="tertiary" />
+            <UseCaseCard icon="fa-handshake" title="Consulting & Freelance" desc="Standardize your intake with multi-step forms, auto-save drafts, and repeater fields for dynamic data. Manage everything from one dashboard." accent="primary" />
           </div>
         </div>
       </section>
@@ -526,9 +527,9 @@ export default async function LandingPage() {
           <div className="space-y-4">
             <FaqItem q="Is linqme really free?" a="Yes. The Free plan is free forever with 1 submission per month and 1 GB of storage. No credit card required. Upgrade to Starter or Agency when you're ready for more." />
             <FaqItem q="Can my clients see linqme branding?" a="On paid plans, you can completely remove all linqme branding. Your clients will see your logo, your colors, and your custom domain. It looks 100% like your own tool." />
-            <FaqItem q="What file types can clients upload?" a="Clients can upload any file type including images, PDFs, documents, videos, and design files. Individual files can be up to 100 MB on all plans." />
-            <FaqItem q="Do I need to give clients a login?" a="No. Clients access their onboarding form via a unique, secure link. No accounts or passwords needed on their end. You get a full dashboard to manage everything." />
-            <FaqItem q="Can I customize the onboarding form?" a="Absolutely. The drag-and-drop form builder lets you create multi-step forms with text fields, dropdowns, file uploads, repeater fields, and more. Each partner can have their own custom form." />
+            <FaqItem q="What can I build with the form builder?" a="Multi-step forms with 30+ field types including text, dropdowns, file uploads, repeater fields, package selectors, conditional logic, and more. Each form can have its own unique flow." />
+            <FaqItem q="Do I need to give clients a login?" a="No. Clients access forms via a unique, secure link. No accounts or passwords needed on their end. You get a full dashboard to manage everything." />
+            <FaqItem q="What are Insights dashboards?" a="Insights lets you build custom dashboards with number cards, bar charts, line graphs, pie charts, tables, and more. Auto-generate a dashboard per form, or create widgets from scratch." />
             <FaqItem q="Is there a contract?" a="No. All plans are month-to-month. Cancel anytime from your dashboard. Annual billing with 20% off is also available." />
           </div>
         </div>
@@ -551,16 +552,16 @@ export default async function LandingPage() {
               <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] rounded-full border border-primary/[0.04] pointer-events-none" />
 
               <h2 className="text-4xl md:text-5xl font-headline font-bold mb-6 relative z-10">
-                Ready to stop chasing content?
+                Ready to run your agency smarter?
               </h2>
               <p className="text-on-surface-variant mb-10 text-lg relative z-10 max-w-xl mx-auto">
-                Join agencies that have automated their client pipeline and shipped faster.
+                Join agencies using linqme to collect data, manage clients, and make better decisions with real-time insights.
               </p>
               <Link
                 href="/signup"
                 className="relative z-10 inline-flex items-center gap-2 px-10 py-5 bg-gradient-to-r from-primary to-inverse-primary text-on-primary font-bold rounded-xl hover:shadow-[0_0_50px_rgba(var(--color-primary),0.4)] transition-all duration-500 text-lg group"
               >
-                Launch Your Portal Now
+                Get Started Free
                 <i className="fa-solid fa-arrow-right group-hover:translate-x-1 transition-transform" />
               </Link>
             </div>
