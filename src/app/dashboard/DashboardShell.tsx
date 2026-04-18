@@ -54,6 +54,24 @@ interface Props {
   children: React.ReactNode;
 }
 
+const GREETINGS = [
+  (name: string) => `Hey, ${name}!`,
+  (name: string) => `Welcome back, ${name}!`,
+  (name: string) => `Good to see you, ${name}!`,
+  (name: string) => `Have a great day, ${name}!`,
+  (name: string) => `Let's get it, ${name}!`,
+  (name: string) => `Hope you're doing well, ${name}!`,
+  (name: string) => `Ready to roll, ${name}?`,
+  (name: string) => `Happy building, ${name}!`,
+  (name: string) => `What's on the agenda, ${name}?`,
+  (name: string) => `Let's make it happen, ${name}!`,
+  (name: string) => `You've got this, ${name}!`,
+  (name: string) => `Nice to see you, ${name}!`,
+  (name: string) => `Keep crushing it, ${name}!`,
+  (name: string) => `Looking good today, ${name}!`,
+  (name: string) => `What's cooking, ${name}?`,
+];
+
 export default function DashboardShell({
   sidebarName,
   sidebarLabel,
@@ -77,6 +95,11 @@ export default function DashboardShell({
 }: Props) {
   const [collapsed, setCollapsed] = useState(false);
   const [mobileDrawerOpen, setMobileDrawerOpen] = useState(false);
+  const [greeting] = useState(() => {
+    const firstName = userName.split(" ")[0] || userName;
+    const idx = Math.floor(Math.random() * GREETINGS.length);
+    return GREETINGS[idx](firstName);
+  });
   const pathname = usePathname();
   const { resolved: resolvedTheme } = useTheme();
   const logoVariant = resolvedTheme === "dark" ? "light" : "dark";
@@ -369,6 +392,10 @@ export default function DashboardShell({
           >
             <i className="fa-solid fa-bars text-lg" />
           </button>
+          {/* Session greeting */}
+          <div className="hidden md:flex shrink-0 px-5 items-center">
+            <span className="text-sm text-on-surface-variant/60 font-medium truncate">{greeting}</span>
+          </div>
           <div className="flex-1 min-w-0 overflow-hidden">
             {announcements.length > 0 && (
               <AnnouncementBanner announcements={announcements} />
