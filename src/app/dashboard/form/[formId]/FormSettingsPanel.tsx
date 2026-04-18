@@ -2,7 +2,8 @@
 
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { renameFormAction, setDefaultFormAction, deleteFormAction, updateFormNotificationSettingsAction, updateThemeModeAction } from "../form-actions";
+import { renameFormAction, setDefaultFormAction, deleteFormAction, updateFormNotificationSettingsAction, updateThemeModeAction, updateLayoutStyleAction } from "../form-actions";
+import type { LayoutStyle } from "../form-actions";
 import { updateFormPartnersAction } from "./assignment-actions";
 
 interface Partner {
@@ -24,6 +25,7 @@ interface Props {
   confirmPageBody: string;
   redirectUrl: string;
   themeMode: "dark" | "light" | "auto";
+  layoutStyle: LayoutStyle;
 }
 
 export default function FormSettingsPanel({
@@ -40,6 +42,7 @@ export default function FormSettingsPanel({
   confirmPageBody: initialConfirmBody,
   redirectUrl: initialRedirectUrl,
   themeMode: initialThemeMode,
+  layoutStyle: initialLayoutStyle,
 }: Props) {
   const router = useRouter();
   const [pending, startTransition] = useTransition();
@@ -60,6 +63,20 @@ export default function FormSettingsPanel({
   // Theme state
   const [themeMode, setThemeMode] = useState<"dark" | "light" | "auto">(initialThemeMode);
   const [themeMsg, setThemeMsg] = useState<string | null>(null);
+
+  // Layout style state
+  const [layoutStyle, setLayoutStyle] = useState<LayoutStyle>(initialLayoutStyle);
+  const [layoutMsg, setLayoutMsg] = useState<string | null>(null);
+
+  function handleLayoutChange(style: LayoutStyle) {
+    setLayoutStyle(style);
+    setLayoutMsg(null);
+    startTransition(async () => {
+      const result = await updateLayoutStyleAction(formId, style);
+      setLayoutMsg(result.ok ? "Layout updated!" : (result.error ?? "Failed."));
+      if (result.ok) router.refresh();
+    });
+  }
 
   function handleThemeChange(mode: "dark" | "light" | "auto") {
     setThemeMode(mode);
@@ -336,6 +353,40 @@ export default function FormSettingsPanel({
               </div>
               {themeMsg && (
                 <p className={`text-xs font-medium mt-2 ${themeMsg.includes("!") ? "text-tertiary" : "text-error"}`}>{themeMsg}</p>
+              )}
+            </div>
+
+            {/* Layout style */}
+            <div>
+              <span className="text-xs font-semibold text-on-surface-variant uppercase tracking-widest">Form layout</span>
+              <p className="text-xs text-on-surface-variant/60 mt-0.5 mb-2">
+                Controls how the form steps and navigation are displayed to clients.
+              </p>
+              <div className="grid grid-cols-2 gap-2">
+                {([
+                  { value: "default" as LayoutStyle, icon: "fa-sidebar", label: "Sidebar", desc: "Side navigation with step list" },
+                  { value: "top-nav" as LayoutStyle, icon: "fa-window-maximize", label: "Top Nav", desc: "Horizontal step bar at the top" },
+                  { value: "no-nav" as LayoutStyle, icon: "fa-expand", label: "No Nav", desc: "Clean, distraction-free layout" },
+                  { value: "conversation" as LayoutStyle, icon: "fa-comments", label: "Conversation", desc: "One question at a time" },
+                ]).map((opt) => (
+                  <button
+                    key={opt.value}
+                    onClick={() => handleLayoutChange(opt.value)}
+                    disabled={pending}
+                    className={`flex flex-col items-center gap-1.5 px-3 py-3.5 rounded-xl text-center transition-all ${
+                      layoutStyle === opt.value
+                        ? "bg-primary/15 text-primary ring-1 ring-primary/30"
+                        : "bg-surface-container-lowest text-on-surface-variant/70 hover:text-on-surface hover:bg-surface-container-high/50"
+                    } disabled:opacity-50`}
+                  >
+                    <i className={`fa-solid ${opt.icon} text-base`} />
+                    <span className="text-xs font-bold">{opt.label}</span>
+                    <span className="text-[10px] text-on-surface-variant/50 leading-tight">{opt.desc}</span>
+                  </button>
+                ))}
+              </div>
+              {layoutMsg && (
+                <p className={`text-xs font-medium mt-2 ${layoutMsg.includes("!") ? "text-tertiary" : "text-error"}`}>{layoutMsg}</p>
               )}
             </div>
 

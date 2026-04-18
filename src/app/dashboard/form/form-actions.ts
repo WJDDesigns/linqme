@@ -390,3 +390,30 @@ export async function updateThemeModeAction(
   revalidatePath("/dashboard/form");
   return { ok: true };
 }
+
+export type LayoutStyle = "default" | "top-nav" | "no-nav" | "conversation";
+
+/**
+ * Update the layout style for a specific form.
+ * Controls how the client-facing form renders (sidebar nav, top nav, no nav, or conversation).
+ */
+export async function updateLayoutStyleAction(
+  formId: string,
+  layoutStyle: LayoutStyle,
+): Promise<ActionResult> {
+  const session = await requireSession();
+  const account = await getCurrentAccount(session.userId);
+  if (!account) return { ok: false, error: "No account found." };
+
+  const supabase = await createClient();
+  const { error } = await supabase
+    .from("partner_forms")
+    .update({ layout_style: layoutStyle })
+    .eq("id", formId)
+    .eq("partner_id", account.id);
+
+  if (error) return { ok: false, error: error.message };
+
+  revalidatePath(`/dashboard/form/${formId}`);
+  return { ok: true };
+}

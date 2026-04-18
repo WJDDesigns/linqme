@@ -31,7 +31,7 @@ export default async function FormsListPage() {
     .select(
       `id, name, slug, description, is_active, is_default, created_at, template_id,
        notification_emails, notification_bcc,
-       confirm_page_heading, confirm_page_body, redirect_url,
+       confirm_page_heading, confirm_page_body, redirect_url, layout_style,
        form_templates ( id, schema )`,
     )
     .eq("partner_id", account.id)
@@ -150,9 +150,9 @@ export default async function FormsListPage() {
                     </div>
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2 flex-wrap">
-                        <h3 className="text-base sm:text-lg font-bold text-on-surface group-hover:text-primary transition-colors truncate">
+                        <Link href={`/dashboard/form/${form.id}`} className="text-base sm:text-lg font-bold text-on-surface hover:text-primary transition-colors truncate">
                           {form.name}
-                        </h3>
+                        </Link>
                         {form.is_default && (
                           <span className="text-[10px] font-bold uppercase tracking-widest px-2 py-0.5 rounded-full bg-primary/10 text-primary border border-primary/20 shrink-0">
                             Default
@@ -185,6 +185,7 @@ export default async function FormsListPage() {
                         confirmPageBody={(form.confirm_page_body as string) ?? ""}
                         redirectUrl={(form.redirect_url as string) ?? ""}
                         themeMode={(partner?.theme_mode as "dark" | "light" | "auto") ?? "dark"}
+                        layoutStyle={(form.layout_style as "default" | "top-nav" | "no-nav" | "conversation") ?? "default"}
                       />
                       <a
                         href={formUrl}

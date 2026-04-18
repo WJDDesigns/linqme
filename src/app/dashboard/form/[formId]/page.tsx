@@ -34,7 +34,7 @@ export default async function FormEditorPage({ params }: PageProps) {
     .select(
       `id, name, slug, template_id, is_default, is_active,
        notification_emails, notification_bcc,
-       confirm_page_heading, confirm_page_body, redirect_url,
+       confirm_page_heading, confirm_page_body, redirect_url, layout_style,
        form_templates ( id, schema )`,
     )
     .eq("id", formId)
@@ -109,6 +109,7 @@ export default async function FormEditorPage({ params }: PageProps) {
             confirmPageBody={(pf.confirm_page_body as string) ?? ""}
             redirectUrl={(pf.redirect_url as string) ?? ""}
             themeMode={(partner?.theme_mode as "dark" | "light" | "auto") ?? "dark"}
+            layoutStyle={(pf.layout_style as "default" | "top-nav" | "no-nav" | "conversation") ?? "default"}
           />
         }
       />

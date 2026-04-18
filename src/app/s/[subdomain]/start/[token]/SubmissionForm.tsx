@@ -22,6 +22,7 @@ interface Props {
   uploadFile: (fieldId: string, formData: FormData) => Promise<UploadedFile>;
   deleteFile: (fileId: string) => Promise<void>;
   partnerId?: string;
+  layoutStyle?: "default" | "top-nav" | "no-nav" | "conversation";
 }
 
 /* ── animation styles ──────────────────────────────────────── */
@@ -42,6 +43,13 @@ function ensureStyles() {
     .sl-check     { animation: sl-check 0.4s cubic-bezier(0.22,1,0.36,1) both; }
     .sl-d1 { animation-delay:0.05s; } .sl-d2 { animation-delay:0.1s; }
     .sl-d3 { animation-delay:0.15s; } .sl-d4 { animation-delay:0.2s; } .sl-d5 { animation-delay:0.25s; }
+
+    @keyframes sl-slide-up   { from { opacity:0; transform:translateY(40px); } to { opacity:1; transform:translateY(0); } }
+    @keyframes sl-slide-down { from { opacity:0; transform:translateY(-40px); } to { opacity:1; transform:translateY(0); } }
+    @keyframes sl-slide-out-up   { from { opacity:1; transform:translateY(0); } to { opacity:0; transform:translateY(-40px); } }
+    .sl-slide-up   { animation: sl-slide-up 0.5s cubic-bezier(0.22,1,0.36,1) both; }
+    .sl-slide-down { animation: sl-slide-down 0.5s cubic-bezier(0.22,1,0.36,1) both; }
+    .sl-slide-out-up { animation: sl-slide-out-up 0.3s ease-in both; }
   `;
   document.head.appendChild(style);
 }
@@ -62,6 +70,7 @@ export default function SubmissionForm({
   schema, initialData, initialFiles, primaryColor,
   partnerName, partnerLogoUrl,
   saveStep, submit, uploadFile, deleteFile, partnerId,
+  layoutStyle = "default",
 }: Props) {
   const [stepIdx, setStepIdx] = useState(0);
   const [completedSteps, setCompletedSteps] = useState<Set<number>>(new Set());
@@ -75,6 +84,22 @@ export default function SubmissionForm({
   const logoClickRef = useRef(0);
   const logoTimerRef = useRef<ReturnType<typeof setTimeout>>();
   const containerRef = useRef<HTMLDivElement>(null);
+
+  // Conversation mode: tracks which field within the flattened field list is shown
+  const [convoIdx, setConvoIdx] = useState(0);
+  const [convoTransitioning, setConvoTransitioning] = useState(false);
+
+  // Flatten all visible fields across all visible steps for conversation mode
+  const allConvoFields = useMemo(() => {
+    if (layoutStyle !== "conversation") return [];
+    return schema.steps
+      .filter((s) => evaluateCondition(s.showCondition, data))
+      .flatMap((s) => s.fields.filter((f) => evaluateCondition(f.showCondition, data)));
+  }, [schema.steps, data, layoutStyle]);
+
+  const convoField = allConvoFields[convoIdx];
+  const isConvoLast = convoIdx === allConvoFields.length - 1;
+  const convoProgress = allConvoFields.length > 0 ? ((convoIdx) / allConvoFields.length) * 100 : 0;
 
   useEffect(() => { ensureStyles(); }, []);
 
@@ -187,6 +212,340 @@ export default function SubmissionForm({
     );
   }
 
+  /* ── Shared field renderer ── */
+  const renderField = (f: FieldDef, i: number, animClass = "sl-fade-up") => {
+    if (f.type === "file" || f.type === "files") {
+      return (
+        <div key={f.id} className={`${animClass} sl-d${Math.min(i + 2, 5)}`}>
+          <FileField field={f} initialFiles={initialFiles[f.id] ?? []} upload={uploadFile} remove={deleteFile} primaryColor={primaryColor} />
+        </div>
+      );
+    }
+    if (f.type === "repeater" && f.repeaterConfig) {
+      return (
+        <div key={f.id} className={`${animClass} sl-d${Math.min(i + 2, 5)}`}>
+          <RepeaterField field={f} value={data[f.id]} error={errors[f.id]} onChange={(v) => updateField(f.id, v)} primaryColor={primaryColor} />
+        </div>
+      );
+    }
+    return (
+      <div key={f.id} className={`${animClass} sl-d${Math.min(i + 2, 5)}`}>
+        <CelestialField field={f} value={data[f.id]} error={errors[f.id]} onChange={(v) => updateField(f.id, v)} primaryColor={primaryColor} allData={data} partnerId={partnerId} />
+      </div>
+    );
+  };
+
+  /* ── Nav buttons (shared across default, top-nav, no-nav) ── */
+  const renderNavButtons = () => (
+    <div className="flex items-center justify-between pt-6 md:pt-8 sl-fade-up sl-d5">
+      <button
+        type="button"
+        onClick={() => animateTransition(() => setStepIdx((i) => Math.max(0, i - 1)))}
+        disabled={stepIdx === 0 || pending || submitting || transitioning}
+        className="flex items-center gap-2 text-on-surface-variant hover:text-on-surface disabled:opacity-0 transition-all text-sm uppercase tracking-widest font-label"
+      >
+        <i className="fa-solid fa-chevron-left text-sm" />
+        Previous
+      </button>
+      <button
+        type="submit"
+        disabled={pending || submitting || transitioning}
+        className="group px-8 md:px-10 py-3.5 md:py-4 font-headline font-bold rounded-xl shadow-[0_10px_30px_rgba(192,193,255,0.2)] hover:shadow-[0_15px_40px_rgba(192,193,255,0.35)] hover:-translate-y-1 transition-all flex items-center gap-3 disabled:opacity-60"
+        style={{ backgroundColor: primaryColor, color: isLightColor(primaryColor) ? "#1a1c25" : "#ffffff" }}
+      >
+        {submitting ? (
+          <><Spinner /> Submitting...</>
+        ) : pending ? (
+          <><Spinner /> Saving...</>
+        ) : isLast ? (
+          <>Submit <i className="fa-solid fa-check text-sm ml-1" /></>
+        ) : (
+          <>Next Step <i className="fa-solid fa-chevron-right text-sm ml-1 transition-transform group-hover:translate-x-0.5" /></>
+        )}
+      </button>
+    </div>
+  );
+
+  /* ════════════════════════════════════════════════════════════
+     CONVERSATION LAYOUT
+     ════════════════════════════════════════════════════════════ */
+  if (layoutStyle === "conversation") {
+    const convoAnimateNext = (cb: () => void) => {
+      setConvoTransitioning(true);
+      setTimeout(() => { cb(); setTimeout(() => setConvoTransitioning(false), 50); }, 300);
+    };
+
+    const handleConvoNext = (e: React.FormEvent<HTMLFormElement>) => {
+      e.preventDefault();
+      if (!convoField) return;
+      const fd = new FormData(e.currentTarget);
+
+      if (devMode) {
+        if (isConvoLast) {
+          setShowDone(true);
+        } else {
+          convoAnimateNext(() => setConvoIdx((i) => i + 1));
+        }
+        return;
+      }
+
+      // Find which step this field belongs to, save that step
+      const ownerStep = schema.steps.find((s) => s.fields.some((f) => f.id === convoField.id));
+      if (!ownerStep) return;
+
+      startTransition(async () => {
+        const res = await saveStep(ownerStep.id, fd);
+        if (res.errors && res.errors[convoField.id]) {
+          setErrors(res.errors);
+          return;
+        }
+        setErrors({});
+        if (isConvoLast) {
+          startSubmit(async () => { await submit(); setShowDone(true); });
+        } else {
+          convoAnimateNext(() => setConvoIdx((i) => i + 1));
+        }
+      });
+    };
+
+    return (
+      <div className="flex flex-col min-h-screen" ref={containerRef}>
+        {/* Slim top bar with branding + progress */}
+        <div className="sticky top-0 z-30 bg-background/90 backdrop-blur-xl border-b border-outline-variant/10">
+          <div className="max-w-2xl mx-auto flex items-center justify-between px-6 py-3">
+            <div className="flex items-center gap-2.5 cursor-default select-none" onClick={handleLogoClick}>
+              {partnerLogoUrl ? (
+                <Image src={partnerLogoUrl} alt={partnerName} width={120} height={32} className="h-6 w-auto object-contain" draggable={false} />
+              ) : (
+                <div className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ backgroundColor: primaryColor }}>
+                  <span className="font-bold text-sm" style={{ color: lightBg ? "#1a1c25" : "#ffffff" }}>{partnerName.slice(0, 1).toUpperCase()}</span>
+                </div>
+              )}
+              <span className="text-sm font-bold text-on-surface font-headline">{partnerName}</span>
+              {devMode && (
+                <span className="text-[9px] font-mono uppercase tracking-widest px-1.5 py-0.5 rounded bg-amber-500/15 text-amber-400 border border-amber-500/20">dev</span>
+              )}
+            </div>
+            <span className="text-xs font-bold" style={{ color: primaryColor }}>
+              {convoIdx + 1} / {allConvoFields.length}
+            </span>
+          </div>
+          {/* Thin progress bar */}
+          <div className="h-1 w-full bg-surface-container-highest/40">
+            <div className="h-full transition-all duration-700 ease-out" style={{ width: `${convoProgress}%`, backgroundColor: primaryColor }} />
+          </div>
+        </div>
+
+        {/* Centered single question */}
+        <main className="flex-1 flex items-center justify-center px-6 py-12">
+          <div className="w-full max-w-xl">
+            <form onSubmit={handleConvoNext}>
+              {convoField && (
+                <div className={convoTransitioning ? "sl-slide-out-up" : "sl-slide-up"} key={convoField.id}>
+                  {renderField(convoField, 0, "sl-slide-up")}
+                </div>
+              )}
+
+              {/* Navigation */}
+              <div className="flex items-center justify-between mt-10">
+                <button
+                  type="button"
+                  onClick={() => convoAnimateNext(() => setConvoIdx((i) => Math.max(0, i - 1)))}
+                  disabled={convoIdx === 0 || pending || submitting || convoTransitioning}
+                  className="flex items-center gap-2 text-on-surface-variant hover:text-on-surface disabled:opacity-0 transition-all text-sm uppercase tracking-widest font-label"
+                >
+                  <i className="fa-solid fa-chevron-up text-sm" />
+                  Back
+                </button>
+                <button
+                  type="submit"
+                  disabled={pending || submitting || convoTransitioning}
+                  className="group px-8 py-3.5 font-headline font-bold rounded-xl shadow-[0_10px_30px_rgba(192,193,255,0.2)] hover:shadow-[0_15px_40px_rgba(192,193,255,0.35)] hover:-translate-y-1 transition-all flex items-center gap-3 disabled:opacity-60"
+                  style={{ backgroundColor: primaryColor, color: isLightColor(primaryColor) ? "#1a1c25" : "#ffffff" }}
+                >
+                  {submitting ? (
+                    <><Spinner /> Submitting...</>
+                  ) : pending ? (
+                    <><Spinner /> Saving...</>
+                  ) : isConvoLast ? (
+                    <>Submit <i className="fa-solid fa-check text-sm ml-1" /></>
+                  ) : (
+                    <>OK <i className="fa-solid fa-chevron-down text-sm ml-1 transition-transform group-hover:translate-y-0.5" /></>
+                  )}
+                </button>
+              </div>
+
+              {/* Keyboard hint */}
+              <p className="text-center text-[10px] text-on-surface-variant/40 mt-6 uppercase tracking-widest">
+                Press <kbd className="px-1.5 py-0.5 rounded bg-surface-container-highest/50 text-on-surface-variant/60 font-mono text-[10px]">Enter</kbd> to continue
+              </p>
+            </form>
+          </div>
+        </main>
+      </div>
+    );
+  }
+
+  /* ════════════════════════════════════════════════════════════
+     TOP-NAV LAYOUT
+     ════════════════════════════════════════════════════════════ */
+  if (layoutStyle === "top-nav") {
+    return (
+      <div className="flex flex-col min-h-screen" ref={containerRef}>
+        {/* Top navigation bar */}
+        <div className="sticky top-0 z-30 bg-background/90 backdrop-blur-xl border-b border-outline-variant/15">
+          {/* Branding row */}
+          <div className="flex items-center justify-between px-6 pt-4 pb-2">
+            <div className="flex items-center gap-2.5 cursor-default select-none" onClick={handleLogoClick}>
+              {partnerLogoUrl ? (
+                <Image src={partnerLogoUrl} alt={partnerName} width={120} height={32} className="h-6 w-auto object-contain" draggable={false} />
+              ) : (
+                <div className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ backgroundColor: primaryColor }}>
+                  <span className="font-bold text-sm" style={{ color: lightBg ? "#1a1c25" : "#ffffff" }}>{partnerName.slice(0, 1).toUpperCase()}</span>
+                </div>
+              )}
+              <span className="text-sm font-bold text-on-surface font-headline">{partnerName}</span>
+              {devMode && (
+                <span className="text-[9px] font-mono uppercase tracking-widest px-1.5 py-0.5 rounded bg-amber-500/15 text-amber-400 border border-amber-500/20">dev</span>
+              )}
+            </div>
+            <span className="text-xs font-bold font-headline" style={{ color: primaryColor }}>
+              {Math.round(((completedSteps.size) / visibleSteps.length) * 100)}%
+            </span>
+          </div>
+
+          {/* Horizontal step tabs */}
+          <div className="flex items-center gap-1 px-4 pb-3 overflow-x-auto scrollbar-hide">
+            {visibleSteps.map((s, i) => {
+              const isCurrent = i === stepIdx;
+              const isCompleted = completedSteps.has(i);
+              return (
+                <button
+                  key={s.id}
+                  type="button"
+                  onClick={() => goToStep(i)}
+                  disabled={!devMode && !isCompleted && !isCurrent}
+                  className={`flex items-center gap-2 px-3.5 py-2 rounded-lg text-xs font-semibold whitespace-nowrap transition-all shrink-0 ${
+                    isCurrent
+                      ? "text-on-surface"
+                      : isCompleted || devMode
+                      ? "text-on-surface-variant/70 hover:text-on-surface cursor-pointer"
+                      : "text-on-surface-variant/30 cursor-default"
+                  }`}
+                  style={isCurrent ? { backgroundColor: primaryColor + "18", color: primaryColor } : undefined}
+                >
+                  {isCompleted ? (
+                    <i className="fa-solid fa-check text-[10px]" style={{ color: primaryColor }} />
+                  ) : (
+                    <span className="w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-bold"
+                      style={isCurrent ? { backgroundColor: primaryColor, color: lightBg ? "#1a1c25" : "#ffffff" } : { backgroundColor: "var(--color-surface-container-highest, rgba(255,255,255,0.1))" }}
+                    >
+                      {i + 1}
+                    </span>
+                  )}
+                  <span className="hidden sm:inline">{s.title}</span>
+                </button>
+              );
+            })}
+          </div>
+
+          {/* Progress bar */}
+          <div className="h-0.5 w-full bg-surface-container-highest/30">
+            <div className="h-full transition-all duration-700 ease-out" style={{ width: `${(completedSteps.size / visibleSteps.length) * 100}%`, backgroundColor: primaryColor }} />
+          </div>
+        </div>
+
+        {/* Main Content */}
+        <main className="flex-1 min-w-0">
+          <div className="max-w-3xl mx-auto px-5 md:px-10 py-8 md:py-14">
+            <div className={`mb-8 md:mb-10 ${transitioning ? "sl-fade-out" : "sl-fade-in"}`}>
+              {stepIdx > 0 && (
+                <p className="text-sm font-medium mb-2 sl-fade-up" style={{ color: primaryColor }}>
+                  {GREETINGS[stepIdx % GREETINGS.length]}
+                </p>
+              )}
+              <h1 className="text-2xl md:text-4xl font-headline font-extrabold tracking-tight text-on-surface sl-fade-up sl-d1 max-w-2xl leading-tight">
+                {step.title}
+              </h1>
+              {step.description && (
+                <p className="text-on-surface-variant mt-2 md:mt-3 text-base md:text-lg leading-relaxed sl-fade-up sl-d2 max-w-xl">
+                  {step.description}
+                </p>
+              )}
+            </div>
+
+            <form onSubmit={handleNext} className={`space-y-6 ${transitioning ? "sl-fade-out" : "sl-fade-in"}`}>
+              {visibleFields.map((f, i) => renderField(f, i))}
+              {renderNavButtons()}
+            </form>
+          </div>
+        </main>
+      </div>
+    );
+  }
+
+  /* ════════════════════════════════════════════════════════════
+     NO-NAV LAYOUT
+     ════════════════════════════════════════════════════════════ */
+  if (layoutStyle === "no-nav") {
+    return (
+      <div className="flex flex-col min-h-screen" ref={containerRef}>
+        {/* Minimal branding header */}
+        <div className="sticky top-0 z-30 bg-background/90 backdrop-blur-xl">
+          <div className="max-w-3xl mx-auto flex items-center justify-between px-6 py-3">
+            <div className="flex items-center gap-2.5 cursor-default select-none" onClick={handleLogoClick}>
+              {partnerLogoUrl ? (
+                <Image src={partnerLogoUrl} alt={partnerName} width={120} height={32} className="h-6 w-auto object-contain" draggable={false} />
+              ) : (
+                <div className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ backgroundColor: primaryColor }}>
+                  <span className="font-bold text-sm" style={{ color: lightBg ? "#1a1c25" : "#ffffff" }}>{partnerName.slice(0, 1).toUpperCase()}</span>
+                </div>
+              )}
+              <span className="text-sm font-bold text-on-surface font-headline">{partnerName}</span>
+              {devMode && (
+                <span className="text-[9px] font-mono uppercase tracking-widest px-1.5 py-0.5 rounded bg-amber-500/15 text-amber-400 border border-amber-500/20">dev</span>
+              )}
+            </div>
+            {/* Subtle progress only */}
+            <span className="text-xs text-on-surface-variant/40 font-medium">
+              {stepIdx + 1} of {visibleSteps.length}
+            </span>
+          </div>
+          <div className="h-px w-full bg-outline-variant/10" />
+        </div>
+
+        {/* Main Content */}
+        <main className="flex-1 min-w-0">
+          <div className="max-w-3xl mx-auto px-5 md:px-10 py-10 md:py-16">
+            <div className={`mb-8 md:mb-10 ${transitioning ? "sl-fade-out" : "sl-fade-in"}`}>
+              {stepIdx > 0 && (
+                <p className="text-sm font-medium mb-2 sl-fade-up" style={{ color: primaryColor }}>
+                  {GREETINGS[stepIdx % GREETINGS.length]}
+                </p>
+              )}
+              <h1 className="text-2xl md:text-4xl font-headline font-extrabold tracking-tight text-on-surface sl-fade-up sl-d1 max-w-2xl leading-tight">
+                {step.title}
+              </h1>
+              {step.description && (
+                <p className="text-on-surface-variant mt-2 md:mt-3 text-base md:text-lg leading-relaxed sl-fade-up sl-d2 max-w-xl">
+                  {step.description}
+                </p>
+              )}
+            </div>
+
+            <form onSubmit={handleNext} className={`space-y-6 ${transitioning ? "sl-fade-out" : "sl-fade-in"}`}>
+              {visibleFields.map((f, i) => renderField(f, i))}
+              {renderNavButtons()}
+            </form>
+          </div>
+        </main>
+      </div>
+    );
+  }
+
+  /* ════════════════════════════════════════════════════════════
+     DEFAULT LAYOUT (sidebar navigation)
+     ════════════════════════════════════════════════════════════ */
   return (
     <div className="flex flex-col md:flex-row min-h-screen" ref={containerRef}>
       {/* ── Desktop Sidebar ── */}
@@ -391,50 +750,8 @@ export default function SubmissionForm({
 
           {/* Fields */}
           <form onSubmit={handleNext} className={`space-y-6 ${transitioning ? "sl-fade-out" : "sl-fade-in"}`}>
-            {visibleFields.map((f, i) =>
-              f.type === "file" || f.type === "files" ? (
-                <div key={f.id} className={`sl-fade-up sl-d${Math.min(i + 2, 5)}`}>
-                  <FileField field={f} initialFiles={initialFiles[f.id] ?? []} upload={uploadFile} remove={deleteFile} primaryColor={primaryColor} />
-                </div>
-              ) : f.type === "repeater" && f.repeaterConfig ? (
-                <div key={f.id} className={`sl-fade-up sl-d${Math.min(i + 2, 5)}`}>
-                  <RepeaterField field={f} value={data[f.id]} error={errors[f.id]} onChange={(v) => updateField(f.id, v)} primaryColor={primaryColor} />
-                </div>
-              ) : (
-                <div key={f.id} className={`sl-fade-up sl-d${Math.min(i + 2, 5)}`}>
-                  <CelestialField field={f} value={data[f.id]} error={errors[f.id]} onChange={(v) => updateField(f.id, v)} primaryColor={primaryColor} allData={data} partnerId={partnerId} />
-                </div>
-              ),
-            )}
-
-            {/* Nav */}
-            <div className="flex items-center justify-between pt-6 md:pt-8 sl-fade-up sl-d5">
-              <button
-                type="button"
-                onClick={() => animateTransition(() => setStepIdx((i) => Math.max(0, i - 1)))}
-                disabled={stepIdx === 0 || pending || submitting || transitioning}
-                className="flex items-center gap-2 text-on-surface-variant hover:text-on-surface disabled:opacity-0 transition-all text-sm uppercase tracking-widest font-label"
-              >
-                <i className="fa-solid fa-chevron-left text-sm" />
-                Previous
-              </button>
-              <button
-                type="submit"
-                disabled={pending || submitting || transitioning}
-                className="group px-8 md:px-10 py-3.5 md:py-4 font-headline font-bold rounded-xl shadow-[0_10px_30px_rgba(192,193,255,0.2)] hover:shadow-[0_15px_40px_rgba(192,193,255,0.35)] hover:-translate-y-1 transition-all flex items-center gap-3 disabled:opacity-60"
-                style={{ backgroundColor: primaryColor, color: isLightColor(primaryColor) ? "#1a1c25" : "#ffffff" }}
-              >
-                {submitting ? (
-                  <><Spinner /> Submitting...</>
-                ) : pending ? (
-                  <><Spinner /> Saving...</>
-                ) : isLast ? (
-                  <>Submit <i className="fa-solid fa-check text-sm ml-1" /></>
-                ) : (
-                  <>Next Step <i className="fa-solid fa-chevron-right text-sm ml-1 transition-transform group-hover:translate-x-0.5" /></>
-                )}
-              </button>
-            </div>
+            {visibleFields.map((f, i) => renderField(f, i))}
+            {renderNavButtons()}
           </form>
         </div>
       </main>

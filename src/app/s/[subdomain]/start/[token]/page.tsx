@@ -18,7 +18,7 @@ export default async function SubmissionPage({ params }: Props) {
     .select(
       `id, status, data, access_token,
        partners ( id, slug, name, custom_domain, logo_url, primary_color, support_email, plan_tier, hide_branding, custom_footer_text, logo_size ),
-       partner_forms ( id, overrides,
+       partner_forms ( id, overrides, layout_style,
          form_templates ( id, schema )
        )`,
     )
@@ -40,6 +40,7 @@ export default async function SubmissionPage({ params }: Props) {
   if (!schema) notFound();
 
   const primary = partner.primary_color || "#c0c1ff";
+  const layoutStyle = ((pf as Record<string, unknown>)?.layout_style as string) || "default";
   const isPaid = (partner as Record<string, unknown>).plan_tier !== "free";
   const hideBranding = isPaid && (partner as Record<string, unknown>).hide_branding;
   const footerText = isPaid && (partner as Record<string, unknown>).custom_footer_text
@@ -82,6 +83,7 @@ export default async function SubmissionPage({ params }: Props) {
         uploadFile={boundUpload}
         deleteFile={boundDelete}
         partnerId={partner.id}
+        layoutStyle={layoutStyle as "default" | "top-nav" | "no-nav" | "conversation"}
       />
 
       {/* Footer — only visible on desktop (mobile footer is less useful with sidebar layout) */}
