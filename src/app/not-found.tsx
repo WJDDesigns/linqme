@@ -9,7 +9,7 @@ export default function NotFound() {
 
       <div className="relative z-10 max-w-md">
         <Link href="/" className="block mx-auto mb-8 w-fit">
-          <LinqMeLogo variant="light" className="h-12 w-auto text-primary" />
+          <LinqMeLogo variant="auto" className="h-12 w-auto text-primary" />
         </Link>
         <h1 className="text-7xl font-headline font-extrabold gradient-text mb-4">404</h1>
         <h2 className="text-xl font-headline font-bold text-on-surface mb-3">Page not found</h2>

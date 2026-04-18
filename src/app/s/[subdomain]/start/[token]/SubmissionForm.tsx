@@ -65,6 +65,15 @@ const GREETINGS = [
 const INPUT_CLS =
   "block w-full px-4 py-3 text-base bg-surface-container-lowest border-0 rounded-xl text-on-surface placeholder:text-on-surface-variant/40 focus:ring-1 outline-none transition-all duration-200";
 
+/** Render a field icon inline (if set) */
+function FieldIcon({ icon, color }: { icon?: string; color?: string }) {
+  if (!icon) return null;
+  // Support both "fa-icon-name" (needs fa-solid prefix) and full class like "fa-solid fa-icon"
+  const cls = icon.startsWith("fa-solid") || icon.startsWith("fa-regular") || icon.startsWith("fa-brands")
+    ? icon
+    : `fa-solid ${icon}`;
+  return <i className={`${cls} text-[10px] mr-1.5`} style={color ? { color } : undefined} />;
+}
 
 export default function SubmissionForm({
   schema, initialData, initialFiles, primaryColor,
@@ -839,7 +848,7 @@ function RepeaterField({
   return (
     <div className="group">
       <label className="block text-xs font-semibold text-on-surface-variant uppercase tracking-widest mb-1.5 ml-1">
-        {field.label}
+        <FieldIcon icon={field.icon} color={primaryColor} />{field.label}
         {field.required && <span className="ml-1" style={{ color: primaryColor }}>*</span>}
       </label>
       {field.hint && <p className="text-xs text-on-surface-variant/60 mb-3 ml-1">{field.hint}</p>}
@@ -1084,7 +1093,7 @@ function SiteStructureField({ field, value, error, onChange, primaryColor }: {
   return (
     <div className="group">
       <label className="block text-xs font-semibold text-on-surface-variant uppercase tracking-widest mb-1.5 ml-1">
-        {field.label}{field.required && <span className="ml-1" style={{ color: primaryColor }}>*</span>}
+        <FieldIcon icon={field.icon} color={primaryColor} />{field.label}{field.required && <span className="ml-1" style={{ color: primaryColor }}>*</span>}
       </label>
       {field.hint && <p className="text-xs text-on-surface-variant/60 mb-2 ml-1">{field.hint}</p>}
       <div className="rounded-xl border-2 p-3 mb-3" style={{ borderColor: primaryColor + "30", backgroundColor: primaryColor + "05" }}>
@@ -1295,7 +1304,7 @@ function BrandStyleField({ field, value, error, onChange, primaryColor }: {
   return (
     <div className="group">
       <label className="block text-xs font-semibold text-on-surface-variant uppercase tracking-widest mb-1.5 ml-1">
-        {field.label}
+        <FieldIcon icon={field.icon} color={primaryColor} />{field.label}
         {field.required && <span className="ml-1" style={{ color: primaryColor }}>*</span>}
       </label>
       {field.hint && <p className="text-xs text-on-surface-variant/60 mb-2 ml-1">{field.hint}</p>}
@@ -1450,7 +1459,7 @@ function CompetitorAnalyzerField({ field, value, error, onChange, primaryColor, 
   return (
     <div className="group">
       <label className="block text-xs font-semibold text-on-surface-variant uppercase tracking-widest mb-1.5 ml-1">
-        {field.label}
+        <FieldIcon icon={field.icon} color={primaryColor} />{field.label}
         {field.required && <span className="ml-1" style={{ color: primaryColor }}>*</span>}
       </label>
       {field.hint && <p className="text-xs text-on-surface-variant/60 mb-2 ml-1">{field.hint}</p>}
@@ -1673,7 +1682,7 @@ function TimelineField({ field, value, error, onChange, primaryColor }: {
   return (
     <div className="group">
       <label className="block text-xs font-semibold text-on-surface-variant uppercase tracking-widest mb-1.5 ml-1">
-        {field.label}
+        <FieldIcon icon={field.icon} color={primaryColor} />{field.label}
         {field.required && <span className="ml-1" style={{ color: primaryColor }}>*</span>}
       </label>
       {field.hint && <p className="text-xs text-on-surface-variant/60 mb-2 ml-1">{field.hint}</p>}
@@ -1866,7 +1875,7 @@ function BudgetAllocatorField({ field, value, error, onChange, primaryColor }: {
   return (
     <div className="group">
       <label className="block text-xs font-semibold text-on-surface-variant uppercase tracking-widest mb-1.5 ml-1">
-        {field.label}
+        <FieldIcon icon={field.icon} color={primaryColor} />{field.label}
         {field.required && <span className="ml-1" style={{ color: primaryColor }}>*</span>}
       </label>
       {field.hint && <p className="text-xs text-on-surface-variant/60 mb-2 ml-1">{field.hint}</p>}
@@ -2036,7 +2045,7 @@ function CelestialField({
     return (
       <div className="group">
         <label className="block text-xs font-semibold text-on-surface-variant uppercase tracking-widest mb-1.5 ml-1">
-          {field.label}
+          <FieldIcon icon={field.icon} color={primaryColor} />{field.label}
           {field.required && <span className="ml-1" style={{ color: primaryColor }}>*</span>}
         </label>
         {field.hint && <p className="text-xs text-on-surface-variant/60 mb-3 ml-1">{field.hint}</p>}
@@ -2362,7 +2371,7 @@ function CelestialField({
     return (
       <div className="group">
         <label className="block text-xs font-semibold text-on-surface-variant uppercase tracking-widest mb-1.5 ml-1">
-          {field.label}{field.required && <span className="ml-1" style={{ color: primaryColor }}>*</span>}
+          <FieldIcon icon={field.icon} color={primaryColor} />{field.label}{field.required && <span className="ml-1" style={{ color: primaryColor }}>*</span>}
         </label>
         {field.hint && <p className="text-xs text-on-surface-variant/60 mb-2 ml-1">{field.hint}</p>}
         <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
@@ -2411,7 +2420,7 @@ function CelestialField({
     return (
       <div className="group">
         <label className="block text-xs font-semibold text-on-surface-variant uppercase tracking-widest mb-1.5 ml-1">
-          {field.label}{field.required && <span className="ml-1" style={{ color: primaryColor }}>*</span>}
+          <FieldIcon icon={field.icon} color={primaryColor} />{field.label}{field.required && <span className="ml-1" style={{ color: primaryColor }}>*</span>}
         </label>
         {field.hint && <p className="text-xs text-on-surface-variant/60 mb-2 ml-1">{field.hint}</p>}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -2484,7 +2493,7 @@ function CelestialField({
     return (
       <div className="group">
         <label className="block text-xs font-semibold text-on-surface-variant uppercase tracking-widest mb-1.5 ml-1">
-          {field.label}{field.required && <span className="ml-1" style={{ color: primaryColor }}>*</span>}
+          <FieldIcon icon={field.icon} color={primaryColor} />{field.label}{field.required && <span className="ml-1" style={{ color: primaryColor }}>*</span>}
         </label>
         {field.hint && <p className="text-xs text-on-surface-variant/60 mb-2 ml-1">{field.hint}</p>}
         <div className="space-y-3">
@@ -2555,7 +2564,7 @@ function CelestialField({
     return (
       <div className="group">
         <label className="block text-xs font-semibold text-on-surface-variant uppercase tracking-widest mb-1.5 ml-1">
-          {field.label}{field.required && <span className="ml-1" style={{ color: primaryColor }}>*</span>}
+          <FieldIcon icon={field.icon} color={primaryColor} />{field.label}{field.required && <span className="ml-1" style={{ color: primaryColor }}>*</span>}
         </label>
         {field.hint && <p className="text-xs text-on-surface-variant/60 mb-2 ml-1">{field.hint}</p>}
         <div className="space-y-4">
@@ -2624,7 +2633,7 @@ function CelestialField({
   return (
     <div className="group">
       <label htmlFor={field.id} className="block text-xs font-semibold text-on-surface-variant uppercase tracking-widest mb-1.5 ml-1">
-        {field.label}
+        <FieldIcon icon={field.icon} color={primaryColor} />{field.label}
         {field.required && <span className="ml-1" style={{ color: primaryColor }}>*</span>}
       </label>
       {field.hint && <p className="text-xs text-on-surface-variant/60 mb-2 ml-1">{field.hint}</p>}

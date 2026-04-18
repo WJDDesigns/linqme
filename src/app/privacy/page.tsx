@@ -18,7 +18,7 @@ export default function PrivacyPage() {
       <div className="relative max-w-3xl mx-auto px-6 md:px-10 py-16">
         {/* Header */}
         <Link href="/" className="inline-flex items-center gap-2 mb-12">
-          <LinqMeLogo variant="light" className="h-8 w-auto text-primary" />
+          <LinqMeLogo variant="auto" className="h-8 w-auto text-primary" />
         </Link>
 
         <div className="glass-panel rounded-2xl border border-outline-variant/15 p-8 md:p-12">

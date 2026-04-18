@@ -202,7 +202,7 @@ export default async function PartnerHomePage({ params }: Props) {
               <p className="text-xs text-on-surface/60">{footerText}</p>
             ) : null}
             <Link href="/" className="flex items-center gap-2">
-              <LinqMeLogo variant="light" className="h-5 w-auto text-primary" />
+              <LinqMeLogo variant="auto" className="h-5 w-auto text-primary" />
             </Link>
             <p className="text-[10px] uppercase tracking-[0.3em] text-on-surface/30">
               &copy; {new Date().getFullYear()} linqme &middot; WJD Designs

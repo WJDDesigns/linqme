@@ -1,6 +1,7 @@
 /**
  * linqme wordmark logo — inline SVG with color control.
- * Supports "dark" (dark fill, for light backgrounds) and "light" (white fill, for dark backgrounds).
+ * Supports "dark" (dark fill, for light backgrounds), "light" (white fill, for dark backgrounds),
+ * and "auto" (switches based on dark/light theme using CSS currentColor).
  */
 export default function LinqMeLogo({
   className = "",
@@ -9,9 +10,9 @@ export default function LinqMeLogo({
 }: {
   className?: string;
   height?: number;
-  variant?: "dark" | "light";
+  variant?: "dark" | "light" | "auto";
 }) {
-  const fill = variant === "light" ? "#ffffff" : "#231f20";
+  const fill = variant === "auto" ? "currentColor" : variant === "light" ? "#ffffff" : "#231f20";
   const aspectRatio = 370 / 100;
   const width = Math.round(height * aspectRatio);
 

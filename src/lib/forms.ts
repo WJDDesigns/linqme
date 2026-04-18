@@ -357,6 +357,8 @@ export interface FieldDef {
   id: string;
   type: FieldType;
   label: string;
+  /** Optional Font Awesome icon class for the field label */
+  icon?: string;
   required?: boolean;
   placeholder?: string;
   options?: string[];
