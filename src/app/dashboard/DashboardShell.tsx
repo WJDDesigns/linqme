@@ -6,6 +6,7 @@ import Image from "next/image";
 import { usePathname } from "next/navigation";
 import SidebarNav from "./SidebarNav";
 import ThemeToggle from "@/components/ThemeToggle";
+import { useTheme } from "@/components/ThemeProvider";
 import LinqMeLogo from "@/components/LinqMeLogo";
 import NotificationBell from "@/components/NotificationBell";
 import AnnouncementBanner from "@/components/AnnouncementBanner";
@@ -77,6 +78,8 @@ export default function DashboardShell({
   const [collapsed, setCollapsed] = useState(false);
   const [mobileDrawerOpen, setMobileDrawerOpen] = useState(false);
   const pathname = usePathname();
+  const { resolved: resolvedTheme } = useTheme();
+  const logoVariant = resolvedTheme === "dark" ? "light" : "dark";
 
   // Close mobile drawer on navigation
   useEffect(() => { setMobileDrawerOpen(false); }, [pathname]);
@@ -131,7 +134,7 @@ export default function DashboardShell({
                   <span className="text-sm font-black text-primary tracking-tight">lq</span>
                 </div>
               ) : (
-                <LinqMeLogo variant="light" className="h-6 w-auto text-primary shrink-0" />
+                <LinqMeLogo variant={logoVariant} className="h-6 w-auto text-primary shrink-0" />
               )}
             </Link>
             {!collapsed && (
@@ -252,7 +255,7 @@ export default function DashboardShell({
             {/* Logo + close */}
             <div className="flex items-center justify-between px-5 py-4 border-b border-on-surface/[0.06]">
               <Link href="/dashboard" className="flex items-center shrink-0" onClick={() => setMobileDrawerOpen(false)}>
-                <LinqMeLogo variant="light" className="h-6 w-auto text-primary shrink-0" />
+                <LinqMeLogo variant={logoVariant} className="h-6 w-auto text-primary shrink-0" />
               </Link>
               <button onClick={() => setMobileDrawerOpen(false)} className="w-8 h-8 rounded-lg flex items-center justify-center text-on-surface-variant/60 hover:bg-on-surface/5 transition-colors">
                 <i className="fa-solid fa-xmark text-sm" />
