@@ -8,6 +8,7 @@ const TABS = [
   { id: "branding", label: "Branding", icon: "fa-palette" },
   { id: "integrations", label: "Integrations", icon: "fa-plug" },
   { id: "advanced", label: "Advanced", icon: "fa-sliders" },
+  { id: "changelog", label: "Changelog", icon: "fa-clock-rotate-left" },
 ] as const;
 
 type TabId = (typeof TABS)[number]["id"];
@@ -17,10 +18,11 @@ interface Props {
   brandingContent: React.ReactNode;
   integrationsContent: React.ReactNode;
   advancedContent: React.ReactNode;
+  changelogContent: React.ReactNode;
   defaultTab?: string;
 }
 
-export default function SettingsTabs({ generalContent, brandingContent, integrationsContent, advancedContent, defaultTab }: Props) {
+export default function SettingsTabs({ generalContent, brandingContent, integrationsContent, advancedContent, changelogContent, defaultTab }: Props) {
   const router = useRouter();
   const searchParams = useSearchParams();
 
@@ -55,6 +57,7 @@ export default function SettingsTabs({ generalContent, brandingContent, integrat
     branding: brandingContent,
     integrations: integrationsContent,
     advanced: advancedContent,
+    changelog: changelogContent,
   };
 
   return (

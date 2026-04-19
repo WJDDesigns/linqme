@@ -19,6 +19,7 @@ import PaymentIntegrationsSection from "./PaymentIntegrationsSection";
 import CaptchaIntegrationsSection from "./CaptchaIntegrationsSection";
 import GeocodingIntegrationsSection from "./GeocodingIntegrationsSection";
 import DashboardPaletteSection from "./DashboardPaletteSection";
+import ChangelogSection from "./ChangelogSection";
 import SupportForm from "../../support/SupportForm";
 import {
   uploadWorkspaceLogoAction,
@@ -191,6 +192,13 @@ export default async function SettingsPage() {
     geocodingIntegrationRows = data ?? [];
   } catch { /* table may not exist yet */ }
 
+  /* ─────────────────────────────────────────────
+     Tab: Changelog -- Release notes
+     ───────────────────────────────────────────── */
+  const changelogContent = (
+    <ChangelogSection />
+  );
+
   const integrationsContent = (
     <>
       <IntegrationsSection integrations={cloudIntegrations ?? []} />
@@ -218,6 +226,7 @@ export default async function SettingsPage() {
           brandingContent={brandingContent}
           integrationsContent={integrationsContent}
           advancedContent={advancedContent}
+          changelogContent={changelogContent}
         />
       </div>
     </div>
