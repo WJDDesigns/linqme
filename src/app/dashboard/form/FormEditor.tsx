@@ -11,7 +11,8 @@ import { saveFormSchemaAction } from "./actions";
 
 /* ── Field type catalogue ──────────────────────────────────── */
 
-type FieldCategory = "general" | "web_design" | "marketing" | "smart" | "layout";
+type FieldCategory = "general" | "smart" | "layout" | "advanced";
+type IndustryTag = "web_design" | "marketing" | "real_estate" | "healthcare" | "education" | "ecommerce" | "consulting" | "events" | "legal" | "finance" | "nonprofit" | "hospitality";
 
 interface FieldTypeInfo {
   type: FieldType;
@@ -21,60 +22,105 @@ interface FieldTypeInfo {
   category: FieldCategory;
   description?: string;
   disabled?: boolean;
+  tags?: IndustryTag[];
 }
 
 const FIELD_CATEGORIES: { id: FieldCategory; label: string; icon: string }[] = [
   { id: "general", label: "General", icon: "fa-grip" },
-  { id: "smart", label: "Smart Fields", icon: "fa-wand-magic-sparkles" },
-  { id: "web_design", label: "Web Design", icon: "fa-globe" },
-  { id: "marketing", label: "Marketing", icon: "fa-bullhorn" },
+  { id: "smart", label: "Smart", icon: "fa-wand-magic-sparkles" },
+  { id: "advanced", label: "Advanced", icon: "fa-rocket" },
   { id: "layout", label: "Layout & Logic", icon: "fa-table-cells" },
 ];
 
+const INDUSTRY_TAGS: { id: IndustryTag; label: string; icon: string; color: string }[] = [
+  { id: "web_design", label: "Web Design", icon: "fa-globe", color: "#818cf8" },
+  { id: "marketing", label: "Marketing", icon: "fa-bullhorn", color: "#f472b6" },
+  { id: "real_estate", label: "Real Estate", icon: "fa-house", color: "#34d399" },
+  { id: "healthcare", label: "Healthcare", icon: "fa-heart-pulse", color: "#f87171" },
+  { id: "education", label: "Education", icon: "fa-graduation-cap", color: "#fbbf24" },
+  { id: "ecommerce", label: "E-Commerce", icon: "fa-cart-shopping", color: "#a78bfa" },
+  { id: "consulting", label: "Consulting", icon: "fa-handshake", color: "#60a5fa" },
+  { id: "events", label: "Events", icon: "fa-champagne-glasses", color: "#fb923c" },
+  { id: "legal", label: "Legal", icon: "fa-scale-balanced", color: "#94a3b8" },
+  { id: "finance", label: "Finance", icon: "fa-building-columns", color: "#2dd4bf" },
+  { id: "nonprofit", label: "Nonprofit", icon: "fa-hand-holding-heart", color: "#e879f9" },
+  { id: "hospitality", label: "Hospitality", icon: "fa-concierge-bell", color: "#fca5a5" },
+];
+
 const FIELD_CATALOGUE: FieldTypeInfo[] = [
-  // General
-  { type: "text", label: "Short Text", icon: "fa-font", group: "standard", category: "general", description: "Single-line text with optional max length" },
-  { type: "textarea", label: "Long Text", icon: "fa-align-left", group: "standard", category: "general", description: "Multi-line text area" },
-  { type: "name", label: "Name", icon: "fa-user", group: "standard", category: "general", description: "First, last, middle, prefix & suffix" },
-  { type: "email", label: "Email", icon: "fa-envelope", group: "standard", category: "general", description: "Email with validation & confirmation" },
-  { type: "tel", label: "Phone", icon: "fa-phone", group: "standard", category: "general", description: "Phone with formatting & country code" },
-  { type: "number", label: "Number", icon: "fa-hashtag", group: "standard", category: "general", description: "Numeric input" },
-  { type: "select", label: "Dropdown", icon: "fa-caret-down", group: "standard", category: "general", description: "Single-choice dropdown" },
-  { type: "radio", label: "Radio Choice", icon: "fa-circle-dot", group: "standard", category: "general", description: "Single-choice radio buttons" },
-  { type: "checkbox", label: "Checkbox", icon: "fa-square-check", group: "standard", category: "general", description: "Multi-choice checkboxes" },
-  { type: "date", label: "Date Picker", icon: "fa-calendar", group: "standard", category: "general", description: "Date selector" },
-  { type: "url", label: "URL", icon: "fa-link", group: "advanced", category: "general", description: "Website URL with validation" },
-  { type: "color", label: "Color Picker", icon: "fa-palette", group: "advanced", category: "general", description: "Hex color selector" },
-  { type: "address", label: "Address", icon: "fa-location-dot", group: "advanced", category: "general", description: "Structured address with optional autocomplete" },
-  { type: "file", label: "File Upload", icon: "fa-paperclip", group: "advanced", category: "general", description: "Single file upload" },
-  { type: "files", label: "Multi-File", icon: "fa-folder-open", group: "advanced", category: "general", description: "Multiple file uploads" },
-  // Smart Fields
-  { type: "asset_collection", label: "Asset Collection", icon: "fa-images", group: "advanced", category: "smart", description: "Collect logos, colors, fonts & docs" },
-  { type: "goal_builder", label: "Goal Builder", icon: "fa-bullseye", group: "advanced", category: "smart", description: "Interactive goal picker with refinements" },
-  { type: "approval", label: "Approval / Sign-off", icon: "fa-signature", group: "advanced", category: "smart", description: "Digital signature & scope approval" },
-  { type: "package", label: "Package Selector", icon: "fa-box-open", group: "advanced", category: "smart", description: "Pricing & package comparison" },
-  // Web Design
-  { type: "site_structure", label: "Site Structure", icon: "fa-sitemap", group: "advanced", category: "web_design", description: "Visual sitemap builder" },
-  { type: "feature_selector", label: "Feature Selector", icon: "fa-puzzle-piece", group: "advanced", category: "web_design", description: "Toggle features with price impact" },
-  { type: "repeater", label: "Repeater / Pages", icon: "fa-layer-group", group: "advanced", category: "web_design", description: "Repeatable entry groups" },
-  // Phase 2: Style & Strategy
-  { type: "brand_style", label: "Brand Style Picker", icon: "fa-swatchbook", group: "advanced", category: "smart", description: "Visual style/vibe selector with AI tiles" },
-  { type: "competitor_analyzer", label: "Competitor Analyzer", icon: "fa-magnifying-glass-chart", group: "advanced", category: "smart", description: "Enter competitors, auto-scrape & AI summarize" },
-  { type: "timeline", label: "Timeline Selector", icon: "fa-calendar-days", group: "advanced", category: "smart", description: "Project dates, milestones & blackout dates" },
-  { type: "budget_allocator", label: "Budget Allocator", icon: "fa-sliders", group: "advanced", category: "smart", description: "Visual budget sliders across channels" },
-  // Phase 3: General utility fields
-  { type: "rating", label: "Rating / Stars", icon: "fa-star", group: "standard", category: "general", description: "Star rating selector" },
-  { type: "toggle", label: "Yes / No Toggle", icon: "fa-toggle-on", group: "standard", category: "general", description: "Simple yes/no switch" },
-  { type: "slider", label: "Slider / Range", icon: "fa-gauge", group: "standard", category: "general", description: "Numeric slider with min/max" },
-  { type: "social_handles", label: "Social Media", icon: "fa-share-nodes", group: "advanced", category: "marketing", description: "Collect social media handles" },
-  { type: "matrix", label: "Matrix / Grid", icon: "fa-table-cells-large", group: "advanced", category: "smart", description: "Row-by-column selection grid" },
-  { type: "questionnaire", label: "Questionnaire", icon: "fa-clipboard-question", group: "advanced", category: "smart", description: "Scored questions with points" },
-  // Payments
-  { type: "payment", label: "Payment", icon: "fa-credit-card", group: "advanced", category: "smart", description: "Collect payments via Stripe, PayPal, or Square" },
-  // Layout & Logic
+  // ── General ──
+  { type: "text", label: "Short Text", icon: "fa-font", group: "standard", category: "general", description: "Single-line text with optional max length",
+    tags: ["web_design", "marketing", "real_estate", "healthcare", "education", "ecommerce", "consulting", "events", "legal", "finance", "nonprofit", "hospitality"] },
+  { type: "textarea", label: "Long Text", icon: "fa-align-left", group: "standard", category: "general", description: "Multi-line text area",
+    tags: ["web_design", "marketing", "consulting", "legal", "education", "nonprofit"] },
+  { type: "name", label: "Name", icon: "fa-user", group: "standard", category: "general", description: "First, last, middle, prefix & suffix",
+    tags: ["healthcare", "real_estate", "legal", "finance", "education", "consulting", "events", "nonprofit", "hospitality"] },
+  { type: "email", label: "Email", icon: "fa-envelope", group: "standard", category: "general", description: "Email with validation & confirmation",
+    tags: ["web_design", "marketing", "real_estate", "healthcare", "education", "ecommerce", "consulting", "events", "legal", "finance", "nonprofit", "hospitality"] },
+  { type: "tel", label: "Phone", icon: "fa-phone", group: "standard", category: "general", description: "Phone with formatting & country code",
+    tags: ["real_estate", "healthcare", "consulting", "legal", "finance", "events", "hospitality"] },
+  { type: "number", label: "Number", icon: "fa-hashtag", group: "standard", category: "general", description: "Numeric input",
+    tags: ["finance", "ecommerce", "healthcare", "education"] },
+  { type: "select", label: "Dropdown", icon: "fa-caret-down", group: "standard", category: "general", description: "Single-choice dropdown",
+    tags: ["web_design", "marketing", "consulting", "education", "healthcare"] },
+  { type: "radio", label: "Radio Choice", icon: "fa-circle-dot", group: "standard", category: "general", description: "Single-choice radio buttons",
+    tags: ["marketing", "education", "consulting", "healthcare"] },
+  { type: "checkbox", label: "Checkbox", icon: "fa-square-check", group: "standard", category: "general", description: "Multi-choice checkboxes",
+    tags: ["web_design", "marketing", "consulting", "education"] },
+  { type: "date", label: "Date Picker", icon: "fa-calendar", group: "standard", category: "general", description: "Date selector",
+    tags: ["events", "real_estate", "consulting", "healthcare", "legal", "hospitality"] },
+  { type: "rating", label: "Rating / Stars", icon: "fa-star", group: "standard", category: "general", description: "Star rating selector",
+    tags: ["ecommerce", "hospitality", "education", "consulting", "events"] },
+  { type: "toggle", label: "Yes / No Toggle", icon: "fa-toggle-on", group: "standard", category: "general", description: "Simple yes/no switch",
+    tags: ["healthcare", "legal", "consulting", "education"] },
+  { type: "slider", label: "Slider / Range", icon: "fa-gauge", group: "standard", category: "general", description: "Numeric slider with min/max",
+    tags: ["finance", "marketing", "consulting", "ecommerce"] },
+  { type: "address", label: "Address", icon: "fa-location-dot", group: "standard", category: "general", description: "Structured address with autocomplete",
+    tags: ["real_estate", "healthcare", "legal", "ecommerce", "events", "hospitality", "nonprofit"] },
+  { type: "url", label: "URL", icon: "fa-link", group: "standard", category: "general", description: "Website URL with validation",
+    tags: ["web_design", "marketing", "ecommerce"] },
+  { type: "color", label: "Color Picker", icon: "fa-palette", group: "standard", category: "general", description: "Hex color selector",
+    tags: ["web_design", "marketing"] },
+  // ── Smart (AI-powered) ──
+  { type: "brand_style", label: "Brand Style Picker", icon: "fa-swatchbook", group: "advanced", category: "smart", description: "Visual style/vibe selector with AI tiles",
+    tags: ["web_design", "marketing"] },
+  { type: "competitor_analyzer", label: "Competitor Analyzer", icon: "fa-magnifying-glass-chart", group: "advanced", category: "smart", description: "Auto-scrape competitors & AI summarize",
+    tags: ["web_design", "marketing", "ecommerce", "consulting"] },
+  { type: "goal_builder", label: "Goal Builder", icon: "fa-bullseye", group: "advanced", category: "smart", description: "Interactive goal picker with refinements",
+    tags: ["web_design", "marketing", "consulting", "nonprofit", "education"] },
+  { type: "questionnaire", label: "Questionnaire", icon: "fa-clipboard-question", group: "advanced", category: "smart", description: "Scored questions with points",
+    tags: ["healthcare", "education", "consulting", "legal", "finance"] },
+  { type: "matrix", label: "Matrix / Grid", icon: "fa-table-cells-large", group: "advanced", category: "smart", description: "Row-by-column selection grid",
+    tags: ["education", "consulting", "healthcare", "marketing"] },
+  // ── Advanced ──
+  { type: "package", label: "Package Selector", icon: "fa-box-open", group: "advanced", category: "advanced", description: "Pricing & package comparison",
+    tags: ["web_design", "marketing", "ecommerce", "consulting", "events"] },
+  { type: "site_structure", label: "Site Structure", icon: "fa-sitemap", group: "advanced", category: "advanced", description: "Visual sitemap builder",
+    tags: ["web_design"] },
+  { type: "feature_selector", label: "Feature Selector", icon: "fa-puzzle-piece", group: "advanced", category: "advanced", description: "Toggle features with price impact",
+    tags: ["web_design", "ecommerce"] },
+  { type: "asset_collection", label: "Asset Collection", icon: "fa-images", group: "advanced", category: "advanced", description: "Collect logos, colors, fonts & docs",
+    tags: ["web_design", "marketing"] },
+  { type: "timeline", label: "Timeline Selector", icon: "fa-calendar-days", group: "advanced", category: "advanced", description: "Project dates, milestones & blackout dates",
+    tags: ["web_design", "consulting", "events", "real_estate", "legal"] },
+  { type: "budget_allocator", label: "Budget Allocator", icon: "fa-sliders", group: "advanced", category: "advanced", description: "Visual budget sliders across channels",
+    tags: ["marketing", "consulting", "finance", "nonprofit"] },
+  { type: "social_handles", label: "Social Media", icon: "fa-share-nodes", group: "advanced", category: "advanced", description: "Collect social media handles with verification",
+    tags: ["marketing", "ecommerce", "events", "hospitality"] },
+  { type: "repeater", label: "Repeater / Pages", icon: "fa-layer-group", group: "advanced", category: "advanced", description: "Repeatable entry groups",
+    tags: ["web_design", "real_estate", "education", "ecommerce"] },
+  { type: "file", label: "File Upload", icon: "fa-paperclip", group: "advanced", category: "advanced", description: "Single file upload",
+    tags: ["legal", "healthcare", "real_estate", "consulting", "education"] },
+  { type: "files", label: "Multi-File", icon: "fa-folder-open", group: "advanced", category: "advanced", description: "Multiple file uploads",
+    tags: ["legal", "healthcare", "real_estate", "consulting", "education"] },
+  { type: "approval", label: "Approval / Sign-off", icon: "fa-signature", group: "advanced", category: "advanced", description: "Digital signature & scope approval",
+    tags: ["legal", "consulting", "real_estate", "finance"] },
+  { type: "payment", label: "Payment", icon: "fa-credit-card", group: "advanced", category: "advanced", description: "Collect payments via Stripe, PayPal, or Square",
+    tags: ["ecommerce", "consulting", "events", "hospitality", "nonprofit", "education"] },
+  // ── Layout & Logic ──
   { type: "heading", label: "Section Heading", icon: "fa-heading", group: "advanced", category: "layout", description: "Display-only section header" },
-  { type: "consent", label: "Consent / Terms", icon: "fa-file-contract", group: "advanced", category: "layout", description: "Agreement with checkbox" },
-  // Bot protection
+  { type: "consent", label: "Consent / Terms", icon: "fa-file-contract", group: "advanced", category: "layout", description: "Agreement with checkbox",
+    tags: ["legal", "healthcare", "finance", "ecommerce"] },
   { type: "captcha", label: "Bot Protection", icon: "fa-shield-halved", group: "advanced", category: "layout", description: "reCAPTCHA or Cloudflare Turnstile" },
 ];
 
@@ -1242,17 +1288,64 @@ export default function FormEditor({ initialSchema, onOpenTemplates, formId, has
 
 /* ── Field palette ─────────────────────────────────────────── */
 
+function FieldCard({ f, onDragStart, onClickAdd, showTags }: {
+  f: FieldTypeInfo;
+  onDragStart: (type: FieldType, label: string) => void;
+  onClickAdd: (type: FieldType, label: string) => void;
+  showTags?: boolean;
+}) {
+  return (
+    <button
+      key={f.type}
+      draggable={!f.disabled}
+      onDragStart={(e) => { if (f.disabled) { e.preventDefault(); return; } e.dataTransfer.effectAllowed = "move"; onDragStart(f.type, f.label); }}
+      onClick={() => { if (!f.disabled) onClickAdd(f.type, f.label); }}
+      className={`w-full p-2 bg-surface-container rounded-xl border border-outline-variant/10 transition-all group text-left ${f.disabled ? "opacity-40 cursor-not-allowed" : "cursor-grab hover:border-primary/40 hover:bg-surface-container-high"}`}
+    >
+      <div className="flex items-center gap-2.5">
+        <div className={`w-7 h-7 rounded-lg bg-surface-container-highest flex items-center justify-center transition-colors text-xs shrink-0 ${f.disabled ? "text-on-surface-variant/40" : "text-primary group-hover:bg-primary/20"}`}>
+          <FaIcon name={f.icon} />
+        </div>
+        <div className="flex-1 min-w-0">
+          <span className="text-sm font-medium text-on-surface block truncate">{f.label}</span>
+          {f.description && <span className="text-[10px] text-on-surface-variant/50 block truncate">{f.description}</span>}
+        </div>
+      </div>
+      {showTags && f.tags && f.tags.length > 0 && (
+        <div className="flex flex-wrap gap-1 mt-1.5 ml-[2.375rem]">
+          {f.tags.slice(0, 4).map((tagId) => {
+            const tag = INDUSTRY_TAGS.find((t) => t.id === tagId);
+            if (!tag) return null;
+            return (
+              <span key={tagId} className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded text-[8px] font-medium uppercase tracking-wider"
+                style={{ backgroundColor: tag.color + "18", color: tag.color }}>
+                <i className={`fa-solid ${tag.icon} text-[7px]`} />{tag.label}
+              </span>
+            );
+          })}
+          {f.tags.length > 4 && (
+            <span className="text-[8px] text-on-surface-variant/40 self-center">+{f.tags.length - 4}</span>
+          )}
+        </div>
+      )}
+    </button>
+  );
+}
+
 function FieldPalette({ onDragStart, onClickAdd }: {
   onDragStart: (type: FieldType, label: string) => void;
   onClickAdd: (type: FieldType, label: string) => void;
 }) {
   const [search, setSearch] = useState("");
   const [activeCategory, setActiveCategory] = useState<FieldCategory | "all">("all");
+  const [activeTag, setActiveTag] = useState<IndustryTag | null>(null);
+  const [showTagPanel, setShowTagPanel] = useState(false);
 
   const filtered = FIELD_CATALOGUE.filter((f) => {
     const matchesSearch = !search || f.label.toLowerCase().includes(search.toLowerCase()) || (f.description ?? "").toLowerCase().includes(search.toLowerCase());
     const matchesCategory = activeCategory === "all" || f.category === activeCategory;
-    return matchesSearch && matchesCategory;
+    const matchesTag = !activeTag || (f.tags ?? []).includes(activeTag);
+    return matchesSearch && matchesCategory && matchesTag;
   });
 
   // Group by category for display
@@ -1260,6 +1353,12 @@ function FieldPalette({ onDragStart, onClickAdd }: {
     ...cat,
     fields: filtered.filter((f) => f.category === cat.id),
   })).filter((g) => g.fields.length > 0);
+
+  // Count fields per industry tag (for the tag panel)
+  const tagCounts = INDUSTRY_TAGS.map((tag) => ({
+    ...tag,
+    count: FIELD_CATALOGUE.filter((f) => (f.tags ?? []).includes(tag.id)).length,
+  }));
 
   return (
     <div>
@@ -1271,9 +1370,51 @@ function FieldPalette({ onDragStart, onClickAdd }: {
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           placeholder="Search fields..."
-          className="w-full pl-9 pr-3 py-2 text-sm bg-surface-container-highest/50 border-0 rounded-lg text-on-surface placeholder:text-on-surface-variant/40 focus:ring-1 focus:ring-primary/50 outline-none transition-all"
+          className="w-full pl-9 pr-9 py-2 text-sm bg-surface-container-highest/50 border-0 rounded-lg text-on-surface placeholder:text-on-surface-variant/40 focus:ring-1 focus:ring-primary/50 outline-none transition-all"
         />
+        <button onClick={() => setShowTagPanel(!showTagPanel)} title="Filter by industry"
+          className={`absolute right-2 top-1/2 -translate-y-1/2 w-6 h-6 rounded-md flex items-center justify-center transition-all ${showTagPanel || activeTag ? "bg-primary/20 text-primary" : "text-on-surface-variant/40 hover:text-on-surface-variant"}`}>
+          <i className="fa-solid fa-tags text-[10px]" />
+        </button>
       </div>
+
+      {/* Industry tag filter panel */}
+      {showTagPanel && (
+        <div className="mb-3 p-2.5 bg-surface-container rounded-xl border border-outline-variant/10">
+          <div className="flex items-center justify-between mb-2">
+            <span className="text-[10px] font-bold text-on-surface-variant uppercase tracking-widest">Filter by Industry</span>
+            {activeTag && (
+              <button onClick={() => setActiveTag(null)} className="text-[10px] text-primary hover:underline">Clear</button>
+            )}
+          </div>
+          <div className="grid grid-cols-2 gap-1">
+            {tagCounts.map((tag) => (
+              <button key={tag.id} onClick={() => setActiveTag(activeTag === tag.id ? null : tag.id)}
+                className={`flex items-center gap-1.5 px-2 py-1.5 rounded-lg text-[11px] font-medium transition-all ${activeTag === tag.id ? "ring-1 ring-offset-0" : "hover:bg-surface-container-high/50"}`}
+                style={activeTag === tag.id ? { backgroundColor: tag.color + "18", color: tag.color, outlineColor: tag.color } : undefined}>
+                <i className={`fa-solid ${tag.icon} text-[9px]`} style={{ color: tag.color }} />
+                <span className={activeTag === tag.id ? "" : "text-on-surface-variant/70"}>{tag.label}</span>
+                <span className="text-[9px] text-on-surface-variant/30 ml-auto">{tag.count}</span>
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Active tag indicator */}
+      {activeTag && !showTagPanel && (() => {
+        const tag = INDUSTRY_TAGS.find((t) => t.id === activeTag);
+        return tag ? (
+          <div className="flex items-center gap-2 mb-3 px-2.5 py-1.5 rounded-lg text-xs" style={{ backgroundColor: tag.color + "18", color: tag.color }}>
+            <i className={`fa-solid ${tag.icon} text-[10px]`} />
+            <span className="font-medium">{tag.label}</span>
+            <span className="text-[10px] opacity-60">{filtered.length} fields</span>
+            <button onClick={() => setActiveTag(null)} className="ml-auto opacity-60 hover:opacity-100">
+              <i className="fa-solid fa-xmark text-[10px]" />
+            </button>
+          </div>
+        ) : null;
+      })()}
 
       {/* Category pills */}
       <div className="flex flex-wrap gap-1.5 mb-4">
@@ -1283,20 +1424,24 @@ function FieldPalette({ onDragStart, onClickAdd }: {
         >
           All
         </button>
-        {FIELD_CATEGORIES.map((cat) => (
-          <button
-            key={cat.id}
-            onClick={() => setActiveCategory(cat.id)}
-            className={`px-2.5 py-1 text-[11px] font-medium rounded-lg transition-all flex items-center gap-1.5 ${activeCategory === cat.id ? "bg-primary text-on-primary" : "bg-surface-container-high/50 text-on-surface-variant/60 hover:text-on-surface"}`}
-          >
-            <FaIcon name={cat.icon} className="text-[9px]" />
-            {cat.label}
-          </button>
-        ))}
+        {FIELD_CATEGORIES.map((cat) => {
+          const count = filtered.filter((f) => f.category === cat.id).length;
+          return (
+            <button
+              key={cat.id}
+              onClick={() => setActiveCategory(cat.id)}
+              className={`px-2.5 py-1 text-[11px] font-medium rounded-lg transition-all flex items-center gap-1.5 ${activeCategory === cat.id ? "bg-primary text-on-primary" : "bg-surface-container-high/50 text-on-surface-variant/60 hover:text-on-surface"}`}
+            >
+              <FaIcon name={cat.icon} className="text-[9px]" />
+              {cat.label}
+              {activeTag && <span className="text-[9px] opacity-60">{count}</span>}
+            </button>
+          );
+        })}
       </div>
 
       {/* Field list grouped by category */}
-      {activeCategory === "all" && !search ? (
+      {activeCategory === "all" && !search && !activeTag ? (
         grouped.map((group) => (
           <div key={group.id} className="mb-4">
             <h3 className="text-[10px] font-bold text-on-surface-variant/50 uppercase tracking-widest mb-2 flex items-center gap-1.5">
@@ -1305,21 +1450,7 @@ function FieldPalette({ onDragStart, onClickAdd }: {
             </h3>
             <div className="space-y-1.5">
               {group.fields.map((f) => (
-                <button
-                  key={f.type}
-                  draggable={!f.disabled}
-                  onDragStart={(e) => { if (f.disabled) { e.preventDefault(); return; } e.dataTransfer.effectAllowed = "move"; onDragStart(f.type, f.label); }}
-                  onClick={() => { if (!f.disabled) onClickAdd(f.type, f.label); }}
-                  className={`w-full p-2 bg-surface-container rounded-xl border border-outline-variant/10 transition-all flex items-center gap-2.5 group ${f.disabled ? "opacity-40 cursor-not-allowed" : "cursor-grab hover:border-primary/40 hover:bg-surface-container-high"}`}
-                >
-                  <div className={`w-7 h-7 rounded-lg bg-surface-container-highest flex items-center justify-center transition-colors text-xs shrink-0 ${f.disabled ? "text-on-surface-variant/40" : "text-primary group-hover:bg-primary/20"}`}>
-                    <FaIcon name={f.icon} />
-                  </div>
-                  <div className="flex-1 min-w-0 text-left">
-                    <span className="text-sm font-medium text-on-surface block truncate">{f.label}</span>
-                    {f.description && <span className="text-[10px] text-on-surface-variant/50 block truncate">{f.description}</span>}
-                  </div>
-                </button>
+                <FieldCard key={f.type} f={f} onDragStart={onDragStart} onClickAdd={onClickAdd} />
               ))}
             </div>
           </div>
@@ -1327,24 +1458,12 @@ function FieldPalette({ onDragStart, onClickAdd }: {
       ) : (
         <div className="space-y-1.5">
           {filtered.length === 0 && (
-            <p className="text-xs text-on-surface-variant/50 text-center py-4">No fields match your search</p>
+            <p className="text-xs text-on-surface-variant/50 text-center py-4">
+              {activeTag ? "No fields match this industry filter" : "No fields match your search"}
+            </p>
           )}
           {filtered.map((f) => (
-            <button
-              key={f.type}
-              draggable={!f.disabled}
-              onDragStart={(e) => { if (f.disabled) { e.preventDefault(); return; } e.dataTransfer.effectAllowed = "move"; onDragStart(f.type, f.label); }}
-              onClick={() => { if (!f.disabled) onClickAdd(f.type, f.label); }}
-              className={`w-full p-2 bg-surface-container rounded-xl border border-outline-variant/10 transition-all flex items-center gap-2.5 group ${f.disabled ? "opacity-40 cursor-not-allowed" : "cursor-grab hover:border-primary/40 hover:bg-surface-container-high"}`}
-            >
-              <div className={`w-7 h-7 rounded-lg bg-surface-container-highest flex items-center justify-center transition-colors text-xs shrink-0 ${f.disabled ? "text-on-surface-variant/40" : "text-primary group-hover:bg-primary/20"}`}>
-                <FaIcon name={f.icon} />
-              </div>
-              <div className="flex-1 min-w-0 text-left">
-                <span className="text-sm font-medium text-on-surface block truncate">{f.label}</span>
-                {f.description && <span className="text-[10px] text-on-surface-variant/50 block truncate">{f.description}</span>}
-              </div>
-            </button>
+            <FieldCard key={f.type} f={f} onDragStart={onDragStart} onClickAdd={onClickAdd} showTags={!!activeTag} />
           ))}
         </div>
       )}
