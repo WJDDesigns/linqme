@@ -1805,6 +1805,115 @@ function TimelineField({ field, value, error, onChange, primaryColor }: {
   );
 }
 
+/* ── Social Media Handles with verification ── */
+
+function SocialHandlesField({ field, value, error, onChange, primaryColor }: {
+  field: FieldDef; value: unknown; error?: string; onChange: (v: unknown) => void; primaryColor: string;
+}) {
+  const focusRing = { "--tw-ring-color": primaryColor + "66" } as React.CSSProperties;
+  const allPlatforms = [
+    { id: "instagram", label: "Instagram", icon: "fa-brands fa-instagram", prefix: "@" },
+    { id: "facebook", label: "Facebook", icon: "fa-brands fa-facebook", prefix: "" },
+    { id: "x", label: "X / Twitter", icon: "fa-brands fa-x-twitter", prefix: "@" },
+    { id: "linkedin", label: "LinkedIn", icon: "fa-brands fa-linkedin", prefix: "" },
+    { id: "tiktok", label: "TikTok", icon: "fa-brands fa-tiktok", prefix: "@" },
+    { id: "youtube", label: "YouTube", icon: "fa-brands fa-youtube", prefix: "" },
+    { id: "pinterest", label: "Pinterest", icon: "fa-brands fa-pinterest", prefix: "" },
+    { id: "threads", label: "Threads", icon: "fa-brands fa-threads", prefix: "@" },
+  ];
+  const platforms = field.socialHandlesConfig?.platforms ?? [];
+  const enabledPlatforms = allPlatforms.filter((p) => platforms.includes(p.id as never));
+
+  let handles: { platform: string; handle: string }[] = [];
+  try { handles = typeof value === "string" && value ? JSON.parse(value) : []; } catch { /* */ }
+  const getHandle = (pid: string) => handles.find((h) => h.platform === pid)?.handle ?? "";
+
+  // Verification state: platform -> "checking" | "found" | "not_found" | "unknown"
+  const [verifyStatus, setVerifyStatus] = useState<Record<string, string>>({});
+  const debounceTimers = useRef<Record<string, ReturnType<typeof setTimeout>>>({});
+
+  const setHandle = (pid: string, val: string) => {
+    const next = enabledPlatforms.map((p) => ({
+      platform: p.id,
+      handle: p.id === pid ? val : getHandle(p.id),
+    })).filter((h) => h.handle.trim());
+    onChange(next.length > 0 ? JSON.stringify(next) : "");
+
+    // Clear old timer
+    if (debounceTimers.current[pid]) clearTimeout(debounceTimers.current[pid]);
+
+    const cleanVal = val.trim().replace(/^@/, "");
+    if (!cleanVal || cleanVal.length < 2) {
+      setVerifyStatus((prev) => { const n = { ...prev }; delete n[pid]; return n; });
+      return;
+    }
+
+    // Debounce verification by 800ms
+    setVerifyStatus((prev) => ({ ...prev, [pid]: "checking" }));
+    debounceTimers.current[pid] = setTimeout(async () => {
+      try {
+        const res = await fetch(`/api/verify-social?platform=${pid}&handle=${encodeURIComponent(cleanVal)}`);
+        const data = await res.json();
+        setVerifyStatus((prev) => ({ ...prev, [pid]: data.status ?? "unknown" }));
+      } catch {
+        setVerifyStatus((prev) => ({ ...prev, [pid]: "unknown" }));
+      }
+    }, 800);
+  };
+
+  const statusIcon = (pid: string) => {
+    const s = verifyStatus[pid];
+    if (!s || !getHandle(pid).trim()) return null;
+    if (s === "checking") return <i className="fa-solid fa-spinner fa-spin text-xs text-on-surface-variant/40" title="Checking..." />;
+    if (s === "found") return <i className="fa-solid fa-circle-check text-xs text-green-400" title="Handle found" />;
+    if (s === "not_found") return <i className="fa-solid fa-triangle-exclamation text-xs text-amber-400" title="Handle not found -- check for typos" />;
+    return <i className="fa-solid fa-circle-question text-xs text-on-surface-variant/30" title="Could not verify" />;
+  };
+
+  return (
+    <div className="group">
+      <label className="block text-xs font-semibold text-on-surface-variant uppercase tracking-widest mb-1.5 ml-1">
+        <FieldIcon icon={field.icon} color={primaryColor} />{field.label}
+        {field.required && <span className="ml-1" style={{ color: primaryColor }}>*</span>}
+      </label>
+      {field.hint && <p className="text-xs text-on-surface-variant/60 mb-2 ml-1">{field.hint}</p>}
+      <div className="space-y-2">
+        {enabledPlatforms.map((p) => {
+          const handle = getHandle(p.id);
+          const status = verifyStatus[p.id];
+          return (
+            <div key={p.id}>
+              <div className="flex items-center gap-2">
+                <div className="w-10 h-10 rounded-xl bg-surface-container-high flex items-center justify-center shrink-0">
+                  <i className={`${p.icon} text-lg`} style={{ color: primaryColor }} />
+                </div>
+                <div className="flex-1 relative">
+                  {p.prefix && <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-on-surface-variant/40">{p.prefix}</span>}
+                  <input
+                    placeholder={p.label}
+                    value={handle}
+                    onChange={(e) => setHandle(p.id, e.target.value)}
+                    className={INPUT_CLS}
+                    style={{ ...focusRing, paddingLeft: p.prefix ? "1.75rem" : undefined, paddingRight: "2.5rem" }}
+                  />
+                  <span className="absolute right-3 top-1/2 -translate-y-1/2">{statusIcon(p.id)}</span>
+                </div>
+              </div>
+              {status === "not_found" && handle.trim() && (
+                <p className="text-[11px] text-amber-400 mt-1 ml-12 flex items-center gap-1">
+                  <i className="fa-solid fa-triangle-exclamation text-[9px]" />
+                  This handle may not exist. Double-check for typos.
+                </p>
+              )}
+            </div>
+          );
+        })}
+      </div>
+      {error && <p className="text-sm text-error mt-1.5 sl-fade-up flex items-center gap-1.5"><i className="fa-solid fa-circle-exclamation text-xs flex-shrink-0" />{error}</p>}
+    </div>
+  );
+}
+
 function BudgetAllocatorField({ field, value, error, onChange, primaryColor }: {
   field: FieldDef; value: unknown; error?: string; onChange: (v: unknown) => void; primaryColor: string;
 }) {
@@ -1925,19 +2034,22 @@ function BudgetAllocatorField({ field, value, error, onChange, primaryColor }: {
                 </div>
                 <span className="text-sm font-bold tabular-nums" style={{ color: primaryColor }}>{displayVal}</span>
               </div>
-              <input
-                type="range"
-                min={0}
-                max={max}
-                step={max > 1000 ? 100 : max > 100 ? 10 : 1}
-                value={val}
-                onChange={(e) => handleSliderChange(ch.id, Number(e.target.value))}
-                className="w-full h-1.5 rounded-full appearance-none cursor-pointer"
-                style={{
-                  background: `linear-gradient(to right, ${primaryColor} ${pct}%, var(--color-surface-container-highest) ${pct}%)`,
-                  accentColor: primaryColor,
-                }}
-              />
+              <div className="relative">
+                <div className="h-2 rounded-full bg-surface-container-highest" />
+                <div className="absolute top-0 left-0 h-2 rounded-full" style={{ width: `${pct}%`, backgroundColor: primaryColor }} />
+                <input
+                  type="range"
+                  min={0}
+                  max={max}
+                  step={max > 1000 ? 100 : max > 100 ? 10 : 1}
+                  value={val}
+                  onChange={(e) => handleSliderChange(ch.id, Number(e.target.value))}
+                  className="absolute inset-0 w-full opacity-0 cursor-pointer"
+                  style={{ height: "8px" }}
+                />
+                <div className="absolute top-1/2 -translate-y-1/2 w-5 h-5 rounded-full border-2 bg-white shadow-md pointer-events-none"
+                  style={{ left: `calc(${pct}% - 10px)`, borderColor: primaryColor }} />
+              </div>
             </div>
           );
         })}
@@ -2457,8 +2569,14 @@ function CelestialField({
             );
           })}
         </div>
-        {cfg.maxSelections && cfg.maxSelections > 0 && (
-          <p className="text-xs text-on-surface-variant/60 mt-1.5 ml-1">{selected.length} / {cfg.maxSelections} selected</p>
+        {cfg.maxSelections != null && cfg.maxSelections > 0 && (
+          <div className="mt-3 flex items-center gap-2 px-3 py-2 rounded-lg bg-surface-container border border-outline-variant/20">
+            <i className="fa-solid fa-check-double text-xs" style={{ color: primaryColor }} />
+            <span className="text-xs font-semibold text-on-surface">{selected.length} / {cfg.maxSelections} selected</span>
+            <div className="flex-1 h-1.5 rounded-full bg-surface-container-highest overflow-hidden ml-2">
+              <div className="h-full rounded-full transition-all duration-300" style={{ width: `${(selected.length / cfg.maxSelections) * 100}%`, backgroundColor: primaryColor }} />
+            </div>
+          </div>
         )}
         {error && <p className="text-sm text-error mt-1.5 sl-fade-up flex items-center gap-1.5"><i className="fa-solid fa-circle-exclamation text-xs flex-shrink-0" />{error}</p>}
       </div>
@@ -2919,57 +3037,7 @@ function CelestialField({
 
   /* ── Social Media Handles ── */
   if (field.type === "social_handles" && field.socialHandlesConfig) {
-    const platforms = field.socialHandlesConfig.platforms ?? [];
-    const allPlatforms: { id: string; label: string; icon: string; prefix: string }[] = [
-      { id: "instagram", label: "Instagram", icon: "fa-brands fa-instagram", prefix: "@" },
-      { id: "facebook", label: "Facebook", icon: "fa-brands fa-facebook", prefix: "" },
-      { id: "x", label: "X / Twitter", icon: "fa-brands fa-x-twitter", prefix: "@" },
-      { id: "linkedin", label: "LinkedIn", icon: "fa-brands fa-linkedin", prefix: "" },
-      { id: "tiktok", label: "TikTok", icon: "fa-brands fa-tiktok", prefix: "@" },
-      { id: "youtube", label: "YouTube", icon: "fa-brands fa-youtube", prefix: "" },
-      { id: "pinterest", label: "Pinterest", icon: "fa-brands fa-pinterest", prefix: "" },
-      { id: "threads", label: "Threads", icon: "fa-brands fa-threads", prefix: "@" },
-    ];
-    const enabledPlatforms = allPlatforms.filter((p) => platforms.includes(p.id as never));
-    let handles: { platform: string; handle: string }[] = [];
-    try { handles = typeof value === "string" && value ? JSON.parse(value) : []; } catch { /* */ }
-    const getHandle = (pid: string) => handles.find((h) => h.platform === pid)?.handle ?? "";
-    const setHandle = (pid: string, val: string) => {
-      const next = enabledPlatforms.map((p) => ({
-        platform: p.id,
-        handle: p.id === pid ? val : getHandle(p.id),
-      })).filter((h) => h.handle.trim());
-      onChange(next.length > 0 ? JSON.stringify(next) : "");
-    };
-    return (
-      <div className="group">
-        <label className="block text-xs font-semibold text-on-surface-variant uppercase tracking-widest mb-1.5 ml-1">
-          <FieldIcon icon={field.icon} color={primaryColor} />{field.label}
-          {field.required && <span className="ml-1" style={{ color: primaryColor }}>*</span>}
-        </label>
-        {field.hint && <p className="text-xs text-on-surface-variant/60 mb-2 ml-1">{field.hint}</p>}
-        <div className="space-y-2">
-          {enabledPlatforms.map((p) => (
-            <div key={p.id} className="flex items-center gap-2">
-              <div className="w-10 h-10 rounded-xl bg-surface-container-high flex items-center justify-center shrink-0">
-                <i className={`${p.icon} text-lg`} style={{ color: primaryColor }} />
-              </div>
-              <div className="flex-1 relative">
-                {p.prefix && <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-on-surface-variant/40">{p.prefix}</span>}
-                <input
-                  placeholder={p.label}
-                  value={getHandle(p.id)}
-                  onChange={(e) => setHandle(p.id, e.target.value)}
-                  className={INPUT_CLS}
-                  style={{ ...focusRing, paddingLeft: p.prefix ? "1.75rem" : undefined }}
-                />
-              </div>
-            </div>
-          ))}
-        </div>
-        {error && <p className="text-sm text-error mt-1.5 sl-fade-up flex items-center gap-1.5"><i className="fa-solid fa-circle-exclamation text-xs flex-shrink-0" />{error}</p>}
-      </div>
-    );
+    return <SocialHandlesField field={field} value={value} error={error} onChange={onChange} primaryColor={primaryColor} />;
   }
 
   const isMultiCheckbox = field.type === "checkbox" && field.options && field.options.length > 0;
