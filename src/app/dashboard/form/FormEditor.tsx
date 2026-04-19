@@ -1,8 +1,9 @@
 "use client";
 
 import { useState, useCallback, useRef, useEffect } from "react";
-import type { FormSchema, StepDef, FieldDef, FieldType, PackageConfig, PackageOption, PackageFeature, PackageRule, PackageLayout, RepeaterConfig, RepeaterSubField, AssetCollectionConfig, AssetCategory, SiteStructureConfig, FeatureSelectorConfig, FeatureOption, GoalBuilderConfig, GoalOption, GoalRefinement, ApprovalConfig, PaymentConfig, PaymentProvider, CaptchaConfig, CaptchaProvider, RatingConfig, SliderConfig, SocialHandlesConfig, SocialPlatformId } from "@/lib/forms";
+import type { FormSchema, StepDef, FieldDef, FieldType, PackageConfig, PackageOption, PackageFeature, PackageRule, PackageLayout, RepeaterConfig, RepeaterSubField, AssetCollectionConfig, AssetCategory, SiteStructureConfig, FeatureSelectorConfig, FeatureOption, GoalBuilderConfig, GoalOption, GoalRefinement, ApprovalConfig, PaymentConfig, PaymentProvider, CaptchaConfig, CaptchaProvider, RatingConfig, SliderConfig, SocialHandlesConfig, SocialPlatformId, CountryStateConfig, MatrixConfig, QuestionnaireConfig, QuestionnaireQuestion } from "@/lib/forms";
 import { SOCIAL_PLATFORMS } from "@/lib/forms";
+import { COUNTRIES } from "@/data/countries";
 import { PROVIDER_META, type CloudProvider } from "@/lib/cloud/providers";
 import CloudDestinationButton from "@/components/CloudDestinationButton";
 import IconPicker from "@/components/IconPicker";
@@ -65,6 +66,9 @@ const FIELD_CATALOGUE: FieldTypeInfo[] = [
   { type: "toggle", label: "Yes / No Toggle", icon: "fa-toggle-on", group: "standard", category: "general", description: "Simple yes/no switch" },
   { type: "slider", label: "Slider / Range", icon: "fa-gauge", group: "standard", category: "general", description: "Numeric slider with min/max" },
   { type: "social_handles", label: "Social Media", icon: "fa-share-nodes", group: "advanced", category: "marketing", description: "Collect social media handles" },
+  { type: "country_state", label: "Country / State", icon: "fa-earth-americas", group: "standard", category: "general", description: "Country and state/province picker" },
+  { type: "matrix", label: "Matrix / Grid", icon: "fa-table-cells-large", group: "advanced", category: "smart", description: "Row-by-column selection grid" },
+  { type: "questionnaire", label: "Questionnaire", icon: "fa-clipboard-question", group: "advanced", category: "smart", description: "Scored questions with points" },
   // Payments (coming soon -- renderer not yet implemented)
   { type: "payment", label: "Payment (Coming Soon)", icon: "fa-credit-card", group: "advanced", category: "smart", description: "Collect payments via Stripe, PayPal, or Square", disabled: true },
   // Layout & Logic
@@ -291,6 +295,28 @@ function makeField(type: FieldType, label: string): FieldDef {
   if (type === "social_handles") {
     base.label = "Social Media Handles";
     base.socialHandlesConfig = { platforms: ["instagram", "facebook", "x", "linkedin", "tiktok", "youtube"] };
+  }
+  if (type === "country_state") {
+    base.label = "Country / State";
+    base.countryStateConfig = { allowedCountries: [], requireState: false };
+  }
+  if (type === "matrix") {
+    base.label = "Rate Each Area";
+    base.matrixConfig = {
+      rows: ["Quality", "Speed", "Communication", "Value"],
+      columns: ["Poor", "Fair", "Good", "Excellent"],
+      multiSelect: false,
+    };
+  }
+  if (type === "questionnaire") {
+    base.label = "Quick Assessment";
+    base.questionnaireConfig = {
+      questions: [
+        { id: `q_${uid()}`, text: "How would you describe your current online presence?", answers: [{ label: "Non-existent", score: 1 }, { label: "Basic", score: 2 }, { label: "Moderate", score: 3 }, { label: "Strong", score: 4 }] },
+        { id: `q_${uid()}`, text: "What is your primary business model?", answers: [{ label: "Service-based", score: 1 }, { label: "Product-based", score: 2 }, { label: "Subscription", score: 3 }, { label: "Marketplace", score: 4 }] },
+      ],
+      showScore: false,
+    };
   }
   return base;
 }
@@ -1661,6 +1687,141 @@ function FieldSettingsPanel({ field, onUpdate, onClose, allFields, hasAI }: {
                 ))}
               </div>
               <button onClick={() => onUpdate({ budgetAllocatorConfig: { ...field.budgetAllocatorConfig!, channels: [...field.budgetAllocatorConfig!.channels, { id: uid(), label: "", icon: "fa-circle", defaultValue: 0 }] } })} className="w-full py-1.5 mt-1.5 border border-dashed border-outline-variant/30 rounded-lg text-[10px] text-on-surface-variant hover:border-primary/50 hover:text-primary transition-all flex items-center justify-center gap-1"><i className="fa-solid fa-plus text-[8px]" /> Add Channel</button>
+            </div>
+          </section>
+        )}
+
+        {/* -- Country/State Settings -- */}
+        {field.type === "country_state" && (
+          <section className="space-y-3">
+            <div className="text-[10px] font-bold text-on-surface-variant uppercase tracking-widest">Country/State Settings</div>
+            <div className="flex items-center justify-between p-3 bg-surface-container rounded-lg">
+              <div>
+                <span className="text-xs font-medium text-on-surface block">Require State/Province</span>
+                <p className="text-[10px] text-on-surface-variant/50 mt-0.5">When a country has states/provinces, require selection.</p>
+              </div>
+              <label className="relative cursor-pointer shrink-0 ml-3">
+                <input type="checkbox" checked={!!field.countryStateConfig?.requireState} onChange={(e) => onUpdate({ countryStateConfig: { ...field.countryStateConfig!, requireState: e.target.checked } })} className="sr-only peer" />
+                <div className="w-8 h-4 bg-surface-container-highest rounded-full peer-checked:bg-primary transition-colors" />
+                <div className="absolute left-0.5 top-0.5 w-3 h-3 bg-on-surface-variant rounded-full peer-checked:translate-x-4 peer-checked:bg-on-primary transition-all" />
+              </label>
+            </div>
+            <div>
+              <span className="text-[11px] font-medium text-on-surface-variant mb-1 block">Restrict to Countries</span>
+              <p className="text-[10px] text-on-surface-variant/50 mb-2">Leave empty to show all countries. Select specific countries to limit the dropdown.</p>
+              <div className="max-h-48 overflow-y-auto rounded-lg border border-outline-variant/20 divide-y divide-outline-variant/10">
+                {COUNTRIES.map((c) => {
+                  const allowed = field.countryStateConfig?.allowedCountries ?? [];
+                  const isSelected = allowed.includes(c.code);
+                  return (
+                    <label key={c.code} className="flex items-center gap-2 px-3 py-2 hover:bg-surface-container/50 cursor-pointer transition-colors">
+                      <input type="checkbox" checked={isSelected} onChange={(e) => {
+                        const next = e.target.checked ? [...allowed, c.code] : allowed.filter((cc) => cc !== c.code);
+                        onUpdate({ countryStateConfig: { ...field.countryStateConfig!, allowedCountries: next } });
+                      }} className="h-3.5 w-3.5 rounded" style={{ accentColor: "var(--color-primary)" }} />
+                      <span className="text-xs text-on-surface">{c.name}</span>
+                      <span className="text-[10px] text-on-surface-variant/40 ml-auto">{c.code}</span>
+                    </label>
+                  );
+                })}
+              </div>
+            </div>
+          </section>
+        )}
+
+        {/* -- Matrix Settings -- */}
+        {field.type === "matrix" && field.matrixConfig && (
+          <section className="space-y-3">
+            <div className="text-[10px] font-bold text-on-surface-variant uppercase tracking-widest">Matrix Settings</div>
+            <div>
+              <span className="text-[11px] font-medium text-on-surface-variant mb-1 block">Row Labels (one per line)</span>
+              <textarea value={(field.matrixConfig.rows ?? []).join("\n")} onChange={(e) => onUpdate({ matrixConfig: { ...field.matrixConfig!, rows: e.target.value.split("\n").filter((l) => l.trim()) } })} rows={5} placeholder="Quality&#10;Speed&#10;Communication" className={`${INPUT_CLS} font-mono`} />
+            </div>
+            <div>
+              <span className="text-[11px] font-medium text-on-surface-variant mb-1 block">Column Labels (one per line)</span>
+              <textarea value={(field.matrixConfig.columns ?? []).join("\n")} onChange={(e) => onUpdate({ matrixConfig: { ...field.matrixConfig!, columns: e.target.value.split("\n").filter((l) => l.trim()) } })} rows={4} placeholder="Poor&#10;Fair&#10;Good&#10;Excellent" className={`${INPUT_CLS} font-mono`} />
+            </div>
+            <div className="flex items-center justify-between p-3 bg-surface-container rounded-lg">
+              <div>
+                <span className="text-xs font-medium text-on-surface block">Multi-Select</span>
+                <p className="text-[10px] text-on-surface-variant/50 mt-0.5">Allow picking multiple columns per row.</p>
+              </div>
+              <label className="relative cursor-pointer shrink-0 ml-3">
+                <input type="checkbox" checked={!!field.matrixConfig.multiSelect} onChange={(e) => onUpdate({ matrixConfig: { ...field.matrixConfig!, multiSelect: e.target.checked } })} className="sr-only peer" />
+                <div className="w-8 h-4 bg-surface-container-highest rounded-full peer-checked:bg-primary transition-colors" />
+                <div className="absolute left-0.5 top-0.5 w-3 h-3 bg-on-surface-variant rounded-full peer-checked:translate-x-4 peer-checked:bg-on-primary transition-all" />
+              </label>
+            </div>
+          </section>
+        )}
+
+        {/* -- Questionnaire Settings -- */}
+        {field.type === "questionnaire" && field.questionnaireConfig && (
+          <section className="space-y-3">
+            <div className="text-[10px] font-bold text-on-surface-variant uppercase tracking-widest">Questionnaire Settings</div>
+            <div className="flex items-center justify-between p-3 bg-surface-container rounded-lg">
+              <div>
+                <span className="text-xs font-medium text-on-surface block">Show Score</span>
+                <p className="text-[10px] text-on-surface-variant/50 mt-0.5">Display running score total to the user.</p>
+              </div>
+              <label className="relative cursor-pointer shrink-0 ml-3">
+                <input type="checkbox" checked={!!field.questionnaireConfig.showScore} onChange={(e) => onUpdate({ questionnaireConfig: { ...field.questionnaireConfig!, showScore: e.target.checked } })} className="sr-only peer" />
+                <div className="w-8 h-4 bg-surface-container-highest rounded-full peer-checked:bg-primary transition-colors" />
+                <div className="absolute left-0.5 top-0.5 w-3 h-3 bg-on-surface-variant rounded-full peer-checked:translate-x-4 peer-checked:bg-on-primary transition-all" />
+              </label>
+            </div>
+            <div className="space-y-4">
+              {field.questionnaireConfig.questions.map((q, qi) => (
+                <div key={q.id} className="rounded-lg border border-outline-variant/20 p-3 space-y-2">
+                  <div className="flex items-start gap-2">
+                    <span className="text-[10px] font-bold text-on-surface-variant mt-1.5 shrink-0">Q{qi + 1}</span>
+                    <input value={q.text} onChange={(e) => {
+                      const questions = [...field.questionnaireConfig!.questions];
+                      questions[qi] = { ...questions[qi], text: e.target.value };
+                      onUpdate({ questionnaireConfig: { ...field.questionnaireConfig!, questions } });
+                    }} className={`${INPUT_CLS} flex-1`} placeholder="Question text..." />
+                    <button onClick={() => {
+                      const questions = field.questionnaireConfig!.questions.filter((_, i) => i !== qi);
+                      onUpdate({ questionnaireConfig: { ...field.questionnaireConfig!, questions } });
+                    }} className="text-on-surface-variant/40 hover:text-error text-xs shrink-0 mt-2"><i className="fa-solid fa-xmark" /></button>
+                  </div>
+                  <div className="space-y-1 pl-5">
+                    {q.answers.map((a, ai) => (
+                      <div key={ai} className="flex items-center gap-2">
+                        <input value={a.label} onChange={(e) => {
+                          const questions = [...field.questionnaireConfig!.questions];
+                          const answers = [...questions[qi].answers];
+                          answers[ai] = { ...answers[ai], label: e.target.value };
+                          questions[qi] = { ...questions[qi], answers };
+                          onUpdate({ questionnaireConfig: { ...field.questionnaireConfig!, questions } });
+                        }} className="flex-1 text-xs bg-surface-container-highest/50 border-0 rounded px-2 py-1 text-on-surface outline-none" placeholder="Answer..." />
+                        <input type="number" value={a.score} onChange={(e) => {
+                          const questions = [...field.questionnaireConfig!.questions];
+                          const answers = [...questions[qi].answers];
+                          answers[ai] = { ...answers[ai], score: Number(e.target.value) || 0 };
+                          questions[qi] = { ...questions[qi], answers };
+                          onUpdate({ questionnaireConfig: { ...field.questionnaireConfig!, questions } });
+                        }} className="w-12 text-xs bg-surface-container-highest/50 border-0 rounded px-2 py-1 text-on-surface outline-none text-center" title="Score" />
+                        <button onClick={() => {
+                          const questions = [...field.questionnaireConfig!.questions];
+                          const answers = questions[qi].answers.filter((_, i) => i !== ai);
+                          questions[qi] = { ...questions[qi], answers };
+                          onUpdate({ questionnaireConfig: { ...field.questionnaireConfig!, questions } });
+                        }} className="text-on-surface-variant/30 hover:text-error text-[10px]"><i className="fa-solid fa-xmark" /></button>
+                      </div>
+                    ))}
+                    <button onClick={() => {
+                      const questions = [...field.questionnaireConfig!.questions];
+                      questions[qi] = { ...questions[qi], answers: [...questions[qi].answers, { label: "", score: 0 }] };
+                      onUpdate({ questionnaireConfig: { ...field.questionnaireConfig!, questions } });
+                    }} className="text-[10px] font-semibold flex items-center gap-1" style={{ color: "var(--color-primary)" }}><i className="fa-solid fa-plus text-[8px]" /> Add Answer</button>
+                  </div>
+                </div>
+              ))}
+              <button onClick={() => {
+                const questions = [...field.questionnaireConfig!.questions, { id: `q_${uid()}`, text: "", answers: [{ label: "Option A", score: 1 }, { label: "Option B", score: 2 }] }];
+                onUpdate({ questionnaireConfig: { ...field.questionnaireConfig!, questions } });
+              }} className="w-full py-2 border border-dashed border-outline-variant/30 rounded-lg text-xs text-on-surface-variant hover:border-primary/50 hover:text-primary transition-all flex items-center justify-center gap-1.5"><i className="fa-solid fa-plus text-[9px]" /> Add Question</button>
             </div>
           </section>
         )}

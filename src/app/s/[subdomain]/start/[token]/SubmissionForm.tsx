@@ -2624,6 +2624,201 @@ function CelestialField({
     return <BudgetAllocatorField field={field} value={value} error={error} onChange={onChange} primaryColor={primaryColor} />;
   }
 
+  /* ── Country / State Picker ── */
+  if (field.type === "country_state" && field.countryStateConfig) {
+    const allCountries: { code: string; name: string; states: { code: string; name: string }[] }[] = [
+      { code: "US", name: "United States", states: [
+        { code: "AL", name: "Alabama" },{ code: "AK", name: "Alaska" },{ code: "AZ", name: "Arizona" },{ code: "AR", name: "Arkansas" },{ code: "CA", name: "California" },{ code: "CO", name: "Colorado" },{ code: "CT", name: "Connecticut" },{ code: "DE", name: "Delaware" },{ code: "FL", name: "Florida" },{ code: "GA", name: "Georgia" },{ code: "HI", name: "Hawaii" },{ code: "ID", name: "Idaho" },{ code: "IL", name: "Illinois" },{ code: "IN", name: "Indiana" },{ code: "IA", name: "Iowa" },{ code: "KS", name: "Kansas" },{ code: "KY", name: "Kentucky" },{ code: "LA", name: "Louisiana" },{ code: "ME", name: "Maine" },{ code: "MD", name: "Maryland" },{ code: "MA", name: "Massachusetts" },{ code: "MI", name: "Michigan" },{ code: "MN", name: "Minnesota" },{ code: "MS", name: "Mississippi" },{ code: "MO", name: "Missouri" },{ code: "MT", name: "Montana" },{ code: "NE", name: "Nebraska" },{ code: "NV", name: "Nevada" },{ code: "NH", name: "New Hampshire" },{ code: "NJ", name: "New Jersey" },{ code: "NM", name: "New Mexico" },{ code: "NY", name: "New York" },{ code: "NC", name: "North Carolina" },{ code: "ND", name: "North Dakota" },{ code: "OH", name: "Ohio" },{ code: "OK", name: "Oklahoma" },{ code: "OR", name: "Oregon" },{ code: "PA", name: "Pennsylvania" },{ code: "RI", name: "Rhode Island" },{ code: "SC", name: "South Carolina" },{ code: "SD", name: "South Dakota" },{ code: "TN", name: "Tennessee" },{ code: "TX", name: "Texas" },{ code: "UT", name: "Utah" },{ code: "VT", name: "Vermont" },{ code: "VA", name: "Virginia" },{ code: "WA", name: "Washington" },{ code: "WV", name: "West Virginia" },{ code: "WI", name: "Wisconsin" },{ code: "WY", name: "Wyoming" },{ code: "DC", name: "District of Columbia" }] },
+      { code: "CA", name: "Canada", states: [{ code: "AB", name: "Alberta" },{ code: "BC", name: "British Columbia" },{ code: "MB", name: "Manitoba" },{ code: "NB", name: "New Brunswick" },{ code: "NL", name: "Newfoundland and Labrador" },{ code: "NS", name: "Nova Scotia" },{ code: "NT", name: "Northwest Territories" },{ code: "NU", name: "Nunavut" },{ code: "ON", name: "Ontario" },{ code: "PE", name: "Prince Edward Island" },{ code: "QC", name: "Quebec" },{ code: "SK", name: "Saskatchewan" },{ code: "YT", name: "Yukon" }] },
+      { code: "GB", name: "United Kingdom", states: [{ code: "ENG", name: "England" },{ code: "SCT", name: "Scotland" },{ code: "WLS", name: "Wales" },{ code: "NIR", name: "Northern Ireland" }] },
+      { code: "AU", name: "Australia", states: [{ code: "ACT", name: "Australian Capital Territory" },{ code: "NSW", name: "New South Wales" },{ code: "NT", name: "Northern Territory" },{ code: "QLD", name: "Queensland" },{ code: "SA", name: "South Australia" },{ code: "TAS", name: "Tasmania" },{ code: "VIC", name: "Victoria" },{ code: "WA", name: "Western Australia" }] },
+      { code: "MX", name: "Mexico", states: [{ code: "AGU", name: "Aguascalientes" },{ code: "BCN", name: "Baja California" },{ code: "BCS", name: "Baja California Sur" },{ code: "CAM", name: "Campeche" },{ code: "CHP", name: "Chiapas" },{ code: "CHH", name: "Chihuahua" },{ code: "COA", name: "Coahuila" },{ code: "COL", name: "Colima" },{ code: "DUR", name: "Durango" },{ code: "GUA", name: "Guanajuato" },{ code: "GRO", name: "Guerrero" },{ code: "HID", name: "Hidalgo" },{ code: "JAL", name: "Jalisco" },{ code: "MEX", name: "Mexico State" },{ code: "MIC", name: "Michoacan" },{ code: "MOR", name: "Morelos" },{ code: "NAY", name: "Nayarit" },{ code: "NLE", name: "Nuevo Leon" },{ code: "OAX", name: "Oaxaca" },{ code: "PUE", name: "Puebla" },{ code: "QUE", name: "Queretaro" },{ code: "ROO", name: "Quintana Roo" },{ code: "SLP", name: "San Luis Potosi" },{ code: "SIN", name: "Sinaloa" },{ code: "SON", name: "Sonora" },{ code: "TAB", name: "Tabasco" },{ code: "TAM", name: "Tamaulipas" },{ code: "TLA", name: "Tlaxcala" },{ code: "VER", name: "Veracruz" },{ code: "YUC", name: "Yucatan" },{ code: "ZAC", name: "Zacatecas" },{ code: "CMX", name: "Mexico City" }] },
+      { code: "DE", name: "Germany", states: [] }, { code: "FR", name: "France", states: [] },
+      { code: "BR", name: "Brazil", states: [] }, { code: "IN", name: "India", states: [] },
+      { code: "IE", name: "Ireland", states: [] }, { code: "NZ", name: "New Zealand", states: [] },
+      { code: "SG", name: "Singapore", states: [] }, { code: "AE", name: "United Arab Emirates", states: [] },
+      { code: "JP", name: "Japan", states: [] }, { code: "KR", name: "South Korea", states: [] },
+      { code: "IT", name: "Italy", states: [] }, { code: "ES", name: "Spain", states: [] },
+      { code: "NL", name: "Netherlands", states: [] }, { code: "SE", name: "Sweden", states: [] },
+      { code: "NO", name: "Norway", states: [] }, { code: "DK", name: "Denmark", states: [] },
+      { code: "FI", name: "Finland", states: [] }, { code: "CH", name: "Switzerland", states: [] },
+      { code: "AT", name: "Austria", states: [] }, { code: "BE", name: "Belgium", states: [] },
+      { code: "PT", name: "Portugal", states: [] }, { code: "PL", name: "Poland", states: [] },
+      { code: "ZA", name: "South Africa", states: [] }, { code: "PH", name: "Philippines", states: [] },
+      { code: "ID", name: "Indonesia", states: [] }, { code: "TH", name: "Thailand", states: [] },
+      { code: "VN", name: "Vietnam", states: [] }, { code: "MY", name: "Malaysia", states: [] },
+      { code: "CL", name: "Chile", states: [] }, { code: "CO", name: "Colombia", states: [] },
+      { code: "AR", name: "Argentina", states: [] }, { code: "PE", name: "Peru", states: [] },
+      { code: "NG", name: "Nigeria", states: [] }, { code: "EG", name: "Egypt", states: [] },
+      { code: "KE", name: "Kenya", states: [] }, { code: "GH", name: "Ghana", states: [] },
+      { code: "IL", name: "Israel", states: [] }, { code: "SA", name: "Saudi Arabia", states: [] },
+      { code: "TR", name: "Turkey", states: [] }, { code: "RO", name: "Romania", states: [] },
+      { code: "CZ", name: "Czech Republic", states: [] }, { code: "HU", name: "Hungary", states: [] },
+      { code: "GR", name: "Greece", states: [] }, { code: "HR", name: "Croatia", states: [] },
+    ];
+    const cfg = field.countryStateConfig;
+    const countries = cfg.allowedCountries && cfg.allowedCountries.length > 0
+      ? allCountries.filter((c) => cfg.allowedCountries!.includes(c.code))
+      : allCountries;
+    let parsed: { country?: string; state?: string } = {};
+    try { parsed = typeof value === "string" && value ? JSON.parse(value) : {}; } catch { /* */ }
+    const selectedCountry = countries.find((c) => c.code === parsed.country);
+    const states = selectedCountry?.states ?? [];
+    return (
+      <div className="group">
+        <label className="block text-xs font-semibold text-on-surface-variant uppercase tracking-widest mb-1.5 ml-1">
+          <FieldIcon icon={field.icon} color={primaryColor} />{field.label}
+          {field.required && <span className="ml-1" style={{ color: primaryColor }}>*</span>}
+        </label>
+        {field.hint && <p className="text-xs text-on-surface-variant/60 mb-2 ml-1">{field.hint}</p>}
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <select value={parsed.country ?? ""} onChange={(e) => onChange(JSON.stringify({ country: e.target.value, state: "" }))}
+            className={INPUT_CLS} style={{ ...focusRing, borderColor: errBorder }}>
+            <option value="">Select country...</option>
+            {countries.map((c) => <option key={c.code} value={c.code}>{c.name}</option>)}
+          </select>
+          {states.length > 0 && (
+            <select value={parsed.state ?? ""} onChange={(e) => onChange(JSON.stringify({ ...parsed, state: e.target.value }))}
+              className={INPUT_CLS} style={focusRing}>
+              <option value="">Select state/province...</option>
+              {states.map((s) => <option key={s.code} value={s.code}>{s.name}</option>)}
+            </select>
+          )}
+        </div>
+        {error && <p className="text-sm text-error mt-1.5 sl-fade-up flex items-center gap-1.5"><i className="fa-solid fa-circle-exclamation text-xs flex-shrink-0" />{error}</p>}
+      </div>
+    );
+  }
+
+  /* ── Matrix / Grid ── */
+  if (field.type === "matrix" && field.matrixConfig) {
+    const cfg = field.matrixConfig;
+    let answers: Record<string, string | string[]> = {};
+    try { answers = typeof value === "string" && value ? JSON.parse(value) : {}; } catch { /* */ }
+    const setAnswer = (row: string, col: string) => {
+      const next = { ...answers };
+      if (cfg.multiSelect) {
+        const current = Array.isArray(next[row]) ? (next[row] as string[]) : next[row] ? [next[row] as string] : [];
+        if (current.includes(col)) {
+          next[row] = current.filter((c) => c !== col);
+        } else {
+          next[row] = [...current, col];
+        }
+      } else {
+        next[row] = col;
+      }
+      onChange(JSON.stringify(next));
+    };
+    return (
+      <div className="group">
+        <label className="block text-xs font-semibold text-on-surface-variant uppercase tracking-widest mb-1.5 ml-1">
+          <FieldIcon icon={field.icon} color={primaryColor} />{field.label}
+          {field.required && <span className="ml-1" style={{ color: primaryColor }}>*</span>}
+        </label>
+        {field.hint && <p className="text-xs text-on-surface-variant/60 mb-2 ml-1">{field.hint}</p>}
+        <div className="overflow-x-auto rounded-xl border-2 border-outline-variant/20">
+          <table className="w-full text-sm">
+            <thead>
+              <tr className="border-b border-outline-variant/15">
+                <th className="text-left text-[10px] font-bold text-on-surface-variant uppercase tracking-widest px-4 py-3" />
+                {cfg.columns.map((col) => (
+                  <th key={col} className="text-center text-[10px] font-bold text-on-surface-variant uppercase tracking-widest px-3 py-3">{col}</th>
+                ))}
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-outline-variant/10">
+              {cfg.rows.map((row) => {
+                const rowAnswer = answers[row];
+                const selectedCols = cfg.multiSelect
+                  ? (Array.isArray(rowAnswer) ? rowAnswer : rowAnswer ? [rowAnswer] : [])
+                  : [];
+                return (
+                  <tr key={row} className="hover:bg-surface-container-lowest/50">
+                    <td className="px-4 py-3 text-sm font-medium text-on-surface whitespace-nowrap">{row}</td>
+                    {cfg.columns.map((col) => {
+                      const isSelected = cfg.multiSelect ? selectedCols.includes(col) : rowAnswer === col;
+                      return (
+                        <td key={col} className="px-3 py-3 text-center">
+                          <button type="button" onClick={() => setAnswer(row, col)}
+                            className={`w-5 h-5 ${cfg.multiSelect ? "rounded" : "rounded-full"} border-2 inline-flex items-center justify-center transition-all`}
+                            style={isSelected ? { borderColor: primaryColor, backgroundColor: primaryColor } : { borderColor: "var(--color-outline-variant)" }}>
+                            {isSelected && <i className="fa-solid fa-check text-[9px] text-white" />}
+                          </button>
+                        </td>
+                      );
+                    })}
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+        {error && <p className="text-sm text-error mt-1.5 sl-fade-up flex items-center gap-1.5"><i className="fa-solid fa-circle-exclamation text-xs flex-shrink-0" />{error}</p>}
+      </div>
+    );
+  }
+
+  /* ── Questionnaire / Scoring ── */
+  if (field.type === "questionnaire" && field.questionnaireConfig) {
+    const cfg = field.questionnaireConfig;
+    let answers: Record<string, string> = {};
+    try { answers = typeof value === "string" && value ? JSON.parse(value) : {}; } catch { /* */ }
+    const totalScore = cfg.questions.reduce((sum, q) => {
+      const selected = answers[q.id];
+      const answer = q.answers.find((a) => a.label === selected);
+      return sum + (answer?.score ?? 0);
+    }, 0);
+    const setAnswer = (qId: string, ansLabel: string) => {
+      const next = { ...answers, [qId]: ansLabel };
+      onChange(JSON.stringify(next));
+    };
+    return (
+      <div className="group">
+        <label className="block text-xs font-semibold text-on-surface-variant uppercase tracking-widest mb-1.5 ml-1">
+          <FieldIcon icon={field.icon} color={primaryColor} />{field.label}
+          {field.required && <span className="ml-1" style={{ color: primaryColor }}>*</span>}
+        </label>
+        {field.hint && <p className="text-xs text-on-surface-variant/60 mb-2 ml-1">{field.hint}</p>}
+        <div className="space-y-4">
+          {cfg.questions.map((q, qi) => (
+            <div key={q.id} className="rounded-xl border border-outline-variant/20 p-4 bg-surface-container-lowest/50">
+              <p className="text-sm font-semibold text-on-surface mb-3">
+                <span className="text-xs font-bold mr-2 px-2 py-0.5 rounded-full bg-surface-container-high text-on-surface-variant">{qi + 1}</span>
+                {q.text}
+              </p>
+              <div className="space-y-1.5">
+                {q.answers.map((a) => {
+                  const isSelected = answers[q.id] === a.label;
+                  return (
+                    <label key={a.label}
+                      className="flex items-center gap-3 cursor-pointer py-2.5 px-3.5 rounded-lg border transition-all duration-200"
+                      style={isSelected ? { borderColor: primaryColor, backgroundColor: primaryColor + "08" } : { borderColor: "transparent" }}>
+                      <input type="radio" name={`${field.id}_${q.id}`} value={a.label} checked={isSelected}
+                        onChange={() => setAnswer(q.id, a.label)} className="sr-only" />
+                      <div className="w-4 h-4 rounded-full border-2 shrink-0 flex items-center justify-center transition-all"
+                        style={isSelected ? { borderColor: primaryColor } : { borderColor: "var(--color-outline-variant)" }}>
+                        {isSelected && <div className="w-2 h-2 rounded-full" style={{ backgroundColor: primaryColor }} />}
+                      </div>
+                      <span className="text-sm text-on-surface flex-1">{a.label}</span>
+                      {cfg.showScore && <span className="text-[10px] font-bold text-on-surface-variant/40">{a.score} pts</span>}
+                    </label>
+                  );
+                })}
+              </div>
+            </div>
+          ))}
+        </div>
+        {cfg.showScore && Object.keys(answers).length > 0 && (
+          <div className="mt-3 flex items-center justify-end gap-2 px-1">
+            <span className="text-xs font-semibold text-on-surface-variant">Score:</span>
+            <span className="text-lg font-bold" style={{ color: primaryColor }}>{totalScore}</span>
+          </div>
+        )}
+        {error && <p className="text-sm text-error mt-1.5 sl-fade-up flex items-center gap-1.5"><i className="fa-solid fa-circle-exclamation text-xs flex-shrink-0" />{error}</p>}
+      </div>
+    );
+  }
+
   /* ── Rating / Stars ── */
   if (field.type === "rating") {
     const maxStars = field.ratingConfig?.maxStars ?? 5;

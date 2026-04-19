@@ -994,6 +994,99 @@ function PreviewField({ field, primaryColor, isPhone, previewValue, onPreviewCha
     );
   }
 
+  /* Country / State Picker — preview */
+  if (field.type === "country_state") {
+    return (
+      <div>
+        <label className="block text-xs font-semibold text-on-surface-variant uppercase tracking-widest mb-1.5 ml-1">
+          {field.label}{field.required && <span className="ml-1" style={{ color: primaryColor }}>*</span>}
+        </label>
+        {field.hint && <p className="text-xs text-on-surface-variant/60 mb-2 ml-1">{field.hint}</p>}
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <select className={INPUT_CLS} style={focusRing} defaultValue="">
+            <option value="">Select country...</option>
+            <option value="US">United States</option>
+            <option value="CA">Canada</option>
+            <option value="GB">United Kingdom</option>
+            <option value="AU">Australia</option>
+          </select>
+          <select className={INPUT_CLS} style={focusRing} defaultValue="">
+            <option value="">Select state/province...</option>
+          </select>
+        </div>
+      </div>
+    );
+  }
+
+  /* Matrix / Grid — preview */
+  if (field.type === "matrix" && field.matrixConfig) {
+    const cfg = field.matrixConfig;
+    return (
+      <div>
+        <label className="block text-xs font-semibold text-on-surface-variant uppercase tracking-widest mb-1.5 ml-1">
+          {field.label}{field.required && <span className="ml-1" style={{ color: primaryColor }}>*</span>}
+        </label>
+        {field.hint && <p className="text-xs text-on-surface-variant/60 mb-2 ml-1">{field.hint}</p>}
+        <div className="overflow-x-auto rounded-xl border-2 border-outline-variant/20">
+          <table className="w-full text-sm">
+            <thead>
+              <tr className="border-b border-outline-variant/15">
+                <th className="text-left text-[10px] font-bold text-on-surface-variant uppercase tracking-widest px-4 py-3" />
+                {cfg.columns.map((col) => (
+                  <th key={col} className="text-center text-[10px] font-bold text-on-surface-variant uppercase tracking-widest px-3 py-3">{col}</th>
+                ))}
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-outline-variant/10">
+              {cfg.rows.map((row) => (
+                <tr key={row}>
+                  <td className="px-4 py-3 text-sm font-medium text-on-surface whitespace-nowrap">{row}</td>
+                  {cfg.columns.map((col) => (
+                    <td key={col} className="px-3 py-3 text-center">
+                      <div className={`w-5 h-5 ${cfg.multiSelect ? "rounded" : "rounded-full"} border-2 border-outline-variant/30 inline-block`} />
+                    </td>
+                  ))}
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    );
+  }
+
+  /* Questionnaire / Scoring — preview */
+  if (field.type === "questionnaire" && field.questionnaireConfig) {
+    const cfg = field.questionnaireConfig;
+    return (
+      <div>
+        <label className="block text-xs font-semibold text-on-surface-variant uppercase tracking-widest mb-1.5 ml-1">
+          {field.label}{field.required && <span className="ml-1" style={{ color: primaryColor }}>*</span>}
+        </label>
+        {field.hint && <p className="text-xs text-on-surface-variant/60 mb-2 ml-1">{field.hint}</p>}
+        <div className="space-y-4">
+          {cfg.questions.map((q, qi) => (
+            <div key={q.id} className="rounded-xl border border-outline-variant/20 p-4 bg-surface-container-lowest/50">
+              <p className="text-sm font-semibold text-on-surface mb-3">
+                <span className="text-xs font-bold mr-2 px-2 py-0.5 rounded-full bg-surface-container-high text-on-surface-variant">{qi + 1}</span>
+                {q.text}
+              </p>
+              <div className="space-y-1.5">
+                {q.answers.map((a) => (
+                  <div key={a.label} className="flex items-center gap-3 py-2.5 px-3.5 rounded-lg">
+                    <div className="w-4 h-4 rounded-full border-2 border-outline-variant/30 shrink-0" />
+                    <span className="text-sm text-on-surface flex-1">{a.label}</span>
+                    {cfg.showScore && <span className="text-[10px] font-bold text-on-surface-variant/40">{a.score} pts</span>}
+                  </div>
+                ))}
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    );
+  }
+
   /* Rating / Stars — interactive preview */
   if (field.type === "rating") {
     const maxStars = field.ratingConfig?.maxStars ?? 5;

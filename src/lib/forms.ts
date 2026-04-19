@@ -33,7 +33,10 @@ export type FieldType =
   | "rating"
   | "toggle"
   | "slider"
-  | "social_handles";
+  | "social_handles"
+  | "country_state"
+  | "matrix"
+  | "questionnaire";
 
 /* ââ Package Selector types âââââââââââââââââââââââââââââââ */
 
@@ -385,6 +388,41 @@ export interface SocialHandlesConfig {
   platforms: SocialPlatformId[];
 }
 
+/* -- Country/State Picker types ------------------------------------------- */
+
+export interface CountryStateConfig {
+  /** Restrict to specific country codes (empty = all available) */
+  allowedCountries?: string[];
+  /** Require state/province selection when available */
+  requireState?: boolean;
+}
+
+/* -- Matrix/Grid types ---------------------------------------------------- */
+
+export interface MatrixConfig {
+  /** Row labels (questions/items) */
+  rows: string[];
+  /** Column labels (answer options) */
+  columns: string[];
+  /** Allow multiple selections per row */
+  multiSelect?: boolean;
+}
+
+/* -- Questionnaire/Scoring types ------------------------------------------ */
+
+export interface QuestionnaireQuestion {
+  id: string;
+  text: string;
+  answers: { label: string; score: number }[];
+}
+
+export interface QuestionnaireConfig {
+  /** List of scored questions */
+  questions: QuestionnaireQuestion[];
+  /** Show running score total to the user */
+  showScore?: boolean;
+}
+
 /** Condition to show/hide a field or step based on another field's value */
 export interface ShowCondition {
   /** ID of the field to evaluate (from any step) */
@@ -453,6 +491,12 @@ export interface FieldDef {
   sliderConfig?: SliderConfig;
   /** For social_handles fields — which platforms to show */
   socialHandlesConfig?: SocialHandlesConfig;
+  /** For country_state fields — country/state picker config */
+  countryStateConfig?: CountryStateConfig;
+  /** For matrix fields — grid/table config */
+  matrixConfig?: MatrixConfig;
+  /** For questionnaire fields — scored questions config */
+  questionnaireConfig?: QuestionnaireConfig;
   /** Show this field only when the condition is met */
   showCondition?: ShowCondition;
   /** For file/files fields: optional cloud storage destination */
@@ -645,6 +689,31 @@ export function validateStepData(
           errors[f.id] = "At least one social handle is required";
         }
       } catch { if (f.required) errors[f.id] = "At least one social handle is required"; }
+    }
+    if (f.type === "country_state" && typeof v === "string") {
+      try {
+        const parsed = JSON.parse(v);
+        if (f.required && !parsed.country) errors[f.id] = "Please select a country";
+        else if (f.countryStateConfig?.requireState && parsed.country && !parsed.state) errors[f.id] = "Please select a state/province";
+      } catch { if (f.required) errors[f.id] = "Please select a country"; }
+    }
+    if (f.type === "matrix" && typeof v === "string") {
+      try {
+        const parsed = JSON.parse(v);
+        if (f.required && f.matrixConfig) {
+          const unanswered = f.matrixConfig.rows.filter((row) => !parsed[row]);
+          if (unanswered.length > 0) errors[f.id] = `Please answer all rows (${unanswered.length} remaining)`;
+        }
+      } catch { if (f.required) errors[f.id] = "Please answer all rows"; }
+    }
+    if (f.type === "questionnaire" && typeof v === "string") {
+      try {
+        const parsed = JSON.parse(v);
+        if (f.required && f.questionnaireConfig) {
+          const unanswered = f.questionnaireConfig.questions.filter((q) => !parsed[q.id]);
+          if (unanswered.length > 0) errors[f.id] = `Please answer all questions (${unanswered.length} remaining)`;
+        }
+      } catch { if (f.required) errors[f.id] = "Please answer all questions"; }
     }
   }
   return Object.keys(errors).length ? { ok: false, errors } : { ok: true };
