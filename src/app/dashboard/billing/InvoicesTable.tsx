@@ -1,6 +1,9 @@
 "use client";
 
 import { useState, useMemo } from "react";
+import Pagination from "@/components/Pagination";
+
+const PAGE_SIZE = 20;
 
 export interface Invoice {
   id: string;
@@ -20,6 +23,7 @@ export default function InvoicesTable({ invoices }: { invoices: Invoice[] }) {
   const [statusFilter, setStatusFilter] = useState<StatusFilter>("all");
   const [search, setSearch] = useState("");
   const [sortDir, setSortDir] = useState<"desc" | "asc">("desc");
+  const [page, setPage] = useState(1);
 
   const statuses = useMemo(() => {
     const s = new Set(invoices.map((i) => i.status));
@@ -48,6 +52,16 @@ export default function InvoicesTable({ invoices }: { invoices: Invoice[] }) {
     });
     return list;
   }, [invoices, statusFilter, search, sortDir]);
+
+  const paginatedInvoices = useMemo(() => {
+    const start = (page - 1) * PAGE_SIZE;
+    return filtered.slice(start, start + PAGE_SIZE);
+  }, [filtered, page]);
+
+  useMemo(() => {
+    const maxPage = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
+    if (page > maxPage) setPage(1);
+  }, [filtered.length, page]);
 
   const statusBadge = (status: string) => {
     const map: Record<string, string> = {
@@ -137,7 +151,7 @@ export default function InvoicesTable({ invoices }: { invoices: Invoice[] }) {
               </tr>
             </thead>
             <tbody className="divide-y divide-outline-variant/[0.06]">
-              {filtered.map((inv) => (
+              {paginatedInvoices.map((inv) => (
                 <tr
                   key={inv.id}
                   className="hover:bg-primary/[0.02] transition-colors group"
@@ -197,10 +211,14 @@ export default function InvoicesTable({ invoices }: { invoices: Invoice[] }) {
       )}
 
       {filtered.length > 0 && (
-        <div className="mt-4 pt-3 border-t border-outline-variant/[0.06] flex items-center justify-between text-xs text-on-surface-variant/50">
-          <span>
-            Showing {filtered.length} of {invoices.length} invoice{invoices.length !== 1 ? "s" : ""}
-          </span>
+        <div className="mt-4 pt-3 border-t border-outline-variant/[0.06]">
+          <Pagination
+            currentPage={page}
+            totalItems={filtered.length}
+            pageSize={PAGE_SIZE}
+            onPageChange={(p) => setPage(p)}
+            itemLabel="invoices"
+          />
         </div>
       )}
     </section>

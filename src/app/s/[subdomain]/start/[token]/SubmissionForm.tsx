@@ -3226,7 +3226,7 @@ function CelestialField({
     const usStates = field.addressConfig.region === "us" ? (COUNTRIES_DATA.find((c) => c.code === "US")?.states ?? []) : [];
 
     // Determine which provider to use: field-level override > workspace-level prop
-    const resolvedProvider = field.addressConfig.autocompleteProvider ?? geocodingProvider ?? "google";
+    const resolvedProvider = field.addressConfig.autocompleteProvider ?? geocodingProvider ?? "openstreetmap";
 
     // Google Places autocomplete ref
     const autocompleteRef = useRef<google.maps.places.Autocomplete | null>(null);

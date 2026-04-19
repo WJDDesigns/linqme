@@ -6,6 +6,7 @@ import AdminPlanChanger from "./AdminPlanChanger";
 import RefundButton from "./RefundButton";
 import SetupStripeButton from "./SetupStripeButton";
 import PlanManager from "./PlanManager";
+import BillingTabs from "./BillingTabs";
 
 const TIER_BADGES: Record<string, { label: string; color: string; bg: string; border: string }> = {
   free: { label: "Free", color: "text-on-surface-variant/60", bg: "bg-surface-container-high", border: "border-outline-variant/15" },
@@ -137,21 +138,10 @@ export default async function AdminBillingPage() {
     plan_changed: "fa-arrow-right-arrow-left text-primary",
   };
 
-  return (
-    <div className="max-w-5xl mx-auto px-4 sm:px-6 md:px-10 py-8 space-y-8">
-      <header>
-        <Link href="/dashboard/admin" className="text-xs text-on-surface-variant/60 hover:text-primary transition-colors">
-          <i className="fa-solid fa-arrow-left text-[10px] mr-1" /> Platform
-        </Link>
-        <h1 className="mt-2 text-3xl font-extrabold font-headline tracking-tight text-on-surface">
-          Billing &amp; Subscriptions
-        </h1>
-        <p className="text-sm text-on-surface-variant mt-1">
-          Manage customer plans, view revenue metrics, and handle refunds.
-        </p>
-      </header>
-
-      {/* ── Quick Links ── */}
+  /* ─── Tab: General ─── */
+  const generalContent = (
+    <>
+      {/* Quick Links */}
       <div className="flex items-center gap-3">
         <Link
           href="/dashboard/admin/billing/coupons"
@@ -162,7 +152,7 @@ export default async function AdminBillingPage() {
         </Link>
       </div>
 
-      {/* ── Revenue Metrics ── */}
+      {/* Revenue Metrics */}
       <section className="grid grid-cols-2 md:grid-cols-4 gap-4">
         <MetricCard label="MRR" value={`$${(mrr / 100).toLocaleString()}`} icon="fa-chart-line" />
         <MetricCard label="Active Subscriptions" value={String((activeSubs ?? []).length)} icon="fa-credit-card" />
@@ -170,7 +160,7 @@ export default async function AdminBillingPage() {
         <MetricCard label="Churned (this mo.)" value={String(canceledThisMonth ?? 0)} icon="fa-arrow-trend-down" />
       </section>
 
-      {/* ── Tier Breakdown ── */}
+      {/* Tier Breakdown */}
       <section className="glass-panel rounded-2xl border border-outline-variant/15 p-6">
         <h2 className="text-xs font-bold text-on-surface-variant uppercase tracking-widest mb-4">
           Plan Distribution
@@ -196,7 +186,7 @@ export default async function AdminBillingPage() {
         </div>
       </section>
 
-      {/* ── Customer Plan Management ── */}
+      {/* Customer Plan Management */}
       <section className="glass-panel rounded-2xl border border-outline-variant/15 overflow-hidden">
         <div className="px-6 py-4 border-b border-outline-variant/10">
           <h2 className="text-xs font-bold text-on-surface-variant uppercase tracking-widest">
@@ -239,7 +229,7 @@ export default async function AdminBillingPage() {
         </div>
       </section>
 
-      {/* ── Active Subscriptions ── */}
+      {/* Active Subscriptions */}
       {(subscriptions ?? []).length > 0 && (
         <section className="glass-panel rounded-2xl border border-outline-variant/15 overflow-hidden">
           <div className="px-6 py-4 border-b border-outline-variant/10">
@@ -281,7 +271,7 @@ export default async function AdminBillingPage() {
         </section>
       )}
 
-      {/* ── Recent Invoices ── */}
+      {/* Recent Invoices */}
       {(recentInvoices ?? []).length > 0 && (
         <section className="glass-panel rounded-2xl border border-outline-variant/15 overflow-hidden">
           <div className="px-6 py-4 border-b border-outline-variant/10">
@@ -323,14 +313,49 @@ export default async function AdminBillingPage() {
           </div>
         </section>
       )}
+    </>
+  );
 
-      {/* ── Billing Activity Log ── */}
-      {(recentEvents ?? []).length > 0 && (
+  /* ─── Tab: Manage Plans ─── */
+  const plansContent = (
+    <>
+      <section className="glass-panel rounded-2xl border border-outline-variant/15 overflow-hidden">
+        <div className="px-6 py-4 border-b border-outline-variant/10">
+          <h2 className="text-xs font-bold text-on-surface-variant uppercase tracking-widest">
+            Manage Plans
+          </h2>
+          <p className="text-xs text-on-surface-variant/60 mt-0.5">
+            Add, edit, or remove plans. Changes auto-sync with Stripe (creates products/prices, archives old prices).
+          </p>
+        </div>
+        <PlanManager plans={dbPlans} />
+      </section>
+
+      {/* Stripe Setup */}
+      <section className="glass-panel rounded-2xl border border-outline-variant/15 p-6">
+        <h2 className="text-xs font-bold text-on-surface-variant uppercase tracking-widest mb-1">
+          Stripe Configuration
+        </h2>
+        <p className="text-xs text-on-surface-variant/60 mb-4">
+          Initialize Stripe products and prices. Run this once per Stripe account to create the linqme subscription products.
+        </p>
+        <SetupStripeButton />
+      </section>
+    </>
+  );
+
+  /* ─── Tab: Activity ─── */
+  const activityContent = (
+    <>
+      {(recentEvents ?? []).length > 0 ? (
         <section className="glass-panel rounded-2xl border border-outline-variant/15 overflow-hidden">
           <div className="px-6 py-4 border-b border-outline-variant/10">
             <h2 className="text-xs font-bold text-on-surface-variant uppercase tracking-widest">
               Billing Activity
             </h2>
+            <p className="text-xs text-on-surface-variant/60 mt-0.5">
+              Recent billing events across all customers.
+            </p>
           </div>
           <div className="divide-y divide-outline-variant/5">
             {(recentEvents ?? []).map((evt) => (
@@ -353,31 +378,34 @@ export default async function AdminBillingPage() {
             ))}
           </div>
         </section>
-      )}
-
-      {/* ── Plan Management ── */}
-      <section className="glass-panel rounded-2xl border border-outline-variant/15 overflow-hidden">
-        <div className="px-6 py-4 border-b border-outline-variant/10">
-          <h2 className="text-xs font-bold text-on-surface-variant uppercase tracking-widest">
-            Manage Plans
-          </h2>
-          <p className="text-xs text-on-surface-variant/60 mt-0.5">
-            Add, edit, or remove plans. Changes auto-sync with Stripe (creates products/prices, archives old prices).
-          </p>
+      ) : (
+        <div className="text-center py-16">
+          <i className="fa-solid fa-clock-rotate-left text-4xl text-on-surface-variant/20 mb-4" />
+          <p className="text-on-surface-variant/60 text-sm">No billing activity recorded yet.</p>
         </div>
-        <PlanManager plans={dbPlans} />
-      </section>
+      )}
+    </>
+  );
 
-      {/* ── Stripe Setup ── */}
-      <section className="glass-panel rounded-2xl border border-outline-variant/15 p-6">
-        <h2 className="text-xs font-bold text-on-surface-variant uppercase tracking-widest mb-1">
-          Stripe Configuration
-        </h2>
-        <p className="text-xs text-on-surface-variant/60 mb-4">
-          Initialize Stripe products and prices. Run this once per Stripe account to create the linqme subscription products.
+  return (
+    <div className="max-w-5xl mx-auto px-4 sm:px-6 md:px-10 py-8 space-y-6">
+      <header>
+        <Link href="/dashboard/admin" className="text-xs text-on-surface-variant/60 hover:text-primary transition-colors">
+          <i className="fa-solid fa-arrow-left text-[10px] mr-1" /> Platform
+        </Link>
+        <h1 className="mt-2 text-3xl font-extrabold font-headline tracking-tight text-on-surface">
+          Billing &amp; Subscriptions
+        </h1>
+        <p className="text-sm text-on-surface-variant mt-1">
+          Manage customer plans, view revenue metrics, and handle refunds.
         </p>
-        <SetupStripeButton />
-      </section>
+      </header>
+
+      <BillingTabs
+        generalContent={generalContent}
+        plansContent={plansContent}
+        activityContent={activityContent}
+      />
     </div>
   );
 }

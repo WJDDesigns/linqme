@@ -3,6 +3,9 @@
 import { useState, useTransition, useMemo } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
+import Pagination from "@/components/Pagination";
+
+const PAGE_SIZE = 25;
 import {
   deleteSubmissionAction,
   bulkDeleteSubmissionsAction,
@@ -63,6 +66,7 @@ export default function EntriesList({ submissions, forms, isSuperadmin }: Props)
   const [isPending, startTransition] = useTransition();
   const [confirmDelete, setConfirmDelete] = useState<string | null>(null);
   const [confirmBulkDelete, setConfirmBulkDelete] = useState(false);
+  const [page, setPage] = useState(1);
 
   const filtered = useMemo(() => {
     let list = submissions;
@@ -91,6 +95,17 @@ export default function EntriesList({ submissions, forms, isSuperadmin }: Props)
 
     return list;
   }, [submissions, formFilter, statusFilter, search, sortBy, sortDir]);
+
+  const paginatedEntries = useMemo(() => {
+    const start = (page - 1) * PAGE_SIZE;
+    return filtered.slice(start, start + PAGE_SIZE);
+  }, [filtered, page]);
+
+  // Reset page when filters reduce results
+  useMemo(() => {
+    const maxPage = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
+    if (page > maxPage) setPage(1);
+  }, [filtered.length, page]);
 
   const toggleSort = (col: typeof sortBy) => {
     if (sortBy === col) setSortDir((d) => (d === "asc" ? "desc" : "asc"));
@@ -324,7 +339,7 @@ export default function EntriesList({ submissions, forms, isSuperadmin }: Props)
                 </tr>
               </thead>
               <tbody>
-                {filtered.map((row) => (
+                {paginatedEntries.map((row) => (
                   <tr
                     key={row.id}
                     className="border-b border-outline-variant/[0.04] hover:bg-surface-container-high/40 transition-colors group"
@@ -402,11 +417,15 @@ export default function EntriesList({ submissions, forms, isSuperadmin }: Props)
             </table>
           </div>
 
-          {/* Footer count */}
-          <div className="px-4 py-3 border-t border-outline-variant/[0.06] text-xs text-on-surface-variant/50">
-            {filtered.length} entr{filtered.length === 1 ? "y" : "ies"}
-            {formFilter ? ` for ${activeFormName}` : ""}
-            {submissions.length !== filtered.length && ` (${submissions.length} total)`}
+          {/* Footer with pagination */}
+          <div className="px-4 py-3 border-t border-outline-variant/[0.06]">
+            <Pagination
+              currentPage={page}
+              totalItems={filtered.length}
+              pageSize={PAGE_SIZE}
+              onPageChange={(p) => setPage(p)}
+              itemLabel="entries"
+            />
           </div>
         </div>
       )}

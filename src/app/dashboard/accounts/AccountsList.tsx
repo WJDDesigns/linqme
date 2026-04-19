@@ -3,7 +3,10 @@
 import { useState, useMemo, useTransition } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import Pagination from "@/components/Pagination";
 import { createAccountAction } from "./actions";
+
+const PAGE_SIZE = 25;
 
 interface AccountRow {
   id: string;
@@ -39,6 +42,7 @@ export default function AccountsList({ accounts }: { accounts: AccountRow[] }) {
   const [newName, setNewName] = useState("");
   const [newPhone, setNewPhone] = useState("");
   const [newCompany, setNewCompany] = useState("");
+  const [page, setPage] = useState(1);
 
   function handleSort(col: typeof sortCol) {
     if (sortCol === col) {
@@ -84,6 +88,19 @@ export default function AccountsList({ accounts }: { accounts: AccountRow[] }) {
 
     return list;
   }, [accounts, search, statusFilter, sortCol, sortDir]);
+
+  // Reset page when filters change
+  const filteredLen = filtered.length;
+  const paginatedAccounts = useMemo(() => {
+    const start = (page - 1) * PAGE_SIZE;
+    return filtered.slice(start, start + PAGE_SIZE);
+  }, [filtered, page]);
+
+  // Reset to page 1 if filters reduce results below current page
+  useMemo(() => {
+    const maxPage = Math.max(1, Math.ceil(filteredLen / PAGE_SIZE));
+    if (page > maxPage) setPage(1);
+  }, [filteredLen, page]);
 
   function handleCreateAccount() {
     if (!newEmail.trim()) return;
@@ -282,7 +299,7 @@ export default function AccountsList({ accounts }: { accounts: AccountRow[] }) {
               </tr>
             </thead>
             <tbody className="divide-y divide-outline-variant/5">
-              {filtered.map((a) => (
+              {paginatedAccounts.map((a) => (
                 <tr
                   key={a.id}
                   className="group hover:bg-primary/[0.03] transition-colors cursor-pointer"
@@ -327,6 +344,19 @@ export default function AccountsList({ accounts }: { accounts: AccountRow[] }) {
               ))}
             </tbody>
           </table>
+        </div>
+      )}
+
+      {/* Pagination */}
+      {filtered.length > 0 && (
+        <div className="pt-2">
+          <Pagination
+            currentPage={page}
+            totalItems={filtered.length}
+            pageSize={PAGE_SIZE}
+            onPageChange={(p) => setPage(p)}
+            itemLabel="accounts"
+          />
         </div>
       )}
     </div>

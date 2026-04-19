@@ -2160,7 +2160,7 @@ function FieldSettingsPanel({ field, onUpdate, onClose, allFields, hasAI, hasPay
                     <button key={m} type="button" onClick={() => onUpdate({ addressConfig: { ...field.addressConfig, mode: m } })}
                       className={`px-3 py-2 rounded-lg text-xs font-medium border transition-all ${active ? "border-primary bg-primary/10 text-primary" : "border-outline-variant/20 text-on-surface-variant hover:bg-surface-container"}`}>
                       <i className={`fa-solid ${m === "manual" ? "fa-pen" : "fa-magnifying-glass-location"} mr-1.5`} />
-                      {m === "manual" ? "Manual Entry" : "Google Autocomplete"}
+                      {m === "manual" ? "Manual Entry" : "Autocomplete"}
                     </button>
                   );
                 })}

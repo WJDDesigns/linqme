@@ -2,6 +2,9 @@
 
 import { useState, useMemo } from "react";
 import Link from "next/link";
+import Pagination from "@/components/Pagination";
+
+const PAGE_SIZE = 25;
 
 interface EntryRow {
   id: string;
@@ -71,6 +74,7 @@ function flattenValue(val: unknown): string {
 export default function EntriesTable({ entries, fieldMap, formName, primaryColor }: Props) {
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
+  const [page, setPage] = useState(1);
 
   const filtered = useMemo(() => {
     return entries.filter((e) => {
@@ -84,6 +88,16 @@ export default function EntriesTable({ entries, fieldMap, formName, primaryColor
       return true;
     });
   }, [entries, search, statusFilter]);
+
+  const paginatedEntries = useMemo(() => {
+    const start = (page - 1) * PAGE_SIZE;
+    return filtered.slice(start, start + PAGE_SIZE);
+  }, [filtered, page]);
+
+  useMemo(() => {
+    const maxPage = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
+    if (page > maxPage) setPage(1);
+  }, [filtered.length, page]);
 
   const statuses = useMemo(() => {
     const s = new Set(entries.map((e) => e.status));
@@ -184,7 +198,7 @@ export default function EntriesTable({ entries, fieldMap, formName, primaryColor
               </tr>
             </thead>
             <tbody className="divide-y divide-outline-variant/10">
-              {filtered.map((entry) => (
+              {paginatedEntries.map((entry) => (
                 <tr key={entry.id} className="hover:bg-surface-container/30 transition-colors">
                   <td className="px-5 py-3.5">
                     <div className="font-semibold text-on-surface">{entry.client_name || "—"}</div>
@@ -215,6 +229,17 @@ export default function EntriesTable({ entries, fieldMap, formName, primaryColor
               ))}
             </tbody>
           </table>
+        </div>
+
+        {/* Pagination */}
+        <div className="px-5 py-3 border-t border-outline-variant/10">
+          <Pagination
+            currentPage={page}
+            totalItems={filtered.length}
+            pageSize={PAGE_SIZE}
+            onPageChange={(p) => setPage(p)}
+            itemLabel="entries"
+          />
         </div>
       </div>
     </div>

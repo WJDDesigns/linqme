@@ -21,7 +21,7 @@ const GEOCODING_PROVIDERS = [
     name: "OpenStreetMap (Nominatim)",
     icon: "fa-solid fa-map",
     color: "text-[#7ebc6f]",
-    description: "Free, open-source geocoding. No API key required for low-volume use.",
+    description: "Free, open-source geocoding. Always available with no setup required.",
     url: "https://nominatim.org/release-docs/latest/api/Search/",
     urlLabel: "View docs",
     fields: [] as { key: string; label: string; placeholder: string; type: "text" | "password" }[],
@@ -145,26 +145,35 @@ export default function GeocodingIntegrationsSection({
           const isConnected = !!integration;
           const isEditing = editingProvider === provider.id;
           const needsKey = provider.fields.length > 0;
+          // OSM is always enabled -- it works with zero config
+          const isAlwaysOn = provider.id === "openstreetmap";
+          const showActive = isAlwaysOn || isConnected;
 
           return (
             <div
               key={provider.id}
               className={`rounded-xl border p-5 transition-all ${
-                isConnected
+                showActive
                   ? "border-tertiary/20 bg-tertiary/[0.03]"
                   : "border-outline-variant/10 bg-surface-container-lowest/30"
               }`}
             >
               <div className="flex items-start gap-3 mb-3">
                 <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${
-                  isConnected ? "bg-tertiary/10" : "bg-surface-container-high/50"
+                  showActive ? "bg-tertiary/10" : "bg-surface-container-high/50"
                 }`}>
-                  <i className={`${provider.icon} text-lg ${isConnected ? provider.color : "text-on-surface-variant/40"}`} />
+                  <i className={`${provider.icon} text-lg ${showActive ? provider.color : "text-on-surface-variant/40"}`} />
                 </div>
                 <div className="flex-1 min-w-0">
                   <h3 className="text-sm font-bold text-on-surface">{provider.name}</h3>
                   <p className="text-[10px] text-on-surface-variant/60 mt-0.5">{provider.description}</p>
-                  {isConnected && (
+                  {isAlwaysOn && (
+                    <p className="text-[10px] text-tertiary font-semibold uppercase tracking-widest mt-1">
+                      <i className="fa-solid fa-circle-check text-[8px] mr-1" />
+                      Enabled by default
+                    </p>
+                  )}
+                  {!isAlwaysOn && isConnected && (
                     <p className="text-[10px] text-tertiary font-semibold uppercase tracking-widest mt-1">
                       <i className="fa-solid fa-circle-check text-[8px] mr-1" />
                       Connected
@@ -173,7 +182,23 @@ export default function GeocodingIntegrationsSection({
                 </div>
               </div>
 
-              {isEditing ? (
+              {/* OSM card -- always on, just show docs link */}
+              {isAlwaysOn && (
+                <div className="flex gap-2">
+                  <a
+                    href={provider.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex-1 px-3 py-2 text-xs font-bold text-on-surface-variant border border-outline-variant/15 rounded-lg hover:bg-surface-container-high/50 transition-colors text-center"
+                  >
+                    <i className="fa-solid fa-arrow-up-right-from-square mr-1 text-[9px]" />
+                    {provider.urlLabel}
+                  </a>
+                </div>
+              )}
+
+              {/* Google card -- needs API key to connect */}
+              {!isAlwaysOn && isEditing && (
                 <div className="space-y-2">
                   {needsKey && (
                     <input
@@ -185,19 +210,13 @@ export default function GeocodingIntegrationsSection({
                       autoFocus
                     />
                   )}
-                  {!needsKey && (
-                    <p className="text-[10px] text-on-surface-variant/60 px-1 py-2">
-                      <i className="fa-solid fa-circle-info mr-1 text-primary/60" />
-                      No API key required. OpenStreetMap Nominatim is free for reasonable usage volumes.
-                    </p>
-                  )}
                   <div className="flex gap-2">
                     <button
                       onClick={() => handleConnect(provider.id)}
                       disabled={(needsKey && !apiKey) || saving}
                       className="flex-1 px-3 py-2 text-xs font-bold text-on-primary bg-primary rounded-lg disabled:opacity-40"
                     >
-                      {saving ? "Connecting..." : "Enable"}
+                      {saving ? "Connecting..." : "Connect"}
                     </button>
                     <button
                       onClick={() => { setEditingProvider(null); setApiKey(""); }}
@@ -207,7 +226,9 @@ export default function GeocodingIntegrationsSection({
                     </button>
                   </div>
                 </div>
-              ) : (
+              )}
+
+              {!isAlwaysOn && !isEditing && (
                 <div className="flex gap-2">
                   {isConnected ? (
                     <>
