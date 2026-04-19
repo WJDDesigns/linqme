@@ -1977,8 +1977,24 @@ function BudgetAllocatorField({ field, value, error, onChange, primaryColor }: {
   };
 
   const getMax = (channelId: string) => {
-    if (isConstrained && totalBudget > 0) return totalBudget;
-    return cfg.maxPerChannel ?? 100000;
+    if (isConstrained && totalBudget > 0) {
+      // Cap at remaining budget + what this channel already has,
+      // so the slider range reflects what's actually available to drag through
+      const othersTotal = Object.entries(localAlloc)
+        .filter(([id]) => id !== channelId)
+        .reduce((s, [, v]) => s + v, 0);
+      return Math.max(totalBudget - othersTotal, 0);
+    }
+    return cfg.maxPerChannel ?? 10000;
+  };
+
+  const getStep = (max: number) => {
+    if (max <= 100) return 1;
+    if (max <= 1000) return 5;
+    if (max <= 5000) return 25;
+    if (max <= 10000) return 50;
+    if (max <= 50000) return 100;
+    return 500;
   };
 
   return (
@@ -2018,8 +2034,9 @@ function BudgetAllocatorField({ field, value, error, onChange, primaryColor }: {
       {/* Channel sliders */}
       <div className="space-y-3">
         {cfg.channels.map((ch) => {
-          const val = localAlloc[ch.id] ?? 0;
+          const rawVal = localAlloc[ch.id] ?? 0;
           const max = getMax(ch.id);
+          const val = Math.min(rawVal, max);
           const pct = max > 0 ? (val / max) * 100 : 0;
           const displayVal = cfg.showAsPercentage && isConstrained && totalBudget > 0
             ? `${Math.round((val / totalBudget) * 100)}%`
@@ -2041,8 +2058,8 @@ function BudgetAllocatorField({ field, value, error, onChange, primaryColor }: {
                   type="range"
                   min={0}
                   max={max}
-                  step={max > 1000 ? 100 : max > 100 ? 10 : 1}
-                  value={val}
+                  step={getStep(max)}
+                  value={Math.min(val, max)}
                   onChange={(e) => handleSliderChange(ch.id, Number(e.target.value))}
                   className="absolute inset-0 w-full opacity-0 cursor-pointer"
                   style={{ height: "8px" }}
