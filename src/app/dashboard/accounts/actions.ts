@@ -106,6 +106,14 @@ export async function updateAccountAction(
   },
 ) {
   await authorizeAccount(accountId);
+
+  if (fields.status !== undefined) {
+    const validStatuses = ["active", "inactive", "archived", "suspended"];
+    if (!validStatuses.includes(fields.status)) {
+      return { ok: false, error: "Invalid account status." };
+    }
+  }
+
   const admin = createAdminClient();
 
   const update: Record<string, unknown> = {};

@@ -35,6 +35,16 @@ export async function createStatusUpdateAction(data: {
   if (!data.title.trim()) return { ok: false, error: "Title is required." };
   if (!data.message.trim()) return { ok: false, error: "Message is required." };
 
+  const validSeverities: StatusSeverity[] = ["operational", "degraded", "partial_outage", "major_outage", "maintenance", "info"];
+  if (!validSeverities.includes(data.severity)) {
+    return { ok: false, error: "Invalid severity value." };
+  }
+
+  const validComponents: StatusComponent[] = ["platform", "api", "database", "storage", "authentication", "email", "forms"];
+  if (!validComponents.includes(data.component)) {
+    return { ok: false, error: "Invalid component value." };
+  }
+
   const admin = createAdminClient();
   const { error } = await admin.from("status_updates").insert({
     title: data.title.trim(),

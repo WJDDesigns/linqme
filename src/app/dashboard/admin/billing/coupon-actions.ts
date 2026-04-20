@@ -17,6 +17,11 @@ interface CouponInput {
 export async function createCouponAction(input: CouponInput) {
   await requireSuperadmin();
 
+  const validTypes = ["percentage", "fixed"] as const;
+  if (!validTypes.includes(input.type as (typeof validTypes)[number])) {
+    throw new Error("Invalid coupon type. Must be 'percentage' or 'fixed'.");
+  }
+
   const code = input.code.trim().toUpperCase();
   if (!code) throw new Error("Coupon code is required.");
   if (input.value <= 0) throw new Error("Discount value must be positive.");

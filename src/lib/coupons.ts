@@ -114,17 +114,40 @@ export async function validateCoupon(
 }
 
 /**
- * Record a coupon redemption and increment the counter.
+ * Atomically record a coupon redemption and increment the counter.
+ * Uses an RPC function to perform an atomic conditional increment:
+ *   UPDATE coupons SET times_redeemed = times_redeemed + 1
+ *   WHERE id = ? AND (max_redemptions IS NULL OR times_redeemed < max_redemptions)
+ * Returns true if the redemption succeeded, false if the coupon was
+ * already fully redeemed (race condition safe).
  */
 export async function redeemCoupon(
   couponId: string,
   partnerId: string,
   planSlug: string,
   discountCents: number,
-): Promise<void> {
+): Promise<boolean> {
   const admin = createAdminClient();
 
-  // Record redemption
+  // Atomic conditional increment via Supabase RPC.
+  // The DB function `increment_coupon_redemption` runs:
+  //   UPDATE coupons
+  //   SET times_redeemed = times_redeemed + 1
+  //   WHERE id = p_coupon_id
+  //     AND (max_redemptions IS NULL OR times_redeemed < max_redemptions)
+  //   RETURNING id;
+  // It returns the number of rows affected (0 or 1).
+  const { data: rowsAffected, error: rpcError } = await admin.rpc(
+    "increment_coupon_redemption",
+    { p_coupon_id: couponId },
+  );
+
+  // If the RPC returns 0 affected rows, the coupon was already fully redeemed.
+  if (rpcError || rowsAffected === 0) {
+    return false;
+  }
+
+  // Record the redemption details
   await admin.from("coupon_redemptions").insert({
     coupon_id: couponId,
     partner_id: partnerId,
@@ -132,17 +155,5 @@ export async function redeemCoupon(
     discount: discountCents,
   });
 
-  // Increment counter
-  const { data: coupon } = await admin
-    .from("coupons")
-    .select("times_redeemed")
-    .eq("id", couponId)
-    .maybeSingle();
-
-  if (coupon) {
-    await admin
-      .from("coupons")
-      .update({ times_redeemed: (coupon.times_redeemed ?? 0) + 1 })
-      .eq("id", couponId);
-  }
+  return true;
 }

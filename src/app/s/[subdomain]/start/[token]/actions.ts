@@ -69,6 +69,13 @@ export async function saveStepAction(
 
   const merged = allData;
 
+  // Guard against excessively large payloads (1 MB limit)
+  const MAX_PAYLOAD_BYTES = 1_048_576; // 1 MB
+  const serialized = JSON.stringify(merged);
+  if (new TextEncoder().encode(serialized).byteLength > MAX_PAYLOAD_BYTES) {
+    return { errors: { _form: "Submission data is too large. Please reduce the size of your inputs." } };
+  }
+
   const admin = createAdminClient();
   const { error } = await admin
     .from("submissions")

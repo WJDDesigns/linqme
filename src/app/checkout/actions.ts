@@ -125,13 +125,17 @@ export async function createCheckoutSessionAction(
     }
     stripeCouponId = validatedCoupon.coupon.stripeCouponId;
 
-    // Record redemption
-    await redeemCoupon(
+    // Atomically record redemption — returns false if the coupon was
+    // fully redeemed between validation and this point (race condition).
+    const redeemed = await redeemCoupon(
       validatedCoupon.coupon.id,
       account.id,
       planSlug,
       validatedCoupon.discountCents,
     );
+    if (!redeemed) {
+      return { error: "This coupon has reached its redemption limit." };
+    }
   }
 
   // Get or create Stripe customer
