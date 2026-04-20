@@ -5,6 +5,7 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import type { FormSchema } from "@/lib/forms";
 import FormEditorShell from "../FormEditorShell";
 import FormSettingsPanel from "./FormSettingsPanel";
+import FormWebhooksPanel from "../FormWebhooksPanel";
 
 interface PageProps {
   params: Promise<{ formId: string }>;
@@ -91,6 +92,19 @@ export default async function FormEditorPage({ params }: PageProps) {
     .limit(1);
   const hasPaymentGateway = (paymentIntegrations ?? []).length > 0;
 
+  // Load webhooks for this form
+  const { data: webhookRows } = await admin
+    .from("form_webhooks")
+    .select("id, name, provider, webhook_url, is_enabled, field_map, signing_secret, created_at")
+    .eq("partner_form_id", formId)
+    .eq("partner_id", account.id)
+    .order("created_at", { ascending: true });
+  const webhooks = (webhookRows ?? []) as {
+    id: string; name: string; provider: string; webhook_url: string;
+    is_enabled: boolean; field_map: { fieldId: string; key: string }[] | null;
+    signing_secret: string | null; created_at: string;
+  }[];
+
   return (
     <div className="flex flex-col h-screen">
       <FormEditorShell
@@ -103,6 +117,15 @@ export default async function FormEditorPage({ params }: PageProps) {
         isActive={pf.is_active ?? true}
         hasAI={hasAI}
         hasPaymentGateway={hasPaymentGateway}
+        webhooksSlot={
+          schema ? (
+            <FormWebhooksPanel
+              formId={formId}
+              schema={schema}
+              initialWebhooks={webhooks}
+            />
+          ) : undefined
+        }
         settingsSlot={
           <FormSettingsPanel
             formId={formId}

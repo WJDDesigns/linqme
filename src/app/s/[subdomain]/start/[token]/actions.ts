@@ -7,6 +7,7 @@ import type { FormSchema } from "@/lib/forms";
 import { validateStepData } from "@/lib/forms";
 import { notifyPartnerOfSubmission } from "@/lib/notifications";
 import { syncFilesToCloud } from "@/lib/cloud/sync";
+import { fireWebhooks } from "@/lib/webhooks";
 
 async function loadSubmissionByToken(token: string) {
   const admin = createAdminClient();
@@ -131,6 +132,13 @@ export async function submitSubmissionAction(token: string) {
     await syncFilesToCloud(sub.id);
   } catch (err) {
     console.error("[cloud-sync] failed:", err);
+  }
+
+  // Fire webhooks (Zapier, Make, custom) -- fire-and-forget
+  try {
+    await fireWebhooks(sub.id);
+  } catch (err) {
+    console.error("[webhooks] failed:", err);
   }
 
   redirect(await absoluteUrl(`/thanks/${token}`));
