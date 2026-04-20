@@ -3676,6 +3676,473 @@ function CelestialField({
     return <SocialHandlesField field={field} value={value} error={error} onChange={onChange} primaryColor={primaryColor} />;
   }
 
+  /* ── Property Details (Real Estate) ── */
+  if (field.type === "property_details" && field.propertyDetailsConfig) {
+    const cfg = field.propertyDetailsConfig;
+    const fields = cfg.fields ?? ["property_type", "bedrooms", "bathrooms", "sqft", "year_built"];
+    const data: Record<string, string> = typeof value === "string" && value ? (() => { try { return JSON.parse(value); } catch { return {}; } })() : (typeof value === "object" && value ? value as Record<string, string> : {});
+    const update = (key: string, val: string) => onChange(JSON.stringify({ ...data, [key]: val }));
+    const propertyTypes = [
+      { value: "single_family", label: "Single Family" }, { value: "condo", label: "Condo" },
+      { value: "townhouse", label: "Townhouse" }, { value: "multi_family", label: "Multi-Family" },
+      { value: "land", label: "Land" }, { value: "commercial", label: "Commercial" },
+      { value: "mobile", label: "Mobile Home" }, { value: "other", label: "Other" },
+    ];
+    return (
+      <div className="group">
+        <label className="block text-xs font-semibold text-on-surface-variant uppercase tracking-widest mb-1.5 ml-1">
+          <FieldIcon icon={field.icon} color={primaryColor} />{field.label}
+          {field.required && <span className="ml-1" style={{ color: primaryColor }}>*</span>}
+        </label>
+        {field.hint && <p className="text-xs text-on-surface-variant/60 mb-2 ml-1">{field.hint}</p>}
+        <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+          {fields.includes("property_type") && (
+            <div className="col-span-2 sm:col-span-3">
+              <label className="text-[10px] font-medium text-on-surface-variant/60 uppercase tracking-wider mb-1 block">Property Type</label>
+              <select value={data.property_type || ""} onChange={(e) => update("property_type", e.target.value)} className={INPUT_CLS} style={focusRing}>
+                <option value="">Select type...</option>
+                {propertyTypes.map((t) => <option key={t.value} value={t.value}>{t.label}</option>)}
+              </select>
+            </div>
+          )}
+          {fields.includes("bedrooms") && (
+            <div>
+              <label className="text-[10px] font-medium text-on-surface-variant/60 uppercase tracking-wider mb-1 block"><i className="fa-solid fa-bed mr-1" />Bedrooms</label>
+              <input type="number" min={0} max={50} value={data.bedrooms || ""} onChange={(e) => update("bedrooms", e.target.value)} placeholder="0" className={INPUT_CLS} style={focusRing} />
+            </div>
+          )}
+          {fields.includes("bathrooms") && (
+            <div>
+              <label className="text-[10px] font-medium text-on-surface-variant/60 uppercase tracking-wider mb-1 block"><i className="fa-solid fa-bath mr-1" />Bathrooms</label>
+              <input type="number" min={0} max={50} step={0.5} value={data.bathrooms || ""} onChange={(e) => update("bathrooms", e.target.value)} placeholder="0" className={INPUT_CLS} style={focusRing} />
+            </div>
+          )}
+          {fields.includes("sqft") && (
+            <div>
+              <label className="text-[10px] font-medium text-on-surface-variant/60 uppercase tracking-wider mb-1 block"><i className="fa-solid fa-ruler-combined mr-1" />Sq. Ft.</label>
+              <input type="number" min={0} value={data.sqft || ""} onChange={(e) => update("sqft", e.target.value)} placeholder="0" className={INPUT_CLS} style={focusRing} />
+            </div>
+          )}
+          {fields.includes("lot_size") && (
+            <div>
+              <label className="text-[10px] font-medium text-on-surface-variant/60 uppercase tracking-wider mb-1 block"><i className="fa-solid fa-maximize mr-1" />Lot Size</label>
+              <input type="text" value={data.lot_size || ""} onChange={(e) => update("lot_size", e.target.value)} placeholder="e.g. 0.25 acres" className={INPUT_CLS} style={focusRing} />
+            </div>
+          )}
+          {fields.includes("year_built") && (
+            <div>
+              <label className="text-[10px] font-medium text-on-surface-variant/60 uppercase tracking-wider mb-1 block"><i className="fa-solid fa-calendar mr-1" />Year Built</label>
+              <input type="number" min={1800} max={2030} value={data.year_built || ""} onChange={(e) => update("year_built", e.target.value)} placeholder="2020" className={INPUT_CLS} style={focusRing} />
+            </div>
+          )}
+          {fields.includes("parking") && (
+            <div>
+              <label className="text-[10px] font-medium text-on-surface-variant/60 uppercase tracking-wider mb-1 block"><i className="fa-solid fa-car mr-1" />Parking</label>
+              <input type="number" min={0} max={20} value={data.parking || ""} onChange={(e) => update("parking", e.target.value)} placeholder="0" className={INPUT_CLS} style={focusRing} />
+            </div>
+          )}
+          {fields.includes("stories") && (
+            <div>
+              <label className="text-[10px] font-medium text-on-surface-variant/60 uppercase tracking-wider mb-1 block"><i className="fa-solid fa-building mr-1" />Stories</label>
+              <input type="number" min={1} max={100} value={data.stories || ""} onChange={(e) => update("stories", e.target.value)} placeholder="1" className={INPUT_CLS} style={focusRing} />
+            </div>
+          )}
+          {(fields.includes("price") || cfg.showPrice) && (
+            <div className="col-span-2 sm:col-span-1">
+              <label className="text-[10px] font-medium text-on-surface-variant/60 uppercase tracking-wider mb-1 block"><i className="fa-solid fa-tag mr-1" />Price</label>
+              <div className="relative">
+                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant/40 text-sm">{cfg.currency || "$"}</span>
+                <input type="number" min={0} value={data.price || ""} onChange={(e) => update("price", e.target.value)} placeholder="0" className={`${INPUT_CLS} pl-7`} style={focusRing} />
+              </div>
+            </div>
+          )}
+        </div>
+        {error && <p className="text-sm text-error mt-1.5 sl-fade-up flex items-center gap-1.5"><i className="fa-solid fa-circle-exclamation text-xs flex-shrink-0" />{error}</p>}
+      </div>
+    );
+  }
+
+  /* ── Insurance Info (Healthcare) ── */
+  if (field.type === "insurance_info" && field.insuranceInfoConfig) {
+    const cfg = field.insuranceInfoConfig;
+    const fields = cfg.fields ?? ["provider", "policy_number", "group_number", "subscriber_name"];
+    const data: Record<string, string> = typeof value === "string" && value ? (() => { try { return JSON.parse(value); } catch { return {}; } })() : (typeof value === "object" && value ? value as Record<string, string> : {});
+    const update = (key: string, val: string) => onChange(JSON.stringify({ ...data, [key]: val }));
+    const providers = cfg.providers ?? ["Aetna", "Anthem", "Blue Cross Blue Shield", "Cigna", "Humana", "Kaiser Permanente", "UnitedHealthcare"];
+    const relationships = ["Self", "Spouse", "Child", "Other"];
+    const planTypes = ["PPO", "HMO", "EPO", "POS", "HDHP", "Medicare", "Medicaid"];
+    return (
+      <div className="group">
+        <label className="block text-xs font-semibold text-on-surface-variant uppercase tracking-widest mb-1.5 ml-1">
+          <FieldIcon icon={field.icon} color={primaryColor} />{field.label}
+          {field.required && <span className="ml-1" style={{ color: primaryColor }}>*</span>}
+        </label>
+        {field.hint && <p className="text-xs text-on-surface-variant/60 mb-2 ml-1">{field.hint}</p>}
+        <div className="space-y-3">
+          {fields.includes("provider") && (
+            <div>
+              <label className="text-[10px] font-medium text-on-surface-variant/60 uppercase tracking-wider mb-1 block">Insurance Provider</label>
+              <select value={data.provider || ""} onChange={(e) => update("provider", e.target.value)} className={INPUT_CLS} style={focusRing}>
+                <option value="">Select provider...</option>
+                {providers.map((p) => <option key={p} value={p}>{p}</option>)}
+                <option value="other">Other</option>
+              </select>
+              {data.provider === "other" && <input type="text" value={data.provider_other || ""} onChange={(e) => update("provider_other", e.target.value)} placeholder="Enter provider name" className={`${INPUT_CLS} mt-2`} style={focusRing} />}
+            </div>
+          )}
+          {fields.includes("plan_type") && (
+            <div>
+              <label className="text-[10px] font-medium text-on-surface-variant/60 uppercase tracking-wider mb-1 block">Plan Type</label>
+              <select value={data.plan_type || ""} onChange={(e) => update("plan_type", e.target.value)} className={INPUT_CLS} style={focusRing}>
+                <option value="">Select plan type...</option>
+                {planTypes.map((p) => <option key={p} value={p}>{p}</option>)}
+              </select>
+            </div>
+          )}
+          <div className="grid grid-cols-2 gap-3">
+            {fields.includes("policy_number") && (
+              <div>
+                <label className="text-[10px] font-medium text-on-surface-variant/60 uppercase tracking-wider mb-1 block">Policy Number</label>
+                <input type="text" value={data.policy_number || ""} onChange={(e) => update("policy_number", e.target.value)} placeholder="Policy #" className={INPUT_CLS} style={focusRing} />
+              </div>
+            )}
+            {fields.includes("group_number") && (
+              <div>
+                <label className="text-[10px] font-medium text-on-surface-variant/60 uppercase tracking-wider mb-1 block">Group Number</label>
+                <input type="text" value={data.group_number || ""} onChange={(e) => update("group_number", e.target.value)} placeholder="Group #" className={INPUT_CLS} style={focusRing} />
+              </div>
+            )}
+          </div>
+          {fields.includes("subscriber_name") && (
+            <div>
+              <label className="text-[10px] font-medium text-on-surface-variant/60 uppercase tracking-wider mb-1 block">Subscriber Name</label>
+              <input type="text" value={data.subscriber_name || ""} onChange={(e) => update("subscriber_name", e.target.value)} placeholder="Primary subscriber" className={INPUT_CLS} style={focusRing} />
+            </div>
+          )}
+          {fields.includes("subscriber_dob") && (
+            <div>
+              <label className="text-[10px] font-medium text-on-surface-variant/60 uppercase tracking-wider mb-1 block">Subscriber Date of Birth</label>
+              <input type="date" value={data.subscriber_dob || ""} onChange={(e) => update("subscriber_dob", e.target.value)} className={INPUT_CLS} style={focusRing} />
+            </div>
+          )}
+          {fields.includes("relationship") && (
+            <div>
+              <label className="text-[10px] font-medium text-on-surface-variant/60 uppercase tracking-wider mb-1 block">Relationship to Subscriber</label>
+              <select value={data.relationship || ""} onChange={(e) => update("relationship", e.target.value)} className={INPUT_CLS} style={focusRing}>
+                <option value="">Select...</option>
+                {relationships.map((r) => <option key={r} value={r}>{r}</option>)}
+              </select>
+            </div>
+          )}
+        </div>
+        {error && <p className="text-sm text-error mt-1.5 sl-fade-up flex items-center gap-1.5"><i className="fa-solid fa-circle-exclamation text-xs flex-shrink-0" />{error}</p>}
+      </div>
+    );
+  }
+
+  /* ── Guest RSVP (Events) ── */
+  if (field.type === "guest_rsvp" && field.guestRsvpConfig) {
+    const cfg = field.guestRsvpConfig;
+    const data: Record<string, string> = typeof value === "string" && value ? (() => { try { return JSON.parse(value); } catch { return {}; } })() : (typeof value === "object" && value ? value as Record<string, string> : {});
+    const update = (key: string, val: string) => onChange(JSON.stringify({ ...data, [key]: val }));
+    const attending = data.attending;
+    return (
+      <div className="group">
+        <label className="block text-xs font-semibold text-on-surface-variant uppercase tracking-widest mb-1.5 ml-1">
+          <FieldIcon icon={field.icon} color={primaryColor} />{field.label}
+          {field.required && <span className="ml-1" style={{ color: primaryColor }}>*</span>}
+        </label>
+        {field.hint && <p className="text-xs text-on-surface-variant/60 mb-2 ml-1">{field.hint}</p>}
+        <div className="space-y-4">
+          {/* Attending */}
+          <div>
+            <label className="text-[10px] font-medium text-on-surface-variant/60 uppercase tracking-wider mb-2 block">Will you be attending?</label>
+            <div className="flex gap-3">
+              {[{ v: "yes", label: "Attending", icon: "fa-circle-check" }, { v: "no", label: "Declining", icon: "fa-circle-xmark" }].map(({ v, label, icon }) => (
+                <button key={v} type="button" onClick={() => update("attending", v)}
+                  className="flex-1 flex items-center justify-center gap-2 py-3 px-4 rounded-xl border-2 text-sm font-medium transition-all duration-200"
+                  style={attending === v ? { borderColor: primaryColor, backgroundColor: primaryColor + "10", color: primaryColor } : { borderColor: "var(--color-outline-variant)" }}>
+                  <i className={`fa-solid ${icon}`} />{label}
+                </button>
+              ))}
+            </div>
+          </div>
+          {attending === "yes" && (
+            <>
+              {/* Meal selection */}
+              {cfg.mealOptions && cfg.mealOptions.length > 0 && (
+                <div>
+                  <label className="text-[10px] font-medium text-on-surface-variant/60 uppercase tracking-wider mb-2 block">Meal Preference</label>
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                    {cfg.mealOptions.map((meal) => (
+                      <button key={meal.label} type="button" onClick={() => update("meal", meal.label)}
+                        className="flex flex-col items-center gap-1.5 py-3 px-2 rounded-xl border-2 text-xs font-medium transition-all"
+                        style={data.meal === meal.label ? { borderColor: primaryColor, backgroundColor: primaryColor + "10", color: primaryColor } : { borderColor: "var(--color-outline-variant)" }}>
+                        {meal.icon && <i className={`fa-solid ${meal.icon} text-lg`} />}
+                        {meal.label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+              {/* Dietary restrictions */}
+              {cfg.showDietary && (
+                <div>
+                  <label className="text-[10px] font-medium text-on-surface-variant/60 uppercase tracking-wider mb-2 block">Dietary Restrictions</label>
+                  <div className="flex flex-wrap gap-2">
+                    {(cfg.dietaryOptions ?? []).map((d) => {
+                      const selected = (data.dietary || "").split("||").includes(d);
+                      return (
+                        <button key={d} type="button" onClick={() => {
+                          const current = data.dietary ? data.dietary.split("||").filter(Boolean) : [];
+                          const next = selected ? current.filter((x) => x !== d) : [...current, d];
+                          update("dietary", next.join("||"));
+                        }}
+                          className="px-3 py-1.5 rounded-lg border text-xs font-medium transition-all"
+                          style={selected ? { borderColor: primaryColor, backgroundColor: primaryColor + "10", color: primaryColor } : { borderColor: "var(--color-outline-variant)" }}>
+                          {d}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
+              {/* Plus-ones */}
+              {cfg.allowPlusOnes && (
+                <div>
+                  <label className="text-[10px] font-medium text-on-surface-variant/60 uppercase tracking-wider mb-1 block">Additional Guests</label>
+                  <input type="number" min={0} max={cfg.maxPlusOnes ?? 5} value={data.plus_ones || "0"} onChange={(e) => update("plus_ones", e.target.value)} className={`${INPUT_CLS} w-24`} style={focusRing} />
+                </div>
+              )}
+              {/* Notes */}
+              {cfg.showNotes && (
+                <div>
+                  <label className="text-[10px] font-medium text-on-surface-variant/60 uppercase tracking-wider mb-1 block">Special Requests / Notes</label>
+                  <textarea value={data.notes || ""} onChange={(e) => update("notes", e.target.value)} rows={2} placeholder="Any special accommodations..." className={INPUT_CLS} style={focusRing} />
+                </div>
+              )}
+            </>
+          )}
+        </div>
+        {error && <p className="text-sm text-error mt-1.5 sl-fade-up flex items-center gap-1.5"><i className="fa-solid fa-circle-exclamation text-xs flex-shrink-0" />{error}</p>}
+      </div>
+    );
+  }
+
+  /* ── Room / Service Selector (Hospitality) ── */
+  if (field.type === "room_selector" && field.roomSelectorConfig) {
+    const cfg = field.roomSelectorConfig;
+    const selectedIds: string[] = cfg.multiSelect
+      ? (typeof value === "string" && value ? value.split("||") : [])
+      : (typeof value === "string" && value ? [value] : []);
+    const cols = cfg.columns ?? 3;
+    const gridCls = cols === 2 ? "grid-cols-1 sm:grid-cols-2" : cols === 4 ? "grid-cols-1 sm:grid-cols-2 lg:grid-cols-4" : "grid-cols-1 sm:grid-cols-2 lg:grid-cols-3";
+    return (
+      <div className="group">
+        <label className="block text-xs font-semibold text-on-surface-variant uppercase tracking-widest mb-1.5 ml-1">
+          <FieldIcon icon={field.icon} color={primaryColor} />{field.label}
+          {field.required && <span className="ml-1" style={{ color: primaryColor }}>*</span>}
+        </label>
+        {field.hint && <p className="text-xs text-on-surface-variant/60 mb-2 ml-1">{field.hint}</p>}
+        <div className={`grid ${gridCls} gap-4`}>
+          {cfg.rooms.map((room) => {
+            const isSelected = selectedIds.includes(room.id);
+            return (
+              <button key={room.id} type="button" onClick={() => {
+                if (cfg.multiSelect) {
+                  const next = isSelected ? selectedIds.filter((id) => id !== room.id) : [...selectedIds, room.id];
+                  onChange(next.join("||"));
+                } else {
+                  onChange(isSelected ? "" : room.id);
+                }
+              }}
+                className="relative flex flex-col text-left p-5 rounded-2xl border-2 transition-all duration-200 hover:scale-[1.01]"
+                style={isSelected ? { borderColor: primaryColor, backgroundColor: primaryColor + "08", boxShadow: `0 0 0 1px ${primaryColor}40` } : { borderColor: "var(--color-outline-variant)" }}>
+                {isSelected && <div className="absolute top-3 right-3 w-6 h-6 rounded-full flex items-center justify-center" style={{ backgroundColor: primaryColor }}><i className="fa-solid fa-check text-white text-xs" /></div>}
+                <div className="flex items-center gap-2 mb-2">
+                  {room.icon && <i className={`fa-solid ${room.icon} text-lg`} style={{ color: isSelected ? primaryColor : "var(--color-on-surface-variant)" }} />}
+                  <span className="font-semibold text-on-surface">{room.name}</span>
+                </div>
+                {room.description && <p className="text-xs text-on-surface-variant/70 mb-3">{room.description}</p>}
+                {room.amenities && room.amenities.length > 0 && (
+                  <div className="flex flex-wrap gap-1.5 mb-3">
+                    {room.amenities.map((a) => <span key={a} className="px-2 py-0.5 rounded-md bg-surface-container-highest/50 text-[10px] text-on-surface-variant">{a}</span>)}
+                  </div>
+                )}
+                <div className="mt-auto flex items-baseline gap-1">
+                  {cfg.showPricing && room.pricePerNight != null && (
+                    <span className="text-lg font-bold" style={{ color: primaryColor }}>{cfg.currency || "$"}{room.pricePerNight}<span className="text-xs font-normal text-on-surface-variant/60">/night</span></span>
+                  )}
+                  {room.maxGuests && <span className="text-[10px] text-on-surface-variant/50 ml-auto"><i className="fa-solid fa-user mr-0.5" />Up to {room.maxGuests}</span>}
+                </div>
+              </button>
+            );
+          })}
+        </div>
+        {error && <p className="text-sm text-error mt-1.5 sl-fade-up flex items-center gap-1.5"><i className="fa-solid fa-circle-exclamation text-xs flex-shrink-0" />{error}</p>}
+      </div>
+    );
+  }
+
+  /* ── Loan Calculator (Finance) ── */
+  if (field.type === "loan_calculator" && field.loanCalculatorConfig) {
+    const cfg = field.loanCalculatorConfig;
+    const data: Record<string, number> = typeof value === "string" && value ? (() => { try { return JSON.parse(value); } catch { return {}; } })() : (typeof value === "object" && value ? value as Record<string, number> : {});
+    const amount = data.amount ?? cfg.defaultAmount ?? 250000;
+    const rate = data.rate ?? cfg.defaultRate ?? 6.5;
+    const term = data.term ?? cfg.defaultTerm ?? 360;
+    const updateCalc = (key: string, val: number) => {
+      const next = { amount, rate, term, [key]: val };
+      // Calculate monthly payment using standard amortization formula
+      const r = next.rate / 100 / 12;
+      const n = next.term;
+      const monthly = r > 0 ? (next.amount * r * Math.pow(1 + r, n)) / (Math.pow(1 + r, n) - 1) : next.amount / n;
+      onChange(JSON.stringify({ ...next, monthly: Math.round(monthly * 100) / 100, total: Math.round(monthly * n * 100) / 100 }));
+    };
+    const r = rate / 100 / 12;
+    const monthly = r > 0 ? (amount * r * Math.pow(1 + r, term)) / (Math.pow(1 + r, term) - 1) : amount / term;
+    const totalPayment = monthly * term;
+    const totalInterest = totalPayment - amount;
+    const currency = cfg.currency || "$";
+    const fmt = (n: number) => n.toLocaleString("en-US", { minimumFractionDigits: 0, maximumFractionDigits: 0 });
+    return (
+      <div className="group">
+        <label className="block text-xs font-semibold text-on-surface-variant uppercase tracking-widest mb-1.5 ml-1">
+          <FieldIcon icon={field.icon} color={primaryColor} />{field.label}
+          {field.required && <span className="ml-1" style={{ color: primaryColor }}>*</span>}
+        </label>
+        {field.hint && <p className="text-xs text-on-surface-variant/60 mb-2 ml-1">{field.hint}</p>}
+        <div className="rounded-2xl border-2 border-outline-variant/20 p-5 space-y-5">
+          {/* Monthly payment display */}
+          <div className="text-center py-4 rounded-xl" style={{ backgroundColor: primaryColor + "10" }}>
+            <p className="text-xs text-on-surface-variant uppercase tracking-wider mb-1">Estimated Monthly Payment</p>
+            <p className="text-3xl font-bold" style={{ color: primaryColor }}>{currency}{fmt(monthly)}<span className="text-sm font-normal text-on-surface-variant/60">/mo</span></p>
+          </div>
+          {/* Loan amount slider */}
+          <div>
+            <div className="flex items-center justify-between mb-1">
+              <label className="text-[10px] font-medium text-on-surface-variant/60 uppercase tracking-wider">Loan Amount</label>
+              <span className="text-sm font-bold" style={{ color: primaryColor }}>{currency}{fmt(amount)}</span>
+            </div>
+            <input type="range" min={cfg.minAmount ?? 10000} max={cfg.maxAmount ?? 1000000} step={1000} value={amount} onChange={(e) => updateCalc("amount", Number(e.target.value))} className="w-full accent-primary" style={{ accentColor: primaryColor }} />
+            <div className="flex justify-between text-[10px] text-on-surface-variant/40">
+              <span>{currency}{fmt(cfg.minAmount ?? 10000)}</span>
+              <span>{currency}{fmt(cfg.maxAmount ?? 1000000)}</span>
+            </div>
+          </div>
+          {/* Interest rate slider */}
+          <div>
+            <div className="flex items-center justify-between mb-1">
+              <label className="text-[10px] font-medium text-on-surface-variant/60 uppercase tracking-wider">Interest Rate</label>
+              <span className="text-sm font-bold" style={{ color: primaryColor }}>{rate}%</span>
+            </div>
+            <input type="range" min={(cfg.minRate ?? 1) * 10} max={(cfg.maxRate ?? 15) * 10} step={1} value={rate * 10} onChange={(e) => updateCalc("rate", Number(e.target.value) / 10)} className="w-full" style={{ accentColor: primaryColor }} />
+            <div className="flex justify-between text-[10px] text-on-surface-variant/40">
+              <span>{cfg.minRate ?? 1}%</span>
+              <span>{cfg.maxRate ?? 15}%</span>
+            </div>
+          </div>
+          {/* Term selector */}
+          <div>
+            <label className="text-[10px] font-medium text-on-surface-variant/60 uppercase tracking-wider mb-2 block">Loan Term</label>
+            <div className="flex gap-2 flex-wrap">
+              {(cfg.termOptions ?? [60, 120, 180, 240, 360]).map((t) => (
+                <button key={t} type="button" onClick={() => updateCalc("term", t)}
+                  className="px-4 py-2 rounded-xl border-2 text-xs font-medium transition-all"
+                  style={term === t ? { borderColor: primaryColor, backgroundColor: primaryColor + "10", color: primaryColor } : { borderColor: "var(--color-outline-variant)" }}>
+                  {t >= 12 ? `${t / 12} yr` : `${t} mo`}
+                </button>
+              ))}
+            </div>
+          </div>
+          {/* Summary */}
+          <div className="grid grid-cols-2 gap-3 pt-3 border-t border-outline-variant/10">
+            <div className="text-center">
+              <p className="text-[10px] text-on-surface-variant/50 uppercase">Total Interest</p>
+              <p className="text-sm font-semibold text-on-surface">{currency}{fmt(totalInterest)}</p>
+            </div>
+            <div className="text-center">
+              <p className="text-[10px] text-on-surface-variant/50 uppercase">Total Payment</p>
+              <p className="text-sm font-semibold text-on-surface">{currency}{fmt(totalPayment)}</p>
+            </div>
+          </div>
+        </div>
+        {error && <p className="text-sm text-error mt-1.5 sl-fade-up flex items-center gap-1.5"><i className="fa-solid fa-circle-exclamation text-xs flex-shrink-0" />{error}</p>}
+      </div>
+    );
+  }
+
+  /* ── Case Intake (Legal) ── */
+  if (field.type === "case_intake" && field.caseIntakeConfig) {
+    const cfg = field.caseIntakeConfig;
+    const data: Record<string, string> = typeof value === "string" && value ? (() => { try { return JSON.parse(value); } catch { return {}; } })() : (typeof value === "object" && value ? value as Record<string, string> : {});
+    const update = (key: string, val: string) => onChange(JSON.stringify({ ...data, [key]: val }));
+    const US_STATES = ["Alabama","Alaska","Arizona","Arkansas","California","Colorado","Connecticut","Delaware","Florida","Georgia","Hawaii","Idaho","Illinois","Indiana","Iowa","Kansas","Kentucky","Louisiana","Maine","Maryland","Massachusetts","Michigan","Minnesota","Mississippi","Missouri","Montana","Nebraska","Nevada","New Hampshire","New Jersey","New Mexico","New York","North Carolina","North Dakota","Ohio","Oklahoma","Oregon","Pennsylvania","Rhode Island","South Carolina","South Dakota","Tennessee","Texas","Utah","Vermont","Virginia","Washington","West Virginia","Wisconsin","Wyoming","District of Columbia"];
+    const jurisdictions = cfg.jurisdictions ?? US_STATES;
+    return (
+      <div className="group">
+        <label className="block text-xs font-semibold text-on-surface-variant uppercase tracking-widest mb-1.5 ml-1">
+          <FieldIcon icon={field.icon} color={primaryColor} />{field.label}
+          {field.required && <span className="ml-1" style={{ color: primaryColor }}>*</span>}
+        </label>
+        {field.hint && <p className="text-xs text-on-surface-variant/60 mb-2 ml-1">{field.hint}</p>}
+        <div className="space-y-3">
+          {/* Case type */}
+          {cfg.caseTypes && cfg.caseTypes.length > 0 && (
+            <div>
+              <label className="text-[10px] font-medium text-on-surface-variant/60 uppercase tracking-wider mb-1 block"><i className="fa-solid fa-gavel mr-1" />Case Type</label>
+              <select value={data.case_type || ""} onChange={(e) => update("case_type", e.target.value)} className={INPUT_CLS} style={focusRing}>
+                <option value="">Select case type...</option>
+                {cfg.caseTypes.map((t) => <option key={t} value={t}>{t}</option>)}
+              </select>
+            </div>
+          )}
+          <div className="grid grid-cols-2 gap-3">
+            {/* Jurisdiction */}
+            {cfg.showJurisdiction && (
+              <div>
+                <label className="text-[10px] font-medium text-on-surface-variant/60 uppercase tracking-wider mb-1 block"><i className="fa-solid fa-location-dot mr-1" />Jurisdiction / State</label>
+                <select value={data.jurisdiction || ""} onChange={(e) => update("jurisdiction", e.target.value)} className={INPUT_CLS} style={focusRing}>
+                  <option value="">Select...</option>
+                  {jurisdictions.map((j) => <option key={j} value={j}>{j}</option>)}
+                </select>
+              </div>
+            )}
+            {/* Date of incident */}
+            {cfg.showDateOfIncident && (
+              <div>
+                <label className="text-[10px] font-medium text-on-surface-variant/60 uppercase tracking-wider mb-1 block"><i className="fa-solid fa-calendar-day mr-1" />Date of Incident</label>
+                <input type="date" value={data.date_of_incident || ""} onChange={(e) => update("date_of_incident", e.target.value)} className={INPUT_CLS} style={focusRing} />
+              </div>
+            )}
+          </div>
+          {/* Opposing party */}
+          {cfg.showOpposingParty && (
+            <div>
+              <label className="text-[10px] font-medium text-on-surface-variant/60 uppercase tracking-wider mb-1 block"><i className="fa-solid fa-user mr-1" />Opposing Party</label>
+              <input type="text" value={data.opposing_party || ""} onChange={(e) => update("opposing_party", e.target.value)} placeholder="Name of opposing party (if known)" className={INPUT_CLS} style={focusRing} />
+            </div>
+          )}
+          {/* Description */}
+          {cfg.showDescription && (
+            <div>
+              <label className="text-[10px] font-medium text-on-surface-variant/60 uppercase tracking-wider mb-1 block"><i className="fa-solid fa-pen mr-1" />Case Summary</label>
+              <textarea value={data.description || ""} onChange={(e) => update("description", e.target.value)} rows={3} placeholder="Brief description of the case..." className={INPUT_CLS} style={focusRing} />
+            </div>
+          )}
+          {/* Statute warning */}
+          {cfg.showStatuteWarning && data.date_of_incident && (
+            <div className="flex items-start gap-2 p-3 rounded-xl bg-warning/10 border border-warning/20">
+              <i className="fa-solid fa-triangle-exclamation text-warning text-sm mt-0.5" />
+              <p className="text-xs text-on-surface-variant">Please note: statutes of limitations vary by case type and jurisdiction. Consult with an attorney promptly to protect your rights.</p>
+            </div>
+          )}
+        </div>
+        {error && <p className="text-sm text-error mt-1.5 sl-fade-up flex items-center gap-1.5"><i className="fa-solid fa-circle-exclamation text-xs flex-shrink-0" />{error}</p>}
+      </div>
+    );
+  }
+
   const isMultiCheckbox = field.type === "checkbox" && field.options && field.options.length > 0;
   /* Parse multi-checkbox value as array */
   const checkedValues: string[] = isMultiCheckbox

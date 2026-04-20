@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useCallback, useRef, useEffect } from "react";
-import type { FormSchema, StepDef, FieldDef, FieldType, PackageConfig, PackageOption, PackageFeature, PackageRule, PackageLayout, RepeaterConfig, RepeaterSubField, AssetCollectionConfig, AssetCategory, SiteStructureConfig, FeatureSelectorConfig, FeatureOption, GoalBuilderConfig, GoalOption, GoalRefinement, ApprovalConfig, PaymentConfig, PaymentProvider, CaptchaConfig, CaptchaProvider, RatingConfig, SliderConfig, SocialHandlesConfig, SocialPlatformId, MatrixConfig, QuestionnaireConfig, QuestionnaireQuestion } from "@/lib/forms";
+import type { FormSchema, StepDef, FieldDef, FieldType, PackageConfig, PackageOption, PackageFeature, PackageRule, PackageLayout, RepeaterConfig, RepeaterSubField, AssetCollectionConfig, AssetCategory, SiteStructureConfig, FeatureSelectorConfig, FeatureOption, GoalBuilderConfig, GoalOption, GoalRefinement, ApprovalConfig, PaymentConfig, PaymentProvider, CaptchaConfig, CaptchaProvider, RatingConfig, SliderConfig, SocialHandlesConfig, SocialPlatformId, MatrixConfig, QuestionnaireConfig, QuestionnaireQuestion, PropertyDetailsConfig, InsuranceInfoConfig, GuestRsvpConfig, RoomSelectorConfig, RoomOption, LoanCalculatorConfig, CaseIntakeConfig } from "@/lib/forms";
 import { SOCIAL_PLATFORMS, GRID_COLUMNS, MIN_COL_SPAN, getMinColSpan, getEffectiveColSpan } from "@/lib/forms";
 import { COUNTRIES } from "@/data/countries";
 import { PROVIDER_META, type CloudProvider } from "@/lib/cloud/providers";
@@ -122,6 +122,19 @@ const FIELD_CATALOGUE: FieldTypeInfo[] = [
   { type: "consent", label: "Consent / Terms", icon: "fa-file-contract", group: "advanced", category: "advanced", description: "Agreement with checkbox",
     tags: ["legal", "healthcare", "finance", "ecommerce"] },
   { type: "captcha", label: "Bot Protection", icon: "fa-shield-halved", group: "advanced", category: "advanced", description: "reCAPTCHA or Cloudflare Turnstile" },
+  // ── Industry-Specific ──
+  { type: "property_details", label: "Property Details", icon: "fa-house-chimney", group: "advanced", category: "smart", description: "Beds, baths, sqft, lot & property type",
+    tags: ["real_estate"] },
+  { type: "insurance_info", label: "Insurance Info", icon: "fa-id-card", group: "advanced", category: "smart", description: "Provider, policy, group & subscriber",
+    tags: ["healthcare"] },
+  { type: "guest_rsvp", label: "Guest RSVP", icon: "fa-champagne-glasses", group: "advanced", category: "smart", description: "Attendance, meal choice & dietary needs",
+    tags: ["events", "hospitality"] },
+  { type: "room_selector", label: "Room / Service", icon: "fa-bed", group: "advanced", category: "smart", description: "Room or service cards with amenities & pricing",
+    tags: ["hospitality", "events"] },
+  { type: "loan_calculator", label: "Loan Calculator", icon: "fa-calculator", group: "advanced", category: "smart", description: "Interactive loan amount, rate & term calculator",
+    tags: ["finance", "real_estate"] },
+  { type: "case_intake", label: "Case Intake", icon: "fa-scale-balanced", group: "advanced", category: "smart", description: "Case type, jurisdiction & incident details",
+    tags: ["legal"] },
 ];
 
 function iconFor(type: FieldType) {
@@ -374,6 +387,77 @@ function makeField(type: FieldType, label: string): FieldDef {
         { id: `q_${uid()}`, text: "What is your primary business model?", answers: [{ label: "Service-based", score: 1 }, { label: "Product-based", score: 2 }, { label: "Subscription", score: 3 }, { label: "Marketplace", score: 4 }] },
       ],
       showScore: false,
+    };
+  }
+  if (type === "property_details") {
+    base.label = "Property Details";
+    base.propertyDetailsConfig = {
+      fields: ["property_type", "bedrooms", "bathrooms", "sqft", "lot_size", "year_built", "parking"],
+      showPrice: false,
+      currency: "$",
+    };
+  }
+  if (type === "insurance_info") {
+    base.label = "Insurance Information";
+    base.insuranceInfoConfig = {
+      fields: ["provider", "plan_type", "policy_number", "group_number", "subscriber_name", "relationship"],
+      providers: ["Aetna", "Anthem", "Blue Cross Blue Shield", "Cigna", "Humana", "Kaiser Permanente", "Medicaid", "Medicare", "MetLife", "UnitedHealthcare"],
+    };
+  }
+  if (type === "guest_rsvp") {
+    base.label = "RSVP";
+    base.guestRsvpConfig = {
+      mealOptions: [
+        { label: "Chicken", icon: "fa-drumstick-bite" },
+        { label: "Fish", icon: "fa-fish" },
+        { label: "Vegetarian", icon: "fa-leaf" },
+        { label: "Vegan", icon: "fa-seedling" },
+      ],
+      allowPlusOnes: true,
+      maxPlusOnes: 3,
+      showDietary: true,
+      showNotes: true,
+      dietaryOptions: ["Gluten-Free", "Dairy-Free", "Nut Allergy", "Shellfish Allergy", "Kosher", "Halal"],
+    };
+  }
+  if (type === "room_selector") {
+    base.label = "Select Your Room";
+    base.roomSelectorConfig = {
+      rooms: [
+        { id: `rm_${uid()}`, name: "Standard Room", description: "Comfortable room with essential amenities", amenities: ["Wi-Fi", "TV", "Air Conditioning"], pricePerNight: 129, maxGuests: 2, icon: "fa-bed" },
+        { id: `rm_${uid()}`, name: "Deluxe Suite", description: "Spacious suite with premium furnishings", amenities: ["Wi-Fi", "TV", "Mini Bar", "Room Service", "City View"], pricePerNight: 249, maxGuests: 3, icon: "fa-star" },
+        { id: `rm_${uid()}`, name: "Presidential Suite", description: "Our finest accommodation with luxury touches", amenities: ["Wi-Fi", "TV", "Mini Bar", "Room Service", "Ocean View", "Jacuzzi", "Butler"], pricePerNight: 599, maxGuests: 4, icon: "fa-crown" },
+      ],
+      showPricing: true,
+      currency: "$",
+      multiSelect: false,
+      columns: 3,
+    };
+  }
+  if (type === "loan_calculator") {
+    base.label = "Loan Calculator";
+    base.loanCalculatorConfig = {
+      minAmount: 10000,
+      maxAmount: 1000000,
+      defaultAmount: 250000,
+      minRate: 1,
+      maxRate: 15,
+      defaultRate: 6.5,
+      termOptions: [60, 120, 180, 240, 360],
+      defaultTerm: 360,
+      currency: "$",
+      calculatorLabel: "Mortgage Calculator",
+    };
+  }
+  if (type === "case_intake") {
+    base.label = "Case Information";
+    base.caseIntakeConfig = {
+      caseTypes: ["Personal Injury", "Family Law", "Criminal Defense", "Estate Planning", "Business Law", "Real Estate", "Employment Law", "Immigration", "Bankruptcy", "Intellectual Property"],
+      showJurisdiction: true,
+      showDateOfIncident: true,
+      showOpposingParty: true,
+      showDescription: true,
+      showStatuteWarning: false,
     };
   }
   return base;

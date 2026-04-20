@@ -1323,6 +1323,165 @@ function PreviewField({ field, primaryColor, isPhone, previewValue, onPreviewCha
     );
   }
 
+  /* Property Details — preview */
+  if (field.type === "property_details") {
+    return (
+      <div>
+        <label className="block text-xs font-semibold text-on-surface-variant uppercase tracking-widest mb-1.5 ml-1">
+          {field.label}{field.required && <span className="ml-1" style={{ color: primaryColor }}>*</span>}
+        </label>
+        {field.hint && <p className="text-xs text-on-surface-variant/60 mb-2 ml-1">{field.hint}</p>}
+        <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+          {(field.propertyDetailsConfig?.fields ?? ["property_type", "bedrooms", "bathrooms", "sqft"]).map((f) => (
+            <div key={f} className={f === "property_type" ? "col-span-2 sm:col-span-3" : ""}>
+              <label className="text-[10px] font-medium text-on-surface-variant/60 uppercase tracking-wider mb-1 block">{f.replace(/_/g, " ")}</label>
+              <input placeholder={f === "property_type" ? "Select type..." : "0"} className={INPUT_CLS} style={focusRing} readOnly />
+            </div>
+          ))}
+        </div>
+      </div>
+    );
+  }
+
+  /* Insurance Info — preview */
+  if (field.type === "insurance_info") {
+    return (
+      <div>
+        <label className="block text-xs font-semibold text-on-surface-variant uppercase tracking-widest mb-1.5 ml-1">
+          {field.label}{field.required && <span className="ml-1" style={{ color: primaryColor }}>*</span>}
+        </label>
+        {field.hint && <p className="text-xs text-on-surface-variant/60 mb-2 ml-1">{field.hint}</p>}
+        <div className="space-y-3">
+          {(field.insuranceInfoConfig?.fields ?? ["provider", "policy_number", "group_number"]).map((f) => (
+            <div key={f}>
+              <label className="text-[10px] font-medium text-on-surface-variant/60 uppercase tracking-wider mb-1 block">{f.replace(/_/g, " ")}</label>
+              <input placeholder={f === "provider" ? "Select provider..." : f.replace(/_/g, " ")} className={INPUT_CLS} style={focusRing} readOnly />
+            </div>
+          ))}
+        </div>
+      </div>
+    );
+  }
+
+  /* Guest RSVP — preview */
+  if (field.type === "guest_rsvp") {
+    const cfg = field.guestRsvpConfig;
+    return (
+      <div>
+        <label className="block text-xs font-semibold text-on-surface-variant uppercase tracking-widest mb-1.5 ml-1">
+          {field.label}{field.required && <span className="ml-1" style={{ color: primaryColor }}>*</span>}
+        </label>
+        {field.hint && <p className="text-xs text-on-surface-variant/60 mb-2 ml-1">{field.hint}</p>}
+        <div className="space-y-3">
+          <div className="flex gap-3">
+            <div className="flex-1 py-3 px-4 rounded-xl border-2 text-center text-sm font-medium" style={{ borderColor: primaryColor, backgroundColor: primaryColor + "10", color: primaryColor }}><i className="fa-solid fa-circle-check mr-1.5" />Attending</div>
+            <div className="flex-1 py-3 px-4 rounded-xl border-2 text-center text-sm text-on-surface-variant" style={{ borderColor: "var(--color-outline-variant)" }}><i className="fa-solid fa-circle-xmark mr-1.5" />Declining</div>
+          </div>
+          {cfg?.mealOptions && cfg.mealOptions.length > 0 && (
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+              {cfg.mealOptions.map((m, i) => (
+                <div key={m.label} className="flex flex-col items-center gap-1.5 py-3 rounded-xl border-2 text-xs" style={i === 0 ? { borderColor: primaryColor, backgroundColor: primaryColor + "10", color: primaryColor } : { borderColor: "var(--color-outline-variant)" }}>
+                  {m.icon && <i className={`fa-solid ${m.icon} text-lg`} />}{m.label}
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      </div>
+    );
+  }
+
+  /* Room Selector — preview */
+  if (field.type === "room_selector" && field.roomSelectorConfig) {
+    const cfg = field.roomSelectorConfig;
+    const cols = cfg.columns ?? 3;
+    const gridCls = cols === 2 ? "grid-cols-1 sm:grid-cols-2" : cols === 4 ? "grid-cols-1 sm:grid-cols-2 lg:grid-cols-4" : "grid-cols-1 sm:grid-cols-2 lg:grid-cols-3";
+    return (
+      <div>
+        <label className="block text-xs font-semibold text-on-surface-variant uppercase tracking-widest mb-1.5 ml-1">
+          {field.label}{field.required && <span className="ml-1" style={{ color: primaryColor }}>*</span>}
+        </label>
+        {field.hint && <p className="text-xs text-on-surface-variant/60 mb-2 ml-1">{field.hint}</p>}
+        <div className={`grid ${gridCls} gap-4`}>
+          {cfg.rooms.map((room, i) => (
+            <div key={room.id} className="flex flex-col p-4 rounded-2xl border-2 transition-all" style={i === 0 ? { borderColor: primaryColor, backgroundColor: primaryColor + "08" } : { borderColor: "var(--color-outline-variant)" }}>
+              <div className="flex items-center gap-2 mb-1">
+                {room.icon && <i className={`fa-solid ${room.icon}`} style={i === 0 ? { color: primaryColor } : undefined} />}
+                <span className="font-semibold text-on-surface text-sm">{room.name}</span>
+              </div>
+              {room.description && <p className="text-[10px] text-on-surface-variant/60 mb-2">{room.description}</p>}
+              {room.amenities && <div className="flex flex-wrap gap-1 mb-2">{room.amenities.slice(0, 3).map((a) => <span key={a} className="px-1.5 py-0.5 rounded bg-surface-container-highest/50 text-[9px] text-on-surface-variant">{a}</span>)}</div>}
+              {cfg.showPricing && room.pricePerNight != null && <span className="text-sm font-bold mt-auto" style={{ color: primaryColor }}>{cfg.currency || "$"}{room.pricePerNight}/night</span>}
+            </div>
+          ))}
+        </div>
+      </div>
+    );
+  }
+
+  /* Loan Calculator — preview */
+  if (field.type === "loan_calculator") {
+    const cfg = field.loanCalculatorConfig;
+    const amount = cfg?.defaultAmount ?? 250000;
+    const rate = cfg?.defaultRate ?? 6.5;
+    const term = cfg?.defaultTerm ?? 360;
+    const r = rate / 100 / 12;
+    const monthly = r > 0 ? (amount * r * Math.pow(1 + r, term)) / (Math.pow(1 + r, term) - 1) : amount / term;
+    const currency = cfg?.currency || "$";
+    const fmt = (n: number) => n.toLocaleString("en-US", { minimumFractionDigits: 0, maximumFractionDigits: 0 });
+    return (
+      <div>
+        <label className="block text-xs font-semibold text-on-surface-variant uppercase tracking-widest mb-1.5 ml-1">
+          {field.label}{field.required && <span className="ml-1" style={{ color: primaryColor }}>*</span>}
+        </label>
+        {field.hint && <p className="text-xs text-on-surface-variant/60 mb-2 ml-1">{field.hint}</p>}
+        <div className="rounded-2xl border-2 border-outline-variant/20 p-4 space-y-4">
+          <div className="text-center py-3 rounded-xl" style={{ backgroundColor: primaryColor + "10" }}>
+            <p className="text-[10px] text-on-surface-variant uppercase tracking-wider mb-0.5">Estimated Monthly Payment</p>
+            <p className="text-2xl font-bold" style={{ color: primaryColor }}>{currency}{fmt(monthly)}/mo</p>
+          </div>
+          <div>
+            <div className="flex justify-between text-[10px] text-on-surface-variant/50 mb-1"><span>Loan Amount</span><span className="font-bold" style={{ color: primaryColor }}>{currency}{fmt(amount)}</span></div>
+            <div className="h-2 rounded-full bg-surface-container-highest"><div className="h-full rounded-full" style={{ width: "25%", backgroundColor: primaryColor }} /></div>
+          </div>
+          <div>
+            <div className="flex justify-between text-[10px] text-on-surface-variant/50 mb-1"><span>Interest Rate</span><span className="font-bold" style={{ color: primaryColor }}>{rate}%</span></div>
+            <div className="h-2 rounded-full bg-surface-container-highest"><div className="h-full rounded-full" style={{ width: "40%", backgroundColor: primaryColor }} /></div>
+          </div>
+          <div className="flex gap-2">
+            {(cfg?.termOptions ?? [180, 360]).slice(0, 3).map((t, i) => (
+              <div key={t} className="flex-1 py-1.5 rounded-lg border text-center text-[10px] font-medium" style={i === (cfg?.termOptions ?? [180, 360]).length - 1 ? { borderColor: primaryColor, backgroundColor: primaryColor + "10", color: primaryColor } : { borderColor: "var(--color-outline-variant)" }}>
+                {t >= 12 ? `${t / 12} yr` : `${t} mo`}
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  /* Case Intake — preview */
+  if (field.type === "case_intake") {
+    const cfg = field.caseIntakeConfig;
+    return (
+      <div>
+        <label className="block text-xs font-semibold text-on-surface-variant uppercase tracking-widest mb-1.5 ml-1">
+          {field.label}{field.required && <span className="ml-1" style={{ color: primaryColor }}>*</span>}
+        </label>
+        {field.hint && <p className="text-xs text-on-surface-variant/60 mb-2 ml-1">{field.hint}</p>}
+        <div className="space-y-3">
+          {cfg?.caseTypes && <div><label className="text-[10px] font-medium text-on-surface-variant/60 uppercase tracking-wider mb-1 block"><i className="fa-solid fa-gavel mr-1" />Case Type</label><input placeholder="Select case type..." className={INPUT_CLS} style={focusRing} readOnly /></div>}
+          <div className="grid grid-cols-2 gap-3">
+            {cfg?.showJurisdiction && <div><label className="text-[10px] font-medium text-on-surface-variant/60 uppercase tracking-wider mb-1 block"><i className="fa-solid fa-location-dot mr-1" />Jurisdiction</label><input placeholder="Select..." className={INPUT_CLS} style={focusRing} readOnly /></div>}
+            {cfg?.showDateOfIncident && <div><label className="text-[10px] font-medium text-on-surface-variant/60 uppercase tracking-wider mb-1 block"><i className="fa-solid fa-calendar-day mr-1" />Date of Incident</label><input type="date" className={INPUT_CLS} style={focusRing} readOnly /></div>}
+          </div>
+          {cfg?.showOpposingParty && <div><label className="text-[10px] font-medium text-on-surface-variant/60 uppercase tracking-wider mb-1 block"><i className="fa-solid fa-user mr-1" />Opposing Party</label><input placeholder="Name of opposing party" className={INPUT_CLS} style={focusRing} readOnly /></div>}
+          {cfg?.showDescription && <div><label className="text-[10px] font-medium text-on-surface-variant/60 uppercase tracking-wider mb-1 block"><i className="fa-solid fa-pen mr-1" />Case Summary</label><textarea rows={2} placeholder="Brief description..." className={INPUT_CLS} style={focusRing} readOnly /></div>}
+        </div>
+      </div>
+    );
+  }
+
   /* All other fields — fully interactive */
   return (
     <div>

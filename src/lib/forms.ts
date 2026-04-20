@@ -36,7 +36,13 @@ export type FieldType =
   | "slider"
   | "social_handles"
   | "matrix"
-  | "questionnaire";
+  | "questionnaire"
+  | "property_details"
+  | "insurance_info"
+  | "guest_rsvp"
+  | "room_selector"
+  | "loan_calculator"
+  | "case_intake";
 
 /* ââ Package Selector types âââââââââââââââââââââââââââââââ */
 
@@ -477,6 +483,119 @@ export interface QuestionnaireConfig {
   showScore?: boolean;
 }
 
+/* -- Property Details types (Real Estate) --------------------------------- */
+
+export type PropertyType = "single_family" | "condo" | "townhouse" | "multi_family" | "land" | "commercial" | "mobile" | "other";
+
+export interface PropertyDetailsConfig {
+  /** Which sub-fields to show */
+  fields?: ("property_type" | "bedrooms" | "bathrooms" | "sqft" | "lot_size" | "year_built" | "parking" | "stories" | "price")[];
+  /** Show price field */
+  showPrice?: boolean;
+  /** Currency symbol for price */
+  currency?: string;
+}
+
+/* -- Insurance Info types (Healthcare) ------------------------------------ */
+
+export interface InsuranceInfoConfig {
+  /** Which sub-fields to show */
+  fields?: ("provider" | "plan_type" | "policy_number" | "group_number" | "subscriber_name" | "subscriber_dob" | "relationship")[];
+  /** Common insurance providers for the dropdown */
+  providers?: string[];
+}
+
+/* -- Guest RSVP types (Events) -------------------------------------------- */
+
+export interface RsvpMealOption {
+  label: string;
+  icon?: string;
+}
+
+export interface GuestRsvpConfig {
+  /** Meal options (e.g. Chicken, Fish, Vegetarian) */
+  mealOptions?: RsvpMealOption[];
+  /** Allow plus-ones */
+  allowPlusOnes?: boolean;
+  /** Max plus-ones allowed */
+  maxPlusOnes?: number;
+  /** Show dietary restrictions field */
+  showDietary?: boolean;
+  /** Show notes/special requests field */
+  showNotes?: boolean;
+  /** Common dietary restriction options */
+  dietaryOptions?: string[];
+}
+
+/* -- Room Selector types (Hospitality) ------------------------------------ */
+
+export interface RoomOption {
+  id: string;
+  name: string;
+  description?: string;
+  amenities?: string[];
+  pricePerNight?: number;
+  maxGuests?: number;
+  icon?: string;
+}
+
+export interface RoomSelectorConfig {
+  /** Available rooms/services */
+  rooms: RoomOption[];
+  /** Show pricing */
+  showPricing?: boolean;
+  /** Currency symbol */
+  currency?: string;
+  /** Allow selecting multiple rooms */
+  multiSelect?: boolean;
+  /** Number of columns (2-4) */
+  columns?: 2 | 3 | 4;
+}
+
+/* -- Loan Calculator types (Finance) -------------------------------------- */
+
+export interface LoanCalculatorConfig {
+  /** Min loan amount */
+  minAmount?: number;
+  /** Max loan amount */
+  maxAmount?: number;
+  /** Default loan amount */
+  defaultAmount?: number;
+  /** Min interest rate (%) */
+  minRate?: number;
+  /** Max interest rate (%) */
+  maxRate?: number;
+  /** Default interest rate */
+  defaultRate?: number;
+  /** Available term options in months */
+  termOptions?: number[];
+  /** Default term in months */
+  defaultTerm?: number;
+  /** Currency symbol */
+  currency?: string;
+  /** Label for the calculator (e.g. "Mortgage Calculator", "Auto Loan") */
+  calculatorLabel?: string;
+}
+
+/* -- Case Intake types (Legal) -------------------------------------------- */
+
+export interface CaseIntakeConfig {
+  /** Available case type options */
+  caseTypes?: string[];
+  /** Show jurisdiction/state field */
+  showJurisdiction?: boolean;
+  /** Show date of incident field */
+  showDateOfIncident?: boolean;
+  /** Show opposing party field */
+  showOpposingParty?: boolean;
+  /** Show case description/summary field */
+  showDescription?: boolean;
+  /** Show statute of limitations warning */
+  showStatuteWarning?: boolean;
+  /** Custom jurisdiction options (defaults to US states) */
+  jurisdictions?: string[];
+}
+
 /** Condition to show/hide a field or step based on another field's value */
 export interface ShowCondition {
   /** ID of the field to evaluate (from any step) */
@@ -559,6 +678,18 @@ export interface FieldDef {
   matrixConfig?: MatrixConfig;
   /** For questionnaire fields — scored questions config */
   questionnaireConfig?: QuestionnaireConfig;
+  /** For property_details fields — real estate property config */
+  propertyDetailsConfig?: PropertyDetailsConfig;
+  /** For insurance_info fields — healthcare insurance config */
+  insuranceInfoConfig?: InsuranceInfoConfig;
+  /** For guest_rsvp fields — event RSVP config */
+  guestRsvpConfig?: GuestRsvpConfig;
+  /** For room_selector fields — hospitality room/service config */
+  roomSelectorConfig?: RoomSelectorConfig;
+  /** For loan_calculator fields — finance calculator config */
+  loanCalculatorConfig?: LoanCalculatorConfig;
+  /** For case_intake fields — legal case intake config */
+  caseIntakeConfig?: CaseIntakeConfig;
   /** Show this field only when the condition is met */
   showCondition?: ShowCondition;
   /** For file/files fields: optional cloud storage destination */
@@ -633,10 +764,16 @@ export const MIN_COL_SPAN: Partial<Record<FieldType, 1 | 2 | 3 | 4>> = {
   payment: 2,
   file: 2,
   files: 2,
+  /* Can go as narrow as 2 columns -- industry fields */
+  property_details: 2,
+  insurance_info: 2,
+  guest_rsvp: 2,
+  case_intake: 2,
+  loan_calculator: 2,
   /* Full width only (4) -- complex/wide fields */
   // package, repeater, asset_collection, site_structure, feature_selector,
   // goal_builder, approval, brand_style, competitor_analyzer, timeline,
-  // budget_allocator, matrix, questionnaire -- all default to GRID_COLUMNS
+  // budget_allocator, matrix, questionnaire, room_selector -- all default to GRID_COLUMNS
 };
 
 /** Get the minimum allowed colSpan for a given field type */
