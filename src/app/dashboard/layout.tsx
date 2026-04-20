@@ -11,9 +11,12 @@ import { ToastProvider } from "@/components/Toast";
 
 const TIER_LABELS: Record<string, string> = {
   free: "Free",
+  starter: "Starter",
   paid: "Starter",
+  pro: "Pro",
   unlimited: "Agency",
   enterprise: "Agency",
+  agency: "Agency",
 };
 
 const WORKSPACE_NAV = [

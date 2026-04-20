@@ -12,9 +12,12 @@ const PAGE_SIZE = 20;
 
 const TIER_BADGES: Record<string, { label: string; color: string; bg: string; border: string }> = {
   free: { label: "Free", color: "text-on-surface-variant/60", bg: "bg-surface-container-high", border: "border-outline-variant/15" },
-  paid: { label: "Paid", color: "text-primary", bg: "bg-primary/10", border: "border-primary/20" },
-  unlimited: { label: "Unlimited", color: "text-tertiary", bg: "bg-tertiary/10", border: "border-tertiary/20" },
-  enterprise: { label: "Enterprise", color: "text-amber-400", bg: "bg-amber-500/10", border: "border-amber-500/20" },
+  starter: { label: "Starter", color: "text-blue-400", bg: "bg-blue-500/10", border: "border-blue-500/20" },
+  paid: { label: "Starter", color: "text-blue-400", bg: "bg-blue-500/10", border: "border-blue-500/20" },
+  pro: { label: "Pro", color: "text-primary", bg: "bg-primary/10", border: "border-primary/20" },
+  unlimited: { label: "Agency", color: "text-tertiary", bg: "bg-tertiary/10", border: "border-tertiary/20" },
+  enterprise: { label: "Agency", color: "text-amber-400", bg: "bg-amber-500/10", border: "border-amber-500/20" },
+  agency: { label: "Agency", color: "text-amber-400", bg: "bg-amber-500/10", border: "border-amber-500/20" },
 };
 
 export default async function AdminPartnersPage({ searchParams }: PageProps) {

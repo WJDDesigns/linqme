@@ -11,7 +11,7 @@ export const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
 
 /* ── Plan tier ↔ Stripe price mapping ─────────────────────── */
 
-export type BillingTier = "free" | "pro" | "enterprise" | "starter" | "agency";
+export type BillingTier = "free" | "starter" | "pro" | "agency" | "standard" | "enterprise";
 
 export interface PlanConfig {
   tier: BillingTier;
@@ -28,48 +28,64 @@ export interface PlanConfig {
  * Plan definitions. Stripe price IDs are set via env vars so the same
  * code works across dev / staging / production Stripe accounts.
  */
-export const PLANS: Partial<Record<BillingTier, PlanConfig>> & Record<"free" | "starter" | "agency", PlanConfig> = {
+export const PLANS: Record<"free" | "starter" | "pro" | "agency", PlanConfig> = {
   free: {
     tier: "free",
     name: "Free",
     priceMonthly: 0,
     stripePriceId: null,
-    submissionsMonthlyLimit: 1,
+    submissionsMonthlyLimit: 10,
     features: [
       "Your own branded workspace",
+      "1 form",
       "Unlimited form fields",
       "File uploads",
       "1 GB storage",
-      "1 submission / month",
+      "10 submissions / month",
     ],
   },
   starter: {
     tier: "starter",
     name: "Starter",
-    priceMonthly: 9900, // $99
-    stripePriceId: process.env.STRIPE_PRICE_PRO ?? null,
-    submissionsMonthlyLimit: 25,
+    priceMonthly: 3900, // $39
+    stripePriceId: process.env.STRIPE_PRICE_STARTER ?? null,
+    submissionsMonthlyLimit: 50,
     features: [
       "Everything in Free",
-      "25 submissions / month",
-      "50 GB storage",
+      "Up to 5 forms",
+      "50 submissions / month",
+      "10 GB storage",
+      "CSV & PDF exports",
+      "Email support",
+    ],
+  },
+  pro: {
+    tier: "pro",
+    name: "Pro",
+    priceMonthly: 9900, // $99
+    stripePriceId: process.env.STRIPE_PRICE_PRO ?? null,
+    submissionsMonthlyLimit: null,
+    features: [
+      "Everything in Starter",
+      "Unlimited forms",
+      "Unlimited submissions",
+      "100 GB storage",
       "Full white-labeling",
       "Custom domain",
-      "CSV & PDF exports",
     ],
   },
   agency: {
     tier: "agency",
     name: "Agency",
     priceMonthly: 24900, // $249
-    stripePriceId: process.env.STRIPE_PRICE_ENTERPRISE ?? null,
+    stripePriceId: process.env.STRIPE_PRICE_AGENCY ?? null,
     submissionsMonthlyLimit: null,
     features: [
-      "Everything in Starter",
-      "Unlimited submissions",
+      "Everything in Pro",
+      "Partner management",
       "500 GB storage",
       "Priority 24/7 support",
-      "Dedicated account manager",
+      "SLA guarantee",
     ],
   },
 };
@@ -77,15 +93,17 @@ export const PLANS: Partial<Record<BillingTier, PlanConfig>> & Record<"free" | "
 /** Map old plan_tier enum values to current billing tiers */
 export function mapLegacyTier(dbTier: string): BillingTier {
   switch (dbTier) {
-    case "paid":
-    case "unlimited":
-    case "pro":
+    case "starter":
+    case "standard":
       return "starter";
+    case "paid":
+      return "starter";
+    case "pro":
+      return "pro";
+    case "unlimited":
     case "enterprise":
     case "agency":
       return "agency";
-    case "starter":
-      return "starter";
     default:
       return "free";
   }
@@ -94,12 +112,14 @@ export function mapLegacyTier(dbTier: string): BillingTier {
 /** Map billing tier back to the DB plan_tier enum */
 export function tierToDbEnum(tier: BillingTier | string): string {
   switch (tier) {
-    case "pro":
     case "starter":
-      return "paid";
+    case "standard":
+      return "starter";
+    case "pro":
+      return "pro";
     case "enterprise":
     case "agency":
-      return "enterprise";
+      return "agency";
     default:
       return "free";
   }
@@ -111,9 +131,9 @@ export function tierToDbEnum(tier: BillingTier | string): string {
  * Returns the price IDs that should be saved to env vars.
  */
 export async function ensureStripeProducts(): Promise<Record<string, string | null>> {
-  const results: Record<string, string | null> = { free: null, starter: null, agency: null };
+  const results: Record<string, string | null> = { free: null, starter: null, pro: null, agency: null };
 
-  for (const plan of [PLANS.starter, PLANS.agency]) {
+  for (const plan of [PLANS.starter, PLANS.pro, PLANS.agency]) {
     if (plan.stripePriceId) {
       results[plan.tier] = plan.stripePriceId;
       continue;

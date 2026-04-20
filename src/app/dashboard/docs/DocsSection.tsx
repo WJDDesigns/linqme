@@ -681,10 +681,11 @@ export default function DocsSection() {
           {/* BILLING */}
           <DocSection id="docs-billing" title="Billing and Plans" icon="fa-credit-card">
             <DocSub id="docs-plans" title="Plans and Pricing">
-              <div className="grid gap-3 sm:grid-cols-3 my-4">
-                <PlanCard name="Free" price="$0" features={["1 submission/month", "1 form", "1 GB storage"]} />
-                <PlanCard name="Starter" price="$99/mo" features={["25 submissions/month", "Unlimited forms", "White-label"]} highlight />
-                <PlanCard name="Agency" price="$249/mo" features={["Unlimited submissions", "Unlimited forms", "All features"]} />
+              <div className="grid gap-3 sm:grid-cols-4 my-4">
+                <PlanCard name="Free" price="$0" features={["10 submissions/month", "1 form", "1 GB storage"]} />
+                <PlanCard name="Starter" price="$39/mo" features={["50 submissions/month", "5 forms", "10 GB storage"]} />
+                <PlanCard name="Pro" price="$99/mo" features={["Unlimited submissions", "Unlimited forms", "White-label"]} highlight />
+                <PlanCard name="Agency" price="$249/mo" features={["Everything in Pro", "Partner management", "500 GB"]} />
               </div>
             </DocSub>
 

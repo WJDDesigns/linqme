@@ -17,14 +17,14 @@ const TIERS = [
     price: "Free",
     period: "forever",
     features: [
-      { text: "1 submission / month", included: true },
+      { text: "10 submissions / month", included: true },
+      { text: "1 form", included: true },
       { text: "1 GB file storage", included: true },
       { text: "Branded workspace", included: true },
       { text: "Unlimited form fields", included: true },
       { text: "Community support", included: true },
       { text: "White-labeling", included: false },
       { text: "Custom domain", included: false },
-      { text: "Priority support", included: false },
     ],
     cta: "Get Started Free",
     href: "/signup",
@@ -32,21 +32,40 @@ const TIERS = [
   },
   {
     name: "Starter",
+    tagline: "For small teams",
+    price: "$39",
+    period: "/mo",
+    features: [
+      { text: "50 submissions / month", included: true },
+      { text: "Up to 5 forms", included: true },
+      { text: "10 GB file storage", included: true },
+      { text: "CSV & PDF exports", included: true },
+      { text: "Email support", included: true },
+      { text: "Team members", included: true },
+      { text: "White-labeling", included: false },
+      { text: "Custom domain", included: false },
+    ],
+    cta: "Get Starter",
+    href: "/signup?plan=starter",
+    highlight: false,
+  },
+  {
+    name: "Pro",
     tagline: "For growing agencies",
     price: "$99",
     period: "/mo",
     features: [
-      { text: "25 submissions / month", included: true },
-      { text: "50 GB file storage", included: true },
+      { text: "Unlimited submissions", included: true },
+      { text: "Unlimited forms", included: true },
+      { text: "100 GB file storage", included: true },
       { text: "Full white-labeling", included: true },
       { text: "Custom domain mapping", included: true },
       { text: "Remove linqme branding", included: true },
-      { text: "Email support", included: true },
       { text: "CSV & PDF exports", included: true },
-      { text: "Team members", included: true },
+      { text: "Priority email support", included: true },
     ],
-    cta: "Get Starter",
-    href: "/signup?plan=starter",
+    cta: "Get Pro",
+    href: "/signup?plan=pro",
     highlight: true,
   },
   {
@@ -55,9 +74,9 @@ const TIERS = [
     price: "$249",
     period: "/mo",
     features: [
-      { text: "Unlimited submissions", included: true },
+      { text: "Everything in Pro", included: true },
+      { text: "Partner management", included: true },
       { text: "500 GB file storage", included: true },
-      { text: "Everything in Starter", included: true },
       { text: "Priority 24/7 support", included: true },
       { text: "Dedicated account manager", included: true },
       { text: "Advanced analytics", included: true },
@@ -89,7 +108,7 @@ const FAQ = [
   },
   {
     q: "Do you offer annual billing?",
-    a: "Yes, annual billing comes with a 20% discount. Contact us at hello@linqme.io to set up annual billing on Starter or Agency.",
+    a: "Yes, annual billing comes with a 20% discount. Contact us at hello@linqme.io to set up annual billing on Starter, Pro, or Agency.",
   },
   {
     q: "What file types can clients upload?",
@@ -152,7 +171,7 @@ export default function PricingPage() {
         <div className="absolute inset-0 bg-aurora pointer-events-none" />
         <div className="absolute top-[20%] right-[-5%] w-[400px] h-[350px] bg-tertiary/[0.06] rounded-full blur-[120px] pointer-events-none" />
         <div className="absolute bottom-[10%] left-[-5%] w-[350px] h-[300px] bg-primary/[0.05] rounded-full blur-[100px] pointer-events-none" />
-        <div className="max-w-5xl mx-auto relative z-10">
+        <div className="max-w-6xl mx-auto relative z-10">
           <ScrollReveal animation="zoom-in">
             <PricingCards tiers={TIERS} />
           </ScrollReveal>
@@ -166,7 +185,7 @@ export default function PricingPage() {
         <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-primary/15 to-transparent" />
         <div className="absolute top-[30%] right-[-5%] w-[350px] h-[300px] bg-primary/[0.05] rounded-full blur-[100px] pointer-events-none" />
         <div className="absolute bottom-[20%] left-[-5%] w-[300px] h-[250px] bg-tertiary/[0.04] rounded-full blur-[90px] pointer-events-none" />
-        <div className="max-w-4xl mx-auto relative z-10 pt-24 md:pt-32">
+        <div className="max-w-5xl mx-auto relative z-10 pt-24 md:pt-32">
           <ScrollReveal animation="fade-up">
             <h2 className="text-2xl md:text-3xl font-headline font-bold text-center mb-12">Compare plans <span className="gradient-text">at a glance</span></h2>
           </ScrollReveal>
@@ -176,23 +195,25 @@ export default function PricingPage() {
               <thead>
                 <tr className="border-b border-outline-variant/[0.08]">
                   <th className="text-left px-6 py-4 text-xs uppercase tracking-widest text-on-surface-variant/50 font-bold">Feature</th>
-                  <th className="text-center px-4 py-4 text-xs uppercase tracking-widest text-on-surface-variant/50 font-bold">Free</th>
-                  <th className="text-center px-4 py-4 text-xs uppercase tracking-widest text-primary font-bold">Starter</th>
-                  <th className="text-center px-4 py-4 text-xs uppercase tracking-widest text-on-surface-variant/50 font-bold">Agency</th>
+                  <th className="text-center px-3 py-4 text-xs uppercase tracking-widest text-on-surface-variant/50 font-bold">Free</th>
+                  <th className="text-center px-3 py-4 text-xs uppercase tracking-widest text-on-surface-variant/50 font-bold">Starter</th>
+                  <th className="text-center px-3 py-4 text-xs uppercase tracking-widest text-primary font-bold">Pro</th>
+                  <th className="text-center px-3 py-4 text-xs uppercase tracking-widest text-on-surface-variant/50 font-bold">Agency</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-outline-variant/[0.05]">
-                <CompareRow feature="Monthly submissions" free="1" starter="25" agency="Unlimited" />
-                <CompareRow feature="File storage" free="1 GB" starter="50 GB" agency="500 GB" />
-                <CompareRow feature="Form fields" free="Unlimited" starter="Unlimited" agency="Unlimited" />
-                <CompareRow feature="White-labeling" free={false} starter={true} agency={true} />
-                <CompareRow feature="Custom domain" free={false} starter={true} agency={true} />
-                <CompareRow feature="Remove branding" free={false} starter={true} agency={true} />
-                <CompareRow feature="CSV & PDF exports" free={false} starter={true} agency={true} />
-                <CompareRow feature="Team members" free="1" starter="5" agency="Unlimited" />
-                <CompareRow feature="Priority support" free={false} starter={false} agency={true} />
-                <CompareRow feature="Dedicated account manager" free={false} starter={false} agency={true} />
-                <CompareRow feature="SLA guarantee" free={false} starter={false} agency={true} />
+                <CompareRow feature="Monthly submissions" free="10" starter="50" pro="Unlimited" agency="Unlimited" />
+                <CompareRow feature="Forms" free="1" starter="5" pro="Unlimited" agency="Unlimited" />
+                <CompareRow feature="File storage" free="1 GB" starter="10 GB" pro="100 GB" agency="500 GB" />
+                <CompareRow feature="Form fields" free="Unlimited" starter="Unlimited" pro="Unlimited" agency="Unlimited" />
+                <CompareRow feature="White-labeling" free={false} starter={false} pro={true} agency={true} />
+                <CompareRow feature="Custom domain" free={false} starter={false} pro={true} agency={true} />
+                <CompareRow feature="Remove branding" free={false} starter={false} pro={true} agency={true} />
+                <CompareRow feature="CSV & PDF exports" free={false} starter={true} pro={true} agency={true} />
+                <CompareRow feature="Team members" free="1" starter="3" pro="10" agency="Unlimited" />
+                <CompareRow feature="Partner management" free={false} starter={false} pro={false} agency={true} />
+                <CompareRow feature="Priority support" free={false} starter={false} pro={true} agency={true} />
+                <CompareRow feature="SLA guarantee" free={false} starter={false} pro={false} agency={true} />
               </tbody>
             </table>
           </div>
@@ -279,11 +300,13 @@ function CompareRow({
   feature,
   free,
   starter,
+  pro,
   agency,
 }: {
   feature: string;
   free: string | boolean;
   starter: string | boolean;
+  pro: string | boolean;
   agency: string | boolean;
 }) {
   function renderCell(val: string | boolean) {
@@ -295,9 +318,10 @@ function CompareRow({
   return (
     <tr className="hover:bg-primary/[0.02] transition-colors">
       <td className="px-6 py-3.5 text-on-surface font-medium">{feature}</td>
-      <td className="text-center px-4 py-3.5">{renderCell(free)}</td>
-      <td className="text-center px-4 py-3.5">{renderCell(starter)}</td>
-      <td className="text-center px-4 py-3.5">{renderCell(agency)}</td>
+      <td className="text-center px-3 py-3.5">{renderCell(free)}</td>
+      <td className="text-center px-3 py-3.5">{renderCell(starter)}</td>
+      <td className="text-center px-3 py-3.5">{renderCell(pro)}</td>
+      <td className="text-center px-3 py-3.5">{renderCell(agency)}</td>
     </tr>
   );
 }

@@ -59,7 +59,7 @@ export async function getAllPlans(): Promise<Plan[]> {
 /** Map legacy plan slugs to current ones */
 function normalizePlanSlug(slug: string): string {
   switch (slug) {
-    case "pro": return "starter";
+    case "standard": return "starter";
     case "enterprise": return "agency";
     default: return slug;
   }
@@ -99,12 +99,14 @@ export async function getPlanBySlug(slug: string): Promise<Plan | null> {
 /** Fallback Stripe price IDs from env vars when DB doesn't have them */
 function fallbackStripePriceId(slug: string): string | null {
   switch (slug) {
-    case "pro":
     case "starter":
+    case "standard":
+      return process.env.STRIPE_PRICE_STARTER ?? null;
+    case "pro":
       return process.env.STRIPE_PRICE_PRO ?? null;
-    case "enterprise":
     case "agency":
-      return process.env.STRIPE_PRICE_ENTERPRISE ?? null;
+    case "enterprise":
+      return process.env.STRIPE_PRICE_AGENCY ?? null;
     default:
       return null;
   }
@@ -135,8 +137,11 @@ function mapDbPlan(row: Record<string, unknown>): Plan {
 export function getFormsLimitForTier(tier: string): number | null {
   switch (tier) {
     case "free": return 1;
+    case "starter":
+    case "standard":
+    case "paid": return 5;
     case "pro":
-    case "starter": return 10;
+    case "unlimited": return null;
     case "enterprise":
     case "agency": return null;
     default: return 1;
@@ -150,8 +155,8 @@ function getDefaultPlans(): Plan[] {
       slug: "free",
       name: "Free",
       priceMonthly: 0,
-      submissionsMonthlyLimit: 1,
-      features: ["Your own branded workspace", "1 form", "Unlimited form fields", "File uploads", "1 GB storage", "1 submission / month"],
+      submissionsMonthlyLimit: 10,
+      features: ["Your own branded workspace", "1 form", "Unlimited form fields", "File uploads", "1 GB storage", "10 submissions / month"],
       formsLimit: 1,
       stripeProductId: null,
       stripePriceId: null,
@@ -163,15 +168,29 @@ function getDefaultPlans(): Plan[] {
       id: "default-starter",
       slug: "starter",
       name: "Starter",
+      priceMonthly: 3900,
+      submissionsMonthlyLimit: 50,
+      formsLimit: 5,
+      features: ["Everything in Free", "Up to 5 forms", "50 submissions / month", "10 GB storage", "CSV & PDF exports", "Email support"],
+      stripeProductId: null,
+      stripePriceId: process.env.STRIPE_PRICE_STARTER ?? null,
+      isActive: true,
+      highlight: false,
+      sortOrder: 1,
+    },
+    {
+      id: "default-pro",
+      slug: "pro",
+      name: "Pro",
       priceMonthly: 9900,
-      submissionsMonthlyLimit: 25,
-      formsLimit: 10,
-      features: ["Everything in Free", "Up to 10 forms", "25 submissions / month", "50 GB storage", "Full white-labeling", "Custom domain", "CSV & PDF exports"],
+      submissionsMonthlyLimit: null,
+      formsLimit: null,
+      features: ["Everything in Starter", "Unlimited forms", "Unlimited submissions", "100 GB storage", "Full white-labeling", "Custom domain"],
       stripeProductId: null,
       stripePriceId: process.env.STRIPE_PRICE_PRO ?? null,
       isActive: true,
       highlight: true,
-      sortOrder: 1,
+      sortOrder: 2,
     },
     {
       id: "default-agency",
@@ -180,12 +199,12 @@ function getDefaultPlans(): Plan[] {
       priceMonthly: 24900,
       submissionsMonthlyLimit: null,
       formsLimit: null,
-      features: ["Everything in Starter", "Unlimited forms", "Unlimited submissions", "500 GB storage", "Priority 24/7 support", "Dedicated account manager"],
+      features: ["Everything in Pro", "Partner management", "500 GB storage", "Priority 24/7 support", "SLA guarantee"],
       stripeProductId: null,
-      stripePriceId: process.env.STRIPE_PRICE_ENTERPRISE ?? null,
+      stripePriceId: process.env.STRIPE_PRICE_AGENCY ?? null,
       isActive: true,
       highlight: false,
-      sortOrder: 2,
+      sortOrder: 3,
     },
   ];
 }

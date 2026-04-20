@@ -7,7 +7,7 @@ export const CONTEXT_COOKIE = "sl_context";
 
 export type AppRole = "superadmin" | "partner_owner" | "partner_member" | "client";
 export type PlanType = "agency" | "agency_plus_partners";
-export type PlanTier = "free" | "paid" | "unlimited" | "enterprise";
+export type PlanTier = "free" | "starter" | "pro" | "agency" | "paid" | "unlimited" | "enterprise";
 
 export interface SessionContext {
   userId: string;
