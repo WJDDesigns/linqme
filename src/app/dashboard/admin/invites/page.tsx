@@ -1,5 +1,6 @@
 import { requireSuperadmin } from "@/lib/auth";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { getPlans } from "@/lib/plans";
 import Link from "next/link";
 import InvitesManager from "./InvitesManager";
 
@@ -7,11 +8,18 @@ export default async function AdminInvitesPage() {
   await requireSuperadmin();
   const admin = createAdminClient();
 
-  const { data: invites } = await admin
-    .from("agency_invites")
-    .select("id, email, name, coupon_code, status, expires_at, created_at, accepted_at")
-    .order("created_at", { ascending: false })
-    .limit(200);
+  const [{ data: invites }, plans] = await Promise.all([
+    admin
+      .from("agency_invites")
+      .select("id, email, name, coupon_code, status, expires_at, created_at, accepted_at")
+      .order("created_at", { ascending: false })
+      .limit(200),
+    getPlans(),
+  ]);
+
+  const paidPlans = plans
+    .filter((p) => p.priceMonthly > 0)
+    .map((p) => ({ slug: p.slug, name: p.name, priceMonthly: p.priceMonthly }));
 
   return (
     <div className="max-w-5xl mx-auto px-4 sm:px-6 md:px-10 py-8 space-y-8">
@@ -58,7 +66,10 @@ export default async function AdminInvitesPage() {
         />
       </div>
 
-      <InvitesManager invites={(invites ?? []) as { id: string; email: string; name: string | null; coupon_code: string; status: string; expires_at: string; created_at: string; accepted_at: string | null }[]} />
+      <InvitesManager
+        invites={(invites ?? []) as { id: string; email: string; name: string | null; coupon_code: string; status: string; expires_at: string; created_at: string; accepted_at: string | null }[]}
+        plans={paidPlans}
+      />
     </div>
   );
 }

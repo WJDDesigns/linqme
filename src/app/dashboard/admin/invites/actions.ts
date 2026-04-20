@@ -23,9 +23,16 @@ function formatDate(d: Date): string {
 
 /* ── Actions ─────────────────────────────────── */
 
+export interface CouponConfig {
+  type: "percentage" | "fixed";
+  value: number;
+  minPlanSlug: string; // "" means all plans
+}
+
 export async function sendAgencyInviteAction(
   email: string,
   name?: string,
+  couponConfig?: CouponConfig,
 ): Promise<{ ok: boolean; error?: string }> {
   const session = await requireSuperadmin();
 
@@ -34,7 +41,29 @@ export async function sendAgencyInviteAction(
     return { ok: false, error: "A valid email address is required." };
   }
 
+  const discountType = couponConfig?.type ?? "percentage";
+  const discountValue = couponConfig?.value ?? 20;
+  const minPlanSlug = couponConfig?.minPlanSlug ?? "";
+
+  if (discountValue <= 0) {
+    return { ok: false, error: "Discount value must be greater than zero." };
+  }
+  if (discountType === "percentage" && discountValue > 100) {
+    return { ok: false, error: "Percentage discount cannot exceed 100%." };
+  }
+
   const admin = createAdminClient();
+
+  // Look up minimum plan price if a specific plan is selected
+  let minPlanPrice = 0;
+  if (minPlanSlug) {
+    const { data: plan } = await admin
+      .from("plans")
+      .select("price_monthly")
+      .eq("slug", minPlanSlug)
+      .maybeSingle();
+    if (plan) minPlanPrice = plan.price_monthly as number;
+  }
 
   // Check for existing pending invite to same email
   const { data: existing } = await admin
@@ -80,12 +109,16 @@ export async function sendAgencyInviteAction(
   }
 
   // Also create the coupon in the coupons table so it works at checkout
+  const discountLabel = discountType === "percentage"
+    ? `${discountValue}% off`
+    : `$${(discountValue / 100).toFixed(0)} off`;
+
   await admin.from("coupons").insert({
     code: couponCode,
-    description: `Agency invite for ${trimmedEmail}`,
-    type: "percentage",
-    value: 20,
-    min_plan_price: 0,
+    description: `Agency invite for ${trimmedEmail} (${discountLabel})`,
+    type: discountType,
+    value: discountValue,
+    min_plan_price: minPlanPrice,
     expires_at: expiresAt.toISOString(),
     max_redemptions: 1,
     times_redeemed: 0,
