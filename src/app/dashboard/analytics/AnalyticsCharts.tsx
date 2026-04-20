@@ -175,18 +175,18 @@ export default function AnalyticsCharts({ chartData, funnelData, topPages, stats
                     <span className="text-xs font-bold text-on-surface font-mono">/{f.form}</span>
                     <span className="text-xs font-bold text-primary">{f.conversionRate}% conversion</span>
                   </div>
-                  <div className="flex gap-1 h-6">
+                  <div className="space-y-1.5">
                     {[
                       { label: "Views", value: f.views, color: "bg-on-surface-variant/20" },
                       { label: "Starts", value: f.starts, color: "bg-primary/40" },
                       { label: "Completed", value: f.completions, color: "bg-tertiary/60" },
                     ].map((bar) => {
-                      const max = Math.max(f.views, 1);
-                      const pct = Math.max((bar.value / max) * 100, 2);
+                      const max = Math.max(f.views, f.starts, f.completions, 1);
+                      const pct = Math.max((bar.value / max) * 100, 4);
                       return (
-                        <div key={bar.label} className="flex-1 relative group">
+                        <div key={bar.label} className="relative h-5">
                           <div
-                            className={`${bar.color} rounded-md h-full transition-all`}
+                            className={`${bar.color} rounded h-full transition-all`}
                             style={{ width: `${pct}%` }}
                           />
                           <span className="absolute inset-0 flex items-center px-2 text-[10px] font-bold text-on-surface/70">
