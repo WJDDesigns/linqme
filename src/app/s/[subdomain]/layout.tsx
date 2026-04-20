@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { sanitizeFilterValue } from "@/lib/utils/sanitize-filter";
 import ClientThemeScript from "./ClientThemeScript";
 
 interface Props {
@@ -17,7 +18,7 @@ async function getPartner(subdomain: string) {
   const { data } = await admin
     .from("partners")
     .select("name, logo_url, primary_color, theme_mode, plan_tier, hide_branding")
-    .or(`slug.eq.${identifier},custom_domain.eq.${identifier}`)
+    .or(`slug.eq.${sanitizeFilterValue(identifier)},custom_domain.eq.${sanitizeFilterValue(identifier)}`)
     .maybeSingle();
   return data;
 }

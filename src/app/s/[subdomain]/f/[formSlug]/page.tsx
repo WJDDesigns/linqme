@@ -4,6 +4,7 @@ import { notFound } from "next/navigation";
 import Image from "next/image";
 import type { Metadata } from "next";
 import { contrastText } from "@/lib/color-utils";
+import { sanitizeFilterValue } from "@/lib/utils/sanitize-filter";
 import { startSubmissionAction } from "../../actions";
 import LinqMeLogo from "@/components/LinqMeLogo";
 import StorefrontThemeToggle from "../../StorefrontThemeToggle";
@@ -22,7 +23,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { data: partner } = await supabase
     .from("partners")
     .select("name, logo_url")
-    .or(`slug.eq.${identifier},custom_domain.eq.${identifier}`)
+    .or(`slug.eq.${sanitizeFilterValue(identifier)},custom_domain.eq.${sanitizeFilterValue(identifier)}`)
     .maybeSingle();
 
   if (!partner) return { title: "Not Found" };
@@ -48,7 +49,7 @@ export default async function FormSlugPage({ params }: Props) {
   const { data: partner } = await supabase
     .from("partners")
     .select("id, slug, name, custom_domain, logo_url, primary_color, accent_color, support_email, plan_tier, hide_branding, custom_footer_text, logo_size, theme_mode")
-    .or(`slug.eq.${identifier},custom_domain.eq.${identifier}`)
+    .or(`slug.eq.${sanitizeFilterValue(identifier)},custom_domain.eq.${sanitizeFilterValue(identifier)}`)
     .maybeSingle();
 
   if (!partner) return notFound();

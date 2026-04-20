@@ -30,9 +30,11 @@ export function logRequest(req: NextRequest) {
         ip,
         userAgent,
       };
-      console.log(`[api] ${entry.method} ${entry.path} ${entry.status} ${entry.durationMs}ms`, {
-        ip: entry.ip,
-      });
+      if (process.env.NODE_ENV === "development") {
+        console.log(`[api] ${entry.method} ${entry.path} ${entry.status} ${entry.durationMs}ms`, {
+          ip: entry.ip,
+        });
+      }
     },
   };
 }

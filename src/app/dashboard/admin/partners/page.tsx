@@ -1,5 +1,6 @@
 import { requireSuperadmin } from "@/lib/auth";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { sanitizeFilterValue } from "@/lib/utils/sanitize-filter";
 import Link from "next/link";
 import Image from "next/image";
 
@@ -33,7 +34,8 @@ export default async function AdminPartnersPage({ searchParams }: PageProps) {
     .order("created_at", { ascending: false });
 
   if (q) {
-    query = query.or(`name.ilike.%${q}%,slug.ilike.%${q}%,custom_domain.ilike.%${q}%`);
+    const safeQ = sanitizeFilterValue(q);
+    query = query.or(`name.ilike.%${safeQ}%,slug.ilike.%${safeQ}%,custom_domain.ilike.%${safeQ}%`);
   }
   if (tier && tier !== "all") {
     query = query.eq("plan_tier", tier);

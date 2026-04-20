@@ -119,8 +119,10 @@ export default function SubmissionForm({
     }
     const existing = document.getElementById("google-maps-script") as HTMLScriptElement | null;
     if (existing) {
-      existing.addEventListener("load", () => setGoogleMapsReady(true));
-      return;
+      // Script element exists but API not yet available — listen for load with cleanup
+      const onLoad = () => setGoogleMapsReady(true);
+      existing.addEventListener("load", onLoad);
+      return () => existing.removeEventListener("load", onLoad);
     }
     const script = document.createElement("script");
     script.id = "google-maps-script";
