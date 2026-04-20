@@ -294,43 +294,28 @@ export default async function LandingPage() {
       </section>
 
       {/* ═══════════════════════════════════════════════
-          TRUST STRIP — scanlines + bright spotlight
+          PLATFORM HIGHLIGHTS — real facts only
          ═══════════════════════════════════════════════ */}
       <section className="relative py-14 border-y border-primary/[0.08] overflow-hidden">
         <div className="absolute inset-0 bg-scanlines pointer-events-none" />
         <div className="absolute inset-0 bg-spotlight pointer-events-none" />
         <div className="max-w-5xl mx-auto px-6 text-center relative z-10">
           <ScrollReveal animation="fade-in">
-            <p className="text-xs uppercase tracking-[0.25em] text-on-surface-variant/40 font-semibold mb-6">Powering agencies and creative teams worldwide</p>
-            <div className="flex flex-wrap justify-center gap-x-12 gap-y-4 items-center text-on-surface-variant/20">
-              {["Agency Co", "Studio X", "PixelForge", "BrandHive", "CreativOps"].map((name, i) => {
-                const colors = ["text-[#4285F4]/50", "text-[#DB4437]/50", "text-[#0F9D58]/50", "text-[#F4B400]/50", "text-[#4285F4]/50"];
-                return (
-                  <span key={name} className={`text-lg md:text-xl font-headline font-bold tracking-tight hover:${colors[i]} transition-colors duration-500`}>{name}</span>
-                );
-              })}
+            <p className="text-xs uppercase tracking-[0.25em] text-on-surface-variant/40 font-semibold mb-6">Built for agencies and creative teams</p>
+            <div className="flex flex-wrap justify-center gap-x-8 md:gap-x-14 gap-y-4 items-center">
+              {[
+                { icon: "fa-cube", label: "30+ Field Types" },
+                { icon: "fa-palette", label: "White-Label Ready" },
+                { icon: "fa-lock", label: "Secure by Default" },
+                { icon: "fa-bolt", label: "No-Code Builder" },
+              ].map(({ icon, label }) => (
+                <span key={label} className="flex items-center gap-2 text-on-surface-variant/50 hover:text-primary/70 transition-colors duration-500">
+                  <i className={`fa-solid ${icon} text-sm text-primary/40`} />
+                  <span className="text-sm md:text-base font-headline font-bold tracking-tight">{label}</span>
+                </span>
+              ))}
             </div>
           </ScrollReveal>
-        </div>
-      </section>
-
-      {/* ═══════════════════════════════════════════════
-          STATS — ripple rings + bold corner glows
-         ═══════════════════════════════════════════════ */}
-      <section className="relative py-24 md:py-32 px-6 overflow-hidden">
-        <div className="absolute inset-0 bg-ripple pointer-events-none" />
-        <div className="absolute inset-0 bg-corner-glow pointer-events-none" />
-        {/* Extra color wash */}
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[700px] h-[400px] bg-primary/[0.08] rounded-full blur-[100px] pointer-events-none" />
-        <div className="absolute top-[20%] right-[-5%] w-[400px] h-[350px] bg-tertiary/[0.06] rounded-full blur-[120px] pointer-events-none" />
-
-        <div className="max-w-5xl mx-auto relative z-10">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-6 md:gap-8">
-            <ScrollReveal animation="fade-up" delay={0}><StatBlock value="10,000+" label="Entries collected" icon="fa-paper-plane" color="blue" /></ScrollReveal>
-            <ScrollReveal animation="fade-up" delay={100}><StatBlock value="500+" label="Agencies onboard" icon="fa-building" color="red" /></ScrollReveal>
-            <ScrollReveal animation="fade-up" delay={200}><StatBlock value="99.9%" label="Uptime SLA" icon="fa-shield-halved" color="green" /></ScrollReveal>
-            <ScrollReveal animation="fade-up" delay={300}><StatBlock value="30+" label="Field types available" icon="fa-cube" color="amber" /></ScrollReveal>
-          </div>
         </div>
       </section>
 
@@ -446,31 +431,6 @@ export default async function LandingPage() {
         </div>
       </section>
 
-      {/* ═══════════════════════════════════════════════
-          TESTIMONIALS — diagonal lines + big dual glows
-         ═══════════════════════════════════════════════ */}
-      <section className="relative py-24 md:py-32 px-6 overflow-hidden bg-surface-container-low/20">
-        <div className="absolute inset-0 bg-diagonal-lines pointer-events-none" />
-        <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-outline-variant/15 to-transparent" />
-        <div className="absolute bottom-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-outline-variant/15 to-transparent" />
-        {/* Bold dual blobs */}
-        <div className="absolute top-[15%] left-[0%] w-[500px] h-[450px] bg-primary/[0.10] rounded-full blur-[140px] pointer-events-none animate-glow-breathe" />
-        <div className="absolute bottom-[10%] right-[0%] w-[450px] h-[400px] bg-tertiary/[0.08] rounded-full blur-[120px] pointer-events-none animate-glow-breathe" style={{ animationDelay: "2.5s" }} />
-
-        <div className="max-w-6xl mx-auto relative z-10">
-          <div className="text-center mb-16 md:mb-20">
-            <span className="inline-block text-xs font-bold text-tertiary uppercase tracking-[0.2em] mb-4">Testimonials</span>
-            <h2 className="text-4xl md:text-5xl font-headline font-bold mb-4">Loved by agencies <span className="gradient-text">everywhere</span></h2>
-            <p className="text-on-surface-variant text-lg max-w-xl mx-auto">See what teams are saying about running their workflow on linqme.</p>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <ScrollReveal animation="fade-up" delay={0}><TestimonialCard quote="We replaced three tools with linqme. Forms, client data, and analytics are all in one place now, and our clients think it's our own platform." name="Lena Morales" role="Founder, PixelForge Studio" /></ScrollReveal>
-            <ScrollReveal animation="fade-up" delay={150}><TestimonialCard quote="The Insights dashboard changed how we report to stakeholders. We auto-generate charts per form and the data updates in real time." name="Jordan Ellis" role="Creative Director, BrandHive" featured /></ScrollReveal>
-            <ScrollReveal animation="fade-up" delay={300}><TestimonialCard quote="30+ field types, conditional logic, repeater fields. We've built intake forms for web design, branding, and SEO that each feel completely different." name="Priya Sandoval" role="Operations Lead, CreativOps" /></ScrollReveal>
-          </div>
-        </div>
-      </section>
 
       {/* ═══════════════════════════════════════════════
           USE CASES — diamond grid + spotlight + streaks
@@ -634,19 +594,6 @@ const COLOR_MAP: Record<string, { bg: string; text: string; shadow: string }> = 
   amber: { bg: "bg-[#F4B400]", text: "text-[#F4B400]", shadow: "shadow-[0_0_30px_rgba(244,180,0,0.25)]" },
 };
 
-function StatBlock({ value, label, icon, color = "blue" }: { value: string; label: string; icon: string; color?: string }) {
-  const c = COLOR_MAP[color] ?? COLOR_MAP.blue;
-  return (
-    <div className="text-center group">
-      <div className={`inline-flex items-center justify-center w-14 h-14 rounded-2xl ${c.bg}/15 border border-current/10 mb-4 group-hover:${c.bg}/25 group-hover:${c.shadow} group-hover:scale-110 transition-all duration-500`}>
-        <i className={`fa-solid ${icon} ${c.text} text-lg`} />
-      </div>
-      <div className={`text-4xl md:text-5xl font-headline font-extrabold ${c.text} mb-2`}>{value}</div>
-      <p className="text-sm text-on-surface-variant/60">{label}</p>
-    </div>
-  );
-}
-
 function StepCard({ num, title, desc, icon, color = "blue" }: { num: number; title: string; desc: string; icon: string; color?: string }) {
   const c = COLOR_MAP[color] ?? COLOR_MAP.blue;
   return (
@@ -682,33 +629,6 @@ function MiniFeature({ icon, title, desc, color = "blue" }: { icon: string; titl
   );
 }
 
-function TestimonialCard({ quote, name, role, featured }: { quote: string; name: string; role: string; featured?: boolean }) {
-  return (
-    <div className={`rounded-2xl p-8 flex flex-col justify-between h-full transition-all duration-500 glow-card ${
-      featured ? "gradient-border" : "border border-outline-variant/[0.08] hover:border-outline-variant/15"
-    }`}>
-      <div className={featured ? "glass-panel rounded-2xl p-8 -m-8 h-full flex flex-col justify-between" : "flex flex-col justify-between h-full"}>
-        <div>
-          <div className="flex gap-1 mb-4">
-            {[1, 2, 3, 4, 5].map((s) => (
-              <i key={s} className="fa-solid fa-star text-xs text-primary/70" />
-            ))}
-          </div>
-          <p className="text-on-surface/90 leading-relaxed mb-6">&ldquo;{quote}&rdquo;</p>
-        </div>
-        <div className="flex items-center gap-3">
-          <div className="w-9 h-9 rounded-full bg-gradient-to-br from-primary/25 to-tertiary/25 flex items-center justify-center text-xs font-bold text-primary border border-primary/10">
-            {name.charAt(0)}
-          </div>
-          <div>
-            <p className="font-bold text-sm">{name}</p>
-            <p className="text-xs text-on-surface-variant/50">{role}</p>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-}
 
 function UseCaseCard({ icon, title, desc, color = "blue" }: { icon: string; title: string; desc: string; color?: string }) {
   const c = COLOR_MAP[color] ?? COLOR_MAP.blue;
