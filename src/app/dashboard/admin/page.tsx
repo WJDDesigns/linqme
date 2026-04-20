@@ -89,6 +89,7 @@ export default async function AdminDashboardPage() {
         {[
           { label: "Manage Team", desc: "Invite admins and support staff", icon: "fa-user-shield", href: "/dashboard/admin/team" },
           { label: "All Customers", desc: "Search and manage every customer", icon: "fa-sitemap", href: "/dashboard/admin/partners" },
+          { label: "Storage", desc: "File storage usage per customer", icon: "fa-hard-drive", href: "/dashboard/admin/storage" },
           { label: "Activity Log", desc: "Audit trail of platform events", icon: "fa-timeline", href: "/dashboard/admin/activity" },
         ].map((link) => (
           <Link
