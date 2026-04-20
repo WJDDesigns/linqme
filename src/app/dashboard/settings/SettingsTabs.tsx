@@ -6,7 +6,7 @@ import { useSearchParams } from "next/navigation";
 const TABS = [
   { id: "general", label: "General", icon: "fa-gear" },
   { id: "branding", label: "Branding", icon: "fa-palette" },
-  { id: "integrations", label: "Integrations", icon: "fa-plug" },
+  { id: "billing", label: "Billing", icon: "fa-credit-card" },
   { id: "advanced", label: "Advanced", icon: "fa-sliders" },
   { id: "changelog", label: "Changelog", icon: "fa-clock-rotate-left" },
 ] as const;
@@ -16,13 +16,13 @@ type TabId = (typeof TABS)[number]["id"];
 interface Props {
   generalContent: React.ReactNode;
   brandingContent: React.ReactNode;
-  integrationsContent: React.ReactNode;
+  billingContent: React.ReactNode;
   advancedContent: React.ReactNode;
   changelogContent: React.ReactNode;
   defaultTab?: string;
 }
 
-export default function SettingsTabs({ generalContent, brandingContent, integrationsContent, advancedContent, changelogContent, defaultTab }: Props) {
+export default function SettingsTabs({ generalContent, brandingContent, billingContent, advancedContent, changelogContent, defaultTab }: Props) {
   const searchParams = useSearchParams();
 
   // Resolve initial tab: URL ?tab= param takes priority, then defaultTab prop, then "general"
@@ -55,7 +55,7 @@ export default function SettingsTabs({ generalContent, brandingContent, integrat
   const panels: Record<TabId, React.ReactNode> = {
     general: generalContent,
     branding: brandingContent,
-    integrations: integrationsContent,
+    billing: billingContent,
     advanced: advancedContent,
     changelog: changelogContent,
   };
