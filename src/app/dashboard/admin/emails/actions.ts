@@ -70,6 +70,12 @@ const SAMPLE_DATA: Record<string, Record<string, string>> = {
     subject: "Question about onboarding",
     message: "Hi, I had a question about setting up my client onboarding form. Could you help me configure the fields?",
   },
+  agency_invite: {
+    email: "agency@example.com",
+    coupon_code: "LINQME-DEMO-1234",
+    signup_url: "https://linqme.io/signup?coupon=LINQME-DEMO-1234",
+    expires_date: "May 20, 2026",
+  },
 };
 
 function fillTemplate(html: string, vars: Record<string, string>): string {

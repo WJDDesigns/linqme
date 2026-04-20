@@ -34,6 +34,7 @@ const ADMIN_NAV = [
   { href: "/dashboard/admin/billing", label: "Billing", icon: "fa-credit-card" },
   { href: "/dashboard/admin/team", label: "Team", icon: "fa-user-shield" },
   { href: "/dashboard/admin/partners", label: "Accounts", icon: "fa-sitemap" },
+  { href: "/dashboard/admin/invites", label: "Invites", icon: "fa-paper-plane" },
   { href: "/dashboard/admin/activity", label: "Activity Log", icon: "fa-timeline" },
   { href: "/dashboard/admin/emails", label: "Emails", icon: "fa-envelope" },
   { href: "/dashboard/admin/announce", label: "Announce", icon: "fa-bullhorn" },
