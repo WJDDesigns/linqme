@@ -884,8 +884,8 @@ export default function DocsClient({ isLoggedIn }: { isLoggedIn: boolean }) {
                 linqme offers four plans to fit your needs:
               </p>
               <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4 my-6">
-                <PlanCard name="Free" price="$0" features={["10 submissions/month", "1 form", "1 GB storage"]} />
-                <PlanCard name="Starter" price="$39/mo" features={["50 submissions/month", "5 forms", "10 GB storage"]} />
+                <PlanCard name="Free" price="$0" features={["10 submissions/month", "1 form", "100 MB storage"]} />
+                <PlanCard name="Starter" price="$39/mo" features={["50 submissions/month", "5 forms", "1 GB storage"]} />
                 <PlanCard name="Pro" price="$99/mo" features={["Unlimited submissions", "Unlimited forms", "100 GB storage", "White-label", "Custom domain"]} highlight />
                 <PlanCard name="Agency" price="$249/mo" features={["Everything in Pro", "Partner management", "500 GB storage", "Priority support"]} />
               </div>

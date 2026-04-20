@@ -19,7 +19,7 @@ const TIERS = [
     features: [
       { text: "10 submissions / month", included: true },
       { text: "1 form", included: true },
-      { text: "1 GB file storage", included: true },
+      { text: "100 MB file storage", included: true },
       { text: "Branded workspace", included: true },
       { text: "Unlimited form fields", included: true },
       { text: "Community support", included: true },
@@ -38,7 +38,7 @@ const TIERS = [
     features: [
       { text: "50 submissions / month", included: true },
       { text: "Up to 5 forms", included: true },
-      { text: "10 GB file storage", included: true },
+      { text: "1 GB file storage", included: true },
       { text: "CSV & PDF exports", included: true },
       { text: "Email support", included: true },
       { text: "Team members", included: true },
@@ -204,7 +204,7 @@ export default function PricingPage() {
               <tbody className="divide-y divide-outline-variant/[0.05]">
                 <CompareRow feature="Monthly submissions" free="10" starter="50" pro="Unlimited" agency="Unlimited" />
                 <CompareRow feature="Forms" free="1" starter="5" pro="Unlimited" agency="Unlimited" />
-                <CompareRow feature="File storage" free="1 GB" starter="10 GB" pro="100 GB" agency="500 GB" />
+                <CompareRow feature="File storage" free="100 MB" starter="1 GB" pro="100 GB" agency="500 GB" />
                 <CompareRow feature="Form fields" free="Unlimited" starter="Unlimited" pro="Unlimited" agency="Unlimited" />
                 <CompareRow feature="White-labeling" free={false} starter={false} pro={true} agency={true} />
                 <CompareRow feature="Custom domain" free={false} starter={false} pro={true} agency={true} />

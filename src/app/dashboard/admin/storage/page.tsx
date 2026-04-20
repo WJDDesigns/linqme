@@ -5,9 +5,9 @@ import Image from "next/image";
 
 /** Storage limits per tier in bytes */
 const TIER_STORAGE_LIMITS: Record<string, number | null> = {
-  free: 1 * 1024 * 1024 * 1024,           // 1 GB
-  starter: 10 * 1024 * 1024 * 1024,        // 10 GB
-  paid: 10 * 1024 * 1024 * 1024,           // 10 GB (legacy)
+  free: 100 * 1024 * 1024,                  // 100 MB
+  starter: 1 * 1024 * 1024 * 1024,         // 1 GB
+  paid: 1 * 1024 * 1024 * 1024,            // 1 GB (legacy)
   pro: 100 * 1024 * 1024 * 1024,           // 100 GB
   unlimited: null,                           // legacy
   enterprise: 500 * 1024 * 1024 * 1024,    // legacy

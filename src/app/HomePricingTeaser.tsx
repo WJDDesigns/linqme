@@ -11,7 +11,7 @@ export default function HomePricingTeaser() {
         <div className="bg-surface-container-low/60 border border-outline-variant/10 rounded-2xl p-5 text-center h-full">
           <h3 className="text-base font-bold font-headline mb-1">Free</h3>
           <div className="text-2xl font-extrabold font-headline mb-1">$0</div>
-          <p className="text-[11px] text-on-surface-variant/60">10 submissions/mo &middot; 1 GB</p>
+          <p className="text-[11px] text-on-surface-variant/60">10 submissions/mo &middot; 100 MB</p>
         </div>
       </HoloCard>
 
@@ -20,7 +20,7 @@ export default function HomePricingTeaser() {
         <div className="bg-surface-container-low/60 border border-outline-variant/10 rounded-2xl p-5 text-center h-full">
           <h3 className="text-base font-bold font-headline mb-1">Starter</h3>
           <div className="text-2xl font-extrabold font-headline mb-1">$39<span className="text-sm font-normal text-on-surface-variant">/mo</span></div>
-          <p className="text-[11px] text-on-surface-variant/60">50 submissions/mo &middot; 10 GB</p>
+          <p className="text-[11px] text-on-surface-variant/60">50 submissions/mo &middot; 1 GB</p>
         </div>
       </HoloCard>
 
