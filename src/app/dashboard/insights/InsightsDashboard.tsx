@@ -422,14 +422,14 @@ export default function InsightsDashboard({ dashboardMap, forms, fieldMap, submi
   const entryCount = tabSubmissions.length;
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 md:px-10 py-6 md:py-8 space-y-5">
+    <div className="space-y-5">
       {/* Header */}
       <div className="flex items-center justify-between flex-wrap gap-3">
         <div>
-          <h1 className="text-2xl sm:text-3xl font-extrabold font-headline tracking-tight text-on-surface">
-            <i className="fa-solid fa-lightbulb text-primary mr-3" />
+          <h2 className="text-lg font-bold font-headline tracking-tight text-on-surface">
+            <i className="fa-solid fa-lightbulb text-primary mr-2" />
             Insights
-          </h1>
+          </h2>
           <p className="text-sm text-on-surface-variant mt-1">
             Build your custom dashboard from entry data.
           </p>
@@ -508,7 +508,7 @@ export default function InsightsDashboard({ dashboardMap, forms, fieldMap, submi
 
       {/* Widget Grid */}
       {widgets.length > 0 && (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 auto-rows-[200px]">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 auto-rows-[200px]">
           {widgets.map((widget) => (
             <div
               key={widget.id}
