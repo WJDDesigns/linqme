@@ -107,14 +107,27 @@ export default function SubmissionForm({
   const captchaTokenRef = useRef<string | null>(null);
 
   // Load Google Maps Places script for address autocomplete
+  const [googleMapsReady, setGoogleMapsReady] = useState(
+    typeof window !== "undefined" && typeof google !== "undefined" && !!google.maps?.places,
+  );
   useEffect(() => {
     if (!googleMapsApiKey) return;
-    if (typeof document !== "undefined" && document.getElementById("google-maps-script")) return;
+    // Already loaded
+    if (typeof google !== "undefined" && google.maps?.places) {
+      setGoogleMapsReady(true);
+      return;
+    }
+    const existing = document.getElementById("google-maps-script") as HTMLScriptElement | null;
+    if (existing) {
+      existing.addEventListener("load", () => setGoogleMapsReady(true));
+      return;
+    }
     const script = document.createElement("script");
     script.id = "google-maps-script";
     script.src = `https://maps.googleapis.com/maps/api/js?key=${googleMapsApiKey}&libraries=places`;
     script.async = true;
     script.defer = true;
+    script.onload = () => setGoogleMapsReady(true);
     document.head.appendChild(script);
   }, [googleMapsApiKey]);
 
@@ -284,7 +297,7 @@ export default function SubmissionForm({
     }
     return (
       <div key={f.id} className={`${colCls} ${animClass} sl-d${Math.min(i + 2, 5)}`}>
-        <CelestialField field={f} value={data[f.id]} error={errors[f.id]} onChange={(v) => updateField(f.id, v)} primaryColor={primaryColor} allData={data} partnerId={partnerId} captchaSiteKey={captchaSiteKey} captchaProvider={captchaProvider} captchaTokenRef={captchaTokenRef} hasPaymentGateway={hasPaymentGateway} geocodingProvider={geocodingProvider} />
+        <CelestialField field={f} value={data[f.id]} error={errors[f.id]} onChange={(v) => updateField(f.id, v)} primaryColor={primaryColor} allData={data} partnerId={partnerId} captchaSiteKey={captchaSiteKey} captchaProvider={captchaProvider} captchaTokenRef={captchaTokenRef} hasPaymentGateway={hasPaymentGateway} geocodingProvider={geocodingProvider} googleMapsReady={googleMapsReady} />
       </div>
     );
   };
@@ -2207,11 +2220,12 @@ function BudgetAllocatorField({ field, value, error, onChange, primaryColor }: {
 
 function CelestialField({
   field, value, error, onChange, primaryColor, allData, partnerId,
-  captchaSiteKey, captchaProvider, captchaTokenRef, hasPaymentGateway, geocodingProvider,
+  captchaSiteKey, captchaProvider, captchaTokenRef, hasPaymentGateway, geocodingProvider, googleMapsReady,
 }: {
   field: FieldDef; value: unknown; error?: string; onChange: (v: unknown) => void; primaryColor: string; allData: Record<string, unknown>; partnerId?: string;
   captchaSiteKey?: string | null; captchaProvider?: "recaptcha" | "turnstile" | null; captchaTokenRef?: React.MutableRefObject<string | null>; hasPaymentGateway?: boolean;
   geocodingProvider?: "google" | "openstreetmap" | null;
+  googleMapsReady?: boolean;
 }) {
   const str = (value as string) ?? "";
   const focusRing = { "--tw-ring-color": primaryColor + "66" } as React.CSSProperties;
@@ -3243,9 +3257,10 @@ function CelestialField({
     const [osmOpen, setOsmOpen] = useState(false);
     const osmTimerRef = useRef<ReturnType<typeof setTimeout>>(undefined);
 
-    // Google Places init
+    // Google Places init -- googleMapsReady triggers re-run when script finishes loading
     useEffect(() => {
       if (resolvedProvider !== "google") return;
+      if (!googleMapsReady) return;
       if (!inputRef.current || typeof google === "undefined" || !google.maps?.places) return;
       if (autocompleteRef.current) return;
       const options: google.maps.places.AutocompleteOptions = {
@@ -3269,7 +3284,7 @@ function CelestialField({
         };
         onChange(JSON.stringify(next));
       });
-    }, [resolvedProvider, field.addressConfig?.region, onChange]);
+    }, [resolvedProvider, field.addressConfig?.region, onChange, googleMapsReady]);
 
     // OpenStreetMap Nominatim debounced search
     const osmSearch = useCallback((query: string) => {
@@ -3397,10 +3412,10 @@ function CelestialField({
             </div>
           )}
         </div>
-        {resolvedProvider === "google" && typeof google === "undefined" && (
+        {resolvedProvider === "google" && !googleMapsReady && (
           <p className="text-[10px] text-on-surface-variant/50 mt-2 ml-1">
-            <i className="fa-solid fa-circle-info mr-1" />
-            Google Places autocomplete is not loaded. Address can still be entered manually.
+            <i className="fa-solid fa-spinner fa-spin mr-1" />
+            Loading address autocomplete...
           </p>
         )}
         {resolvedProvider === "openstreetmap" && (
