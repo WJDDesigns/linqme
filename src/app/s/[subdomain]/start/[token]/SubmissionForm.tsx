@@ -4546,6 +4546,7 @@ function CelestialField({
             <input
               name={field.id}
               type="checkbox"
+              value="yes"
               checked={str === "yes"}
               onChange={(e) => onChange(e.target.checked ? "yes" : "")}
               className="h-5 w-5 rounded mt-0.5 shrink-0"

@@ -11,12 +11,48 @@ const INPUT_CLS =
 const SELECT_CLS =
   "block w-full px-4 py-3 text-sm bg-surface-container-lowest/80 border border-outline-variant/10 rounded-xl text-on-surface focus:ring-2 focus:ring-primary/30 focus:border-primary/30 outline-none transition-all duration-300 appearance-none";
 
-const STEPS = ["Account", "Business", "Details"] as const;
+const STEPS = ["Account", "Plan", "Business", "Details"] as const;
+
+const PLAN_TIERS = [
+  {
+    id: "free",
+    name: "Free",
+    price: "Free",
+    period: "forever",
+    desc: "10 submissions/mo, 1 form, 100 MB storage",
+    icon: "fa-seedling",
+  },
+  {
+    id: "starter",
+    name: "Starter",
+    price: "$39",
+    period: "/mo",
+    desc: "50 submissions/mo, 5 forms, 1 GB storage, CSV & PDF exports",
+    icon: "fa-rocket",
+  },
+  {
+    id: "pro",
+    name: "Pro",
+    price: "$99",
+    period: "/mo",
+    desc: "Unlimited submissions & forms, white-labeling, custom domain",
+    icon: "fa-bolt",
+    recommended: true,
+  },
+  {
+    id: "agency",
+    name: "Agency",
+    price: "$249",
+    period: "/mo",
+    desc: "Everything in Pro + partner management, 500 GB storage, priority support",
+    icon: "fa-building",
+  },
+] as const;
 
 export default function SignupForm({ rootHost }: { rootHost: string }) {
   const searchParams = useSearchParams();
   const planParam = searchParams.get("plan");
-  const nextUrl = searchParams.get("next") || (planParam ? `/checkout?plan=${planParam}` : null);
+  const nextUrl = searchParams.get("next") || null;
   const [step, setStep] = useState(0);
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
@@ -30,7 +66,8 @@ export default function SignupForm({ rootHost }: { rootHost: string }) {
     company_name: "",
     slug: "",
     plan_type: "agency",
-    // Step 2
+    selected_plan: planParam || "free",
+    // Step 3
     phone: "",
     website: "",
     industry: "",
@@ -71,7 +108,8 @@ export default function SignupForm({ rootHost }: { rootHost: string }) {
         return false;
       }
     }
-    if (step === 1) {
+    // Step 1 (Plan) always passes -- free is default
+    if (step === 2) {
       if (!formData.phone || !formData.company_name) {
         setError("Phone number is required.");
         return false;
@@ -120,8 +158,12 @@ export default function SignupForm({ rootHost }: { rootHost: string }) {
       return;
     }
 
-    // If there's a ?next= param (e.g. from checkout), go there instead of dashboard
-    window.location.href = nextUrl && result.next === "/dashboard" ? nextUrl : result.next;
+    // If they chose a paid plan, go to checkout; otherwise go to dashboard
+    if (result.next === "/dashboard" && formData.selected_plan !== "free") {
+      window.location.href = nextUrl || `/checkout?plan=${formData.selected_plan}`;
+    } else {
+      window.location.href = nextUrl && result.next === "/dashboard" ? nextUrl : result.next;
+    }
   }
 
   return (
@@ -224,28 +266,6 @@ export default function SignupForm({ rootHost }: { rootHost: string }) {
               </div>
             </Field>
 
-            <fieldset className="space-y-2">
-              <legend className="text-xs font-semibold text-on-surface-variant uppercase tracking-widest">
-                What best describes you?
-              </legend>
-              <PlanOption
-                name="plan_type"
-                value="agency"
-                checked={formData.plan_type === "agency"}
-                onChange={() => update("plan_type", "agency")}
-                title="I'm an agency or freelancer"
-                desc="You'll onboard your own clients through one branded workspace."
-              />
-              <PlanOption
-                name="plan_type"
-                value="agency_plus_partners"
-                checked={formData.plan_type === "agency_plus_partners"}
-                onChange={() => update("plan_type", "agency_plus_partners")}
-                title="I manage multiple brands / sub-partners"
-                desc="You can spin up sub-partner workspaces, each with their own branding and team."
-              />
-            </fieldset>
-
             {/* TOS Agreement */}
             <label className="flex items-start gap-3 cursor-pointer group">
               <input
@@ -268,8 +288,89 @@ export default function SignupForm({ rootHost }: { rootHost: string }) {
           </div>
         )}
 
-        {/* Step 2: Business Details */}
+        {/* Step 2: Plan Selection */}
         {step === 1 && (
+          <div className="space-y-4 animate-fade-in">
+            <p className="text-xs text-on-surface-variant/70">
+              Choose the plan that fits your needs. You can always change later.
+            </p>
+            <div className="space-y-2.5">
+              {PLAN_TIERS.map((tier) => (
+                <label
+                  key={tier.id}
+                  className={`relative flex items-center gap-4 p-4 rounded-xl border cursor-pointer transition-all duration-200 ${
+                    formData.selected_plan === tier.id
+                      ? "border-primary/50 bg-primary/5 ring-1 ring-primary/20"
+                      : "border-outline-variant/15 hover:border-primary/30"
+                  }`}
+                >
+                  <input
+                    type="radio"
+                    name="selected_plan"
+                    value={tier.id}
+                    checked={formData.selected_plan === tier.id}
+                    onChange={() => update("selected_plan", tier.id)}
+                    className="sr-only"
+                  />
+                  <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 ${
+                    formData.selected_plan === tier.id
+                      ? "bg-primary/20 text-primary"
+                      : "bg-surface-container-high text-on-surface-variant/60"
+                  }`}>
+                    <i className={`fa-solid ${tier.icon} text-sm`} />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2">
+                      <span className="text-sm font-bold text-on-surface">{tier.name}</span>
+                      {"recommended" in tier && tier.recommended && (
+                        <span className="text-[9px] font-bold uppercase tracking-widest px-2 py-0.5 rounded-full bg-primary/15 text-primary">
+                          Recommended
+                        </span>
+                      )}
+                    </div>
+                    <p className="text-xs text-on-surface-variant/60 mt-0.5">{tier.desc}</p>
+                  </div>
+                  <div className="text-right shrink-0">
+                    <span className="text-lg font-extrabold text-on-surface font-headline">{tier.price}</span>
+                    {tier.period !== "forever" && (
+                      <span className="text-xs text-on-surface-variant/50">{tier.period}</span>
+                    )}
+                  </div>
+                  {formData.selected_plan === tier.id && (
+                    <div className="absolute top-3 right-3">
+                      <i className="fa-solid fa-circle-check text-primary text-sm" />
+                    </div>
+                  )}
+                </label>
+              ))}
+            </div>
+
+            <fieldset className="space-y-2 pt-2">
+              <legend className="text-xs font-semibold text-on-surface-variant uppercase tracking-widest">
+                What best describes you?
+              </legend>
+              <PlanOption
+                name="plan_type"
+                value="agency"
+                checked={formData.plan_type === "agency"}
+                onChange={() => update("plan_type", "agency")}
+                title="I'm an agency or freelancer"
+                desc="You'll onboard your own clients through one branded workspace."
+              />
+              <PlanOption
+                name="plan_type"
+                value="agency_plus_partners"
+                checked={formData.plan_type === "agency_plus_partners"}
+                onChange={() => update("plan_type", "agency_plus_partners")}
+                title="I manage multiple brands / sub-partners"
+                desc="You can spin up sub-partner workspaces, each with their own branding and team."
+              />
+            </fieldset>
+          </div>
+        )}
+
+        {/* Step 3: Business Details */}
+        {step === 2 && (
           <div className="space-y-4 animate-fade-in">
             <Field label="Phone number">
               <input
@@ -377,8 +478,8 @@ export default function SignupForm({ rootHost }: { rootHost: string }) {
           </div>
         )}
 
-        {/* Step 3: Usage & Preferences */}
-        {step === 2 && (
+        {/* Step 4: Usage & Preferences */}
+        {step === 3 && (
           <div className="space-y-4 animate-fade-in">
             <Field label="Team size" hint="How many people will use linqme?">
               <select
