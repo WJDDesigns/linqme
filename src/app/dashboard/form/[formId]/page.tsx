@@ -105,6 +105,26 @@ export default async function FormEditorPage({ params }: PageProps) {
     signing_secret: string | null; created_at: string;
   }[];
 
+  // Load Google Sheets feeds + connection status
+  const [{ data: sheetsFeedRows }, { count: sheetsConnCount }] = await Promise.all([
+    admin
+      .from("sheets_feeds")
+      .select("id, spreadsheet_id, spreadsheet_name, sheet_name, field_map, is_enabled")
+      .eq("partner_form_id", formId)
+      .eq("partner_id", account.id)
+      .order("created_at", { ascending: true }),
+    admin
+      .from("sheets_connections")
+      .select("id", { count: "exact", head: true })
+      .eq("partner_id", account.id),
+  ]);
+  const sheetsFeeds = (sheetsFeedRows ?? []) as {
+    id: string; spreadsheet_id: string; spreadsheet_name: string;
+    sheet_name: string; field_map: { fieldId: string; column: string }[] | null;
+    is_enabled: boolean;
+  }[];
+  const hasSheetsConnection = (sheetsConnCount ?? 0) > 0;
+
   return (
     <div className="flex flex-col h-screen">
       <FormEditorShell
@@ -123,6 +143,8 @@ export default async function FormEditorPage({ params }: PageProps) {
               formId={formId}
               schema={schema}
               initialWebhooks={webhooks}
+              initialSheetsFeeds={sheetsFeeds}
+              hasSheetsConnection={hasSheetsConnection}
               notificationEmails={(pf.notification_emails as string[]) ?? []}
               notificationBcc={(pf.notification_bcc as string[]) ?? []}
               confirmPageHeading={(pf.confirm_page_heading as string) ?? ""}

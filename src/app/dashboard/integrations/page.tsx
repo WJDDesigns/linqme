@@ -28,6 +28,7 @@ export default async function IntegrationsPage() {
     { data: paymentRows },
     { data: captchaRows },
     geocodingResult,
+    { data: sheetsRows },
   ] = await Promise.all([
     admin
       .from("cloud_integrations")
@@ -51,6 +52,10 @@ export default async function IntegrationsPage() {
         .select("id, provider, connected_at")
         .eq("partner_id", account.id),
     ).catch(() => ({ data: null })),
+    admin
+      .from("sheets_connections")
+      .select("id, account_email, connected_at")
+      .eq("partner_id", account.id),
   ]);
 
   /* Normalize all rows into a flat array with their table tag */
@@ -72,6 +77,11 @@ export default async function IntegrationsPage() {
     ...((geocodingResult?.data ?? []) as { id: string; provider: string; connected_at: string }[]).map(
       (r) => ({ ...r, table: "geocoding_integrations" as const }),
     ),
+    ...(sheetsRows ?? []).map((r) => ({
+      ...r,
+      provider: "google_sheets",
+      table: "sheets_connections" as const,
+    })),
   ];
 
   return (

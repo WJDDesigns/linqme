@@ -405,8 +405,11 @@ export const INTEGRATIONS: IntegrationDef[] = [
     icon: "fa-solid fa-table",
     color: "text-[#0f9d58]",
     category: "productivity",
-    status: "coming_soon",
+    status: "available",
     connectionType: "oauth",
+    providerKey: "google_sheets",
+    table: "sheets_connections",
+    connectUrl: "/api/sheets/connect",
     popular: true,
   },
   {

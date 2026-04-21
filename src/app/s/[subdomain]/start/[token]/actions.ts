@@ -8,6 +8,7 @@ import { validateStepData } from "@/lib/forms";
 import { notifyPartnerOfSubmission } from "@/lib/notifications";
 import { syncFilesToCloud } from "@/lib/cloud/sync";
 import { fireWebhooks } from "@/lib/webhooks";
+import { fireSheetsSync } from "@/lib/sheets/sync";
 
 async function loadSubmissionByToken(token: string) {
   const admin = createAdminClient();
@@ -139,6 +140,13 @@ export async function submitSubmissionAction(token: string) {
     await fireWebhooks(sub.id);
   } catch (err) {
     console.error("[webhooks] failed:", err);
+  }
+
+  // Sync to Google Sheets -- fire-and-forget
+  try {
+    await fireSheetsSync(sub.id);
+  } catch (err) {
+    console.error("[sheets-sync] failed:", err);
   }
 
   redirect(await absoluteUrl(`/thanks/${token}`));

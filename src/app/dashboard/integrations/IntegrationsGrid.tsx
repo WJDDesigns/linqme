@@ -237,6 +237,9 @@ export default function IntegrationsGrid({ connected }: Props) {
           body: JSON.stringify({ provider: def.providerKey }),
         });
         if (!res.ok) throw new Error("Failed");
+      } else if (def.table === "sheets_connections") {
+        const res = await fetch("/api/sheets/disconnect", { method: "POST" });
+        if (!res.ok) throw new Error("Failed");
       }
       startTransition(() => {
         router.refresh();

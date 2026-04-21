@@ -10,6 +10,11 @@ import {
   testWebhookAction,
   getWebhookDeliveries,
 } from "./webhook-actions";
+import {
+  createSheetsFeedAction,
+  updateSheetsFeedAction,
+  deleteSheetsFeedAction,
+} from "./sheets-actions";
 
 /* ── Types ─────────────────────────────────────────────────────────── */
 
@@ -38,6 +43,15 @@ interface Delivery {
   created_at: string;
 }
 
+interface SheetsFeed {
+  id: string;
+  spreadsheet_id: string;
+  spreadsheet_name: string;
+  sheet_name: string;
+  field_map: { fieldId: string; column: string }[] | null;
+  is_enabled: boolean;
+}
+
 const PROVIDERS = [
   { id: "zapier", label: "Zapier", icon: "fa-bolt", color: "text-orange-400", desc: "Connect to 7,000+ apps via Zapier." },
   { id: "make", label: "Make", icon: "fa-gear", color: "text-purple-400", desc: "Connect to Make (Integromat) scenarios." },
@@ -50,6 +64,8 @@ export default function FormSendToPanel({
   formId,
   schema,
   initialWebhooks,
+  initialSheetsFeeds,
+  hasSheetsConnection,
   notificationEmails: initialNotifEmails,
   notificationBcc: initialNotifBcc,
   confirmPageHeading: initialConfirmHeading,
@@ -59,6 +75,8 @@ export default function FormSendToPanel({
   formId: string;
   schema: FormSchema;
   initialWebhooks: Webhook[];
+  initialSheetsFeeds: SheetsFeed[];
+  hasSheetsConnection: boolean;
   notificationEmails: string[];
   notificationBcc: string[];
   confirmPageHeading: string;
@@ -103,6 +121,102 @@ export default function FormSendToPanel({
   const [deliveries, setDeliveries] = useState<Delivery[]>([]);
   const [showDeliveries, setShowDeliveries] = useState<string | null>(null);
   const [whError, setWhError] = useState<string | null>(null);
+
+  /* ── Sheets feed state ────────────────────────────────────────────── */
+  const [sheetsFeeds, setSheetsFeeds] = useState<SheetsFeed[]>(initialSheetsFeeds);
+  const [sheetsAdding, startSheetsAdd] = useTransition();
+  const [sheetsDeleting, startSheetsDelete] = useTransition();
+  const [sheetsError, setSheetsError] = useState<string | null>(null);
+  const [sheetsMsg, setSheetsMsg] = useState<string | null>(null);
+  const [showNewSheet, setShowNewSheet] = useState(false);
+  const [newSheetMode, setNewSheetMode] = useState<"create" | "existing">("create");
+  const [newSheetTitle, setNewSheetTitle] = useState("");
+  const [existingSheetUrl, setExistingSheetUrl] = useState("");
+
+  function extractSpreadsheetId(url: string): string | null {
+    const match = url.match(/\/spreadsheets\/d\/([a-zA-Z0-9_-]+)/);
+    return match ? match[1] : null;
+  }
+
+  function handleAddSheetsFeed() {
+    setSheetsError(null);
+    setSheetsMsg(null);
+
+    if (newSheetMode === "create") {
+      if (!newSheetTitle.trim()) { setSheetsError("Enter a spreadsheet title."); return; }
+      const headers = ["Submitted At", ...schema.steps.flatMap((s) => s.fields.map((f) => f.label))];
+      startSheetsAdd(async () => {
+        const result = await createSheetsFeedAction(formId, {
+          createNew: true,
+          newTitle: newSheetTitle.trim(),
+          headers,
+        });
+        if (result.ok) {
+          setSheetsFeeds((prev) => [
+            ...prev,
+            {
+              id: result.id!,
+              spreadsheet_id: extractSpreadsheetId(result.spreadsheetUrl ?? "") ?? "",
+              spreadsheet_name: newSheetTitle.trim(),
+              sheet_name: "Submissions",
+              field_map: null,
+              is_enabled: true,
+            },
+          ]);
+          setNewSheetTitle("");
+          setShowNewSheet(false);
+          setSheetsMsg("Spreadsheet created and linked!");
+        } else {
+          setSheetsError(result.error ?? "Failed to create spreadsheet.");
+        }
+      });
+    } else {
+      const spreadsheetId = extractSpreadsheetId(existingSheetUrl);
+      if (!spreadsheetId) { setSheetsError("Paste a valid Google Sheets URL."); return; }
+      startSheetsAdd(async () => {
+        const result = await createSheetsFeedAction(formId, {
+          spreadsheetId,
+          spreadsheetName: "Linked Sheet",
+        });
+        if (result.ok) {
+          setSheetsFeeds((prev) => [
+            ...prev,
+            {
+              id: result.id!,
+              spreadsheet_id: spreadsheetId,
+              spreadsheet_name: "Linked Sheet",
+              sheet_name: "Sheet1",
+              field_map: null,
+              is_enabled: true,
+            },
+          ]);
+          setExistingSheetUrl("");
+          setShowNewSheet(false);
+          setSheetsMsg("Sheet linked!");
+        } else {
+          setSheetsError(result.error ?? "Failed to link spreadsheet.");
+        }
+      });
+    }
+  }
+
+  function handleDeleteSheetsFeed(feedId: string) {
+    startSheetsDelete(async () => {
+      const result = await deleteSheetsFeedAction(feedId, formId);
+      if (result.ok) {
+        setSheetsFeeds((prev) => prev.filter((f) => f.id !== feedId));
+      }
+    });
+  }
+
+  function handleToggleSheetsFeed(feedId: string, enabled: boolean) {
+    startSheetsAdd(async () => {
+      const result = await updateSheetsFeedAction(feedId, formId, { isEnabled: enabled });
+      if (result.ok) {
+        setSheetsFeeds((prev) => prev.map((f) => f.id === feedId ? { ...f, is_enabled: enabled } : f));
+      }
+    });
+  }
 
   const allFields = schema.steps.flatMap((s) =>
     s.fields.map((f) => ({ id: f.id, label: f.label, stepTitle: s.title })),
@@ -226,7 +340,7 @@ export default function FormSendToPanel({
         <div>
           <h2 className="text-xl font-bold font-headline text-on-surface">Send To</h2>
           <p className="text-sm text-on-surface-variant/60 mt-1">
-            Configure where submissions are sent -- email notifications, Zapier, Make, or custom webhooks.
+            Configure where submissions are sent -- email notifications, Google Sheets, Zapier, Make, or custom webhooks.
           </p>
         </div>
 
@@ -318,6 +432,224 @@ export default function FormSendToPanel({
               )}
             </div>
           </div>
+        </section>
+
+        {/* ── Google Sheets ────────────────────────────────────────── */}
+        <section className="space-y-4">
+          <div className="flex items-center gap-2">
+            <i className="fa-solid fa-table text-emerald-400 text-sm" />
+            <h3 className="text-xs font-bold text-on-surface-variant uppercase tracking-widest">
+              Google Sheets
+            </h3>
+          </div>
+
+          {!hasSheetsConnection ? (
+            <div className="glass-panel rounded-xl border border-outline-variant/15 p-5">
+              <div className="flex items-start gap-4">
+                <div className="w-10 h-10 rounded-xl bg-emerald-500/10 flex items-center justify-center shrink-0">
+                  <i className="fa-solid fa-table text-emerald-400" />
+                </div>
+                <div className="flex-1">
+                  <p className="text-sm font-bold text-on-surface mb-1">Connect Google Sheets</p>
+                  <p className="text-xs text-on-surface-variant/60 leading-relaxed mb-3">
+                    Automatically sync every submission to a Google Spreadsheet in real time.
+                    Connect your Google account first from the Integrations page.
+                  </p>
+                  <a
+                    href="/dashboard/integrations"
+                    className="inline-flex items-center gap-2 px-4 py-2 text-xs font-bold bg-emerald-500/10 text-emerald-400 rounded-lg hover:bg-emerald-500/20 transition-all"
+                  >
+                    <i className="fa-solid fa-plug text-[10px]" />
+                    Go to Integrations
+                  </a>
+                </div>
+              </div>
+            </div>
+          ) : (
+            <>
+              {/* Existing feeds */}
+              {sheetsFeeds.length > 0 && (
+                <div className="glass-panel rounded-2xl border border-outline-variant/15 overflow-hidden">
+                  <div className="divide-y divide-outline-variant/5">
+                    {sheetsFeeds.map((feed) => (
+                      <div key={feed.id} className="px-5 py-4 flex items-center gap-4">
+                        <div className="w-8 h-8 rounded-lg bg-emerald-500/10 flex items-center justify-center shrink-0">
+                          <i className="fa-solid fa-table text-emerald-400 text-sm" />
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-2">
+                            <p className="text-sm font-bold text-on-surface truncate">
+                              {feed.spreadsheet_name || "Linked Sheet"}
+                            </p>
+                            <span className={`text-[10px] font-bold uppercase tracking-widest px-1.5 py-0.5 rounded-full ${
+                              feed.is_enabled ? "text-tertiary bg-tertiary/10" : "text-on-surface-variant/40 bg-surface-container-high"
+                            }`}>
+                              {feed.is_enabled ? "Active" : "Off"}
+                            </span>
+                          </div>
+                          <p className="text-xs text-on-surface-variant/40 truncate mt-0.5">
+                            Tab: {feed.sheet_name} -- {feed.field_map ? `${feed.field_map.length} mapped fields` : "All fields (auto)"}
+                          </p>
+                        </div>
+                        <div className="flex items-center gap-1.5 shrink-0">
+                          <a
+                            href={`https://docs.google.com/spreadsheets/d/${feed.spreadsheet_id}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="px-2.5 py-1.5 text-[10px] font-bold text-on-surface-variant border border-outline-variant/20 rounded-lg hover:border-emerald-400/30 hover:text-emerald-400 transition-all"
+                          >
+                            <i className="fa-solid fa-arrow-up-right-from-square text-[9px] mr-1" />Open
+                          </a>
+                          <button
+                            onClick={() => handleToggleSheetsFeed(feed.id, !feed.is_enabled)}
+                            className={`px-2.5 py-1.5 text-[10px] font-bold border rounded-lg transition-all ${
+                              feed.is_enabled
+                                ? "text-on-surface-variant border-outline-variant/20 hover:border-orange-400/30 hover:text-orange-400"
+                                : "text-primary border-primary/20 hover:bg-primary/10"
+                            }`}
+                          >
+                            {feed.is_enabled ? "Pause" : "Resume"}
+                          </button>
+                          <button
+                            onClick={() => handleDeleteSheetsFeed(feed.id)}
+                            disabled={sheetsDeleting}
+                            className="px-2.5 py-1.5 text-[10px] font-bold text-error border border-error/20 rounded-lg hover:bg-error/10 transition-all disabled:opacity-50"
+                          >
+                            <i className="fa-solid fa-trash text-[9px]" />
+                          </button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Success / error messages */}
+              {sheetsMsg && (
+                <div className="rounded-xl border bg-tertiary/10 border-tertiary/20 px-4 py-3 text-sm font-medium text-tertiary">
+                  <i className="fa-solid fa-circle-check mr-2" />{sheetsMsg}
+                </div>
+              )}
+              {sheetsError && (
+                <div className="rounded-xl border bg-error/10 border-error/20 px-4 py-3 text-sm font-medium text-error">
+                  <i className="fa-solid fa-circle-xmark mr-2" />{sheetsError}
+                </div>
+              )}
+
+              {/* Add new sheet */}
+              {!showNewSheet ? (
+                <button
+                  onClick={() => { setShowNewSheet(true); setSheetsError(null); setSheetsMsg(null); }}
+                  className="glass-panel rounded-xl border border-dashed border-outline-variant/20 p-4 w-full hover:border-emerald-400/30 transition-all group text-left"
+                >
+                  <div className="flex items-center gap-3">
+                    <div className="w-8 h-8 rounded-lg bg-surface-container-highest flex items-center justify-center group-hover:bg-emerald-500/10 transition-colors">
+                      <i className="fa-solid fa-plus text-on-surface-variant/40 group-hover:text-emerald-400 text-sm transition-colors" />
+                    </div>
+                    <div>
+                      <p className="text-sm font-bold text-on-surface">Add Google Sheet</p>
+                      <p className="text-[11px] text-on-surface-variant/40">Create a new spreadsheet or link an existing one.</p>
+                    </div>
+                  </div>
+                </button>
+              ) : (
+                <div className="glass-panel rounded-2xl border border-outline-variant/15 overflow-hidden">
+                  <div className="px-5 py-3 border-b border-outline-variant/10 flex items-center justify-between">
+                    <h4 className="text-xs font-bold text-on-surface-variant uppercase tracking-widest">
+                      Add Google Sheet
+                    </h4>
+                    <button
+                      onClick={() => { setShowNewSheet(false); setSheetsError(null); }}
+                      className="text-xs text-on-surface-variant/60 hover:text-on-surface transition-colors"
+                    >
+                      Cancel
+                    </button>
+                  </div>
+                  <div className="p-5 space-y-5">
+                    {/* Mode toggle */}
+                    <div className="flex gap-2">
+                      <button
+                        onClick={() => setNewSheetMode("create")}
+                        className={`flex items-center gap-2 px-3 py-2 text-xs font-bold rounded-lg border transition-all ${
+                          newSheetMode === "create"
+                            ? "bg-emerald-500/10 text-emerald-400 border-emerald-400/20"
+                            : "text-on-surface-variant/60 border-outline-variant/15 hover:border-emerald-400/30"
+                        }`}
+                      >
+                        <i className="fa-solid fa-file-circle-plus text-[11px]" />
+                        Create New
+                      </button>
+                      <button
+                        onClick={() => setNewSheetMode("existing")}
+                        className={`flex items-center gap-2 px-3 py-2 text-xs font-bold rounded-lg border transition-all ${
+                          newSheetMode === "existing"
+                            ? "bg-emerald-500/10 text-emerald-400 border-emerald-400/20"
+                            : "text-on-surface-variant/60 border-outline-variant/15 hover:border-emerald-400/30"
+                        }`}
+                      >
+                        <i className="fa-solid fa-link text-[11px]" />
+                        Link Existing
+                      </button>
+                    </div>
+
+                    {newSheetMode === "create" ? (
+                      <div>
+                        <label className="block text-xs font-bold text-on-surface-variant/60 mb-1.5">Spreadsheet Title</label>
+                        <input
+                          value={newSheetTitle}
+                          onChange={(e) => setNewSheetTitle(e.target.value)}
+                          placeholder={`${schema.steps[0]?.title ?? "Form"} Submissions`}
+                          className="block w-full px-3 py-2.5 text-sm bg-surface-container-lowest border-0 rounded-lg text-on-surface placeholder:text-on-surface-variant/40 focus:ring-1 focus:ring-emerald-400/40 outline-none"
+                        />
+                        <p className="text-[11px] text-on-surface-variant/40 mt-1.5">
+                          A new Google Sheet will be created in your connected account with column headers matching your form fields.
+                        </p>
+                      </div>
+                    ) : (
+                      <div>
+                        <label className="block text-xs font-bold text-on-surface-variant/60 mb-1.5">Spreadsheet URL</label>
+                        <input
+                          value={existingSheetUrl}
+                          onChange={(e) => setExistingSheetUrl(e.target.value)}
+                          placeholder="https://docs.google.com/spreadsheets/d/..."
+                          className="block w-full px-3 py-2.5 text-sm bg-surface-container-lowest border-0 rounded-lg text-on-surface placeholder:text-on-surface-variant/40 focus:ring-1 focus:ring-emerald-400/40 outline-none font-mono"
+                        />
+                        <p className="text-[11px] text-on-surface-variant/40 mt-1.5">
+                          Paste the full URL of a Google Sheet you own. Submissions will be appended as new rows to Sheet1.
+                        </p>
+                      </div>
+                    )}
+
+                    <div className="flex items-center justify-end gap-2 pt-2">
+                      <button
+                        onClick={() => { setShowNewSheet(false); setSheetsError(null); }}
+                        className="px-4 py-2 text-xs font-bold text-on-surface-variant border border-outline-variant/20 rounded-lg hover:border-emerald-400/30 transition-all"
+                      >
+                        Cancel
+                      </button>
+                      <button
+                        onClick={handleAddSheetsFeed}
+                        disabled={sheetsAdding}
+                        className="px-5 py-2 text-xs font-bold bg-emerald-500 text-white rounded-lg hover:shadow-[0_0_20px_rgba(16,185,129,0.3)] transition-all disabled:opacity-60"
+                      >
+                        {sheetsAdding ? "Working..." : newSheetMode === "create" ? "Create & Link" : "Link Sheet"}
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Help text when no feeds */}
+              {sheetsFeeds.length === 0 && !showNewSheet && (
+                <div className="glass-panel rounded-xl border border-outline-variant/15 p-5">
+                  <p className="text-xs text-on-surface-variant/60 leading-relaxed">
+                    Link a Google Sheet to automatically sync every submission as a new row.
+                    Create a new spreadsheet with auto-generated headers, or link an existing one.
+                  </p>
+                </div>
+              )}
+            </>
+          )}
         </section>
 
         {/* ── Webhooks ─────────────────────────────────────────────── */}
