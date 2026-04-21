@@ -14,6 +14,7 @@ Vercel team: team_Yur8v0zTARB4coIKW8v34n0Z, project: prj_ttPw9AsFOGK1e9fnW3PoIMq
 - Always write "linqme" lowercase, never "LinqMe" (except in PascalCase component names).
 - ALL human-readable data MUST use `formatFieldValue()` from `src/lib/format-field-value.ts`. This includes emails, PDFs, CSV exports, Google Sheets sync, entry detail pages, Smart Overview prompts, and anywhere a user or AI reads field data.
 - Always type-check (`npx tsc --noEmit`) before committing.
+- This document is a living reference. If you notice a pattern, convention, or lesson learned during development that isn't captured here, ask Wayne whether it should be added. Proactively suggest additions when something feels like it could trip up a future session.
 
 ---
 
