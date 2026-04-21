@@ -1,7 +1,7 @@
 import type { CloudProviderClient, CloudFolder, ProviderMeta } from "./providers";
 import { PROVIDER_META } from "./providers";
 
-const SCOPES = "https://www.googleapis.com/auth/drive.file https://www.googleapis.com/auth/userinfo.email";
+const SCOPES = "https://www.googleapis.com/auth/drive.file https://www.googleapis.com/auth/spreadsheets https://www.googleapis.com/auth/userinfo.email";
 
 const client: CloudProviderClient = {
   getMeta(): ProviderMeta {

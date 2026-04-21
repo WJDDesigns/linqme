@@ -105,8 +105,8 @@ export default async function FormEditorPage({ params }: PageProps) {
     signing_secret: string | null; created_at: string;
   }[];
 
-  // Load Google Sheets feeds + connection status
-  const [{ data: sheetsFeedRows }, { count: sheetsConnCount }] = await Promise.all([
+  // Load Google Sheets feeds + connection status (check both sheets_connections and cloud google_drive)
+  const [{ data: sheetsFeedRows }, { count: sheetsConnCount }, { count: driveConnCount }] = await Promise.all([
     admin
       .from("sheets_feeds")
       .select("id, spreadsheet_id, spreadsheet_name, sheet_name, field_map, is_enabled")
@@ -117,13 +117,18 @@ export default async function FormEditorPage({ params }: PageProps) {
       .from("sheets_connections")
       .select("id", { count: "exact", head: true })
       .eq("partner_id", account.id),
+    admin
+      .from("cloud_integrations")
+      .select("id", { count: "exact", head: true })
+      .eq("partner_id", account.id)
+      .eq("provider", "google_drive"),
   ]);
   const sheetsFeeds = (sheetsFeedRows ?? []) as {
     id: string; spreadsheet_id: string; spreadsheet_name: string;
     sheet_name: string; field_map: { fieldId: string; column: string }[] | null;
     is_enabled: boolean;
   }[];
-  const hasSheetsConnection = (sheetsConnCount ?? 0) > 0;
+  const hasSheetsConnection = (sheetsConnCount ?? 0) > 0 || (driveConnCount ?? 0) > 0;
 
   return (
     <div className="flex flex-col h-screen">

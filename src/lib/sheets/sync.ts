@@ -43,17 +43,26 @@ export async function fireSheetsSync(submissionId: string): Promise<void> {
 
   if (feedErr || !feeds || feeds.length === 0) return;
 
-  // Get the sheets connection for this partner
-  const { data: conn, error: connErr } = await admin
+  // Get tokens -- try dedicated sheets_connections first, fall back to cloud_integrations google_drive
+  const { data: sheetsConn } = await admin
     .from("sheets_connections")
     .select("id, access_token_encrypted, refresh_token_encrypted, token_expires_at")
     .eq("partner_id", sub.partner_id)
     .maybeSingle();
 
-  if (connErr || !conn) {
-    console.error("[sheets-sync] no sheets connection for partner:", sub.partner_id);
+  const conn = sheetsConn ?? (await admin
+    .from("cloud_integrations")
+    .select("id, access_token_encrypted, refresh_token_encrypted, token_expires_at")
+    .eq("partner_id", sub.partner_id)
+    .eq("provider", "google_drive")
+    .maybeSingle()).data;
+
+  if (!conn) {
+    console.error("[sheets-sync] no sheets/drive connection for partner:", sub.partner_id);
     return;
   }
+
+  const table = sheetsConn ? "sheets_connections" : "cloud_integrations";
 
   // Decrypt + possibly refresh the token
   let accessToken = decryptToken(conn.access_token_encrypted);
@@ -63,9 +72,8 @@ export async function fireSheetsSync(submissionId: string): Promise<void> {
     try {
       const refreshed = await refreshSheetsToken(refreshToken);
       accessToken = refreshed.accessToken;
-      // Update stored token
       await admin
-        .from("sheets_connections")
+        .from(table)
         .update({
           access_token_encrypted: encryptToken(refreshed.accessToken),
           token_expires_at: refreshed.expiresIn

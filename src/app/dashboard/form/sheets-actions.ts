@@ -9,14 +9,38 @@ import { refreshSheetsToken, createSpreadsheet } from "@/lib/sheets/google-sheet
 
 async function getAccessToken(partnerId: string): Promise<string | null> {
   const admin = createAdminClient();
-  const { data: conn } = await admin
+
+  // 1. Try dedicated sheets_connections first
+  const { data: sheetsConn } = await admin
     .from("sheets_connections")
     .select("id, access_token_encrypted, refresh_token_encrypted, token_expires_at")
     .eq("partner_id", partnerId)
     .maybeSingle();
 
-  if (!conn) return null;
+  if (sheetsConn) {
+    return resolveToken(admin, sheetsConn, "sheets_connections");
+  }
 
+  // 2. Fall back to cloud_integrations google_drive (includes spreadsheets scope)
+  const { data: driveConn } = await admin
+    .from("cloud_integrations")
+    .select("id, access_token_encrypted, refresh_token_encrypted, token_expires_at")
+    .eq("partner_id", partnerId)
+    .eq("provider", "google_drive")
+    .maybeSingle();
+
+  if (driveConn) {
+    return resolveToken(admin, driveConn, "cloud_integrations");
+  }
+
+  return null;
+}
+
+async function resolveToken(
+  admin: ReturnType<typeof createAdminClient>,
+  conn: { id: string; access_token_encrypted: string; refresh_token_encrypted: string; token_expires_at: string | null },
+  table: "sheets_connections" | "cloud_integrations",
+): Promise<string | null> {
   let accessToken = decryptToken(conn.access_token_encrypted);
 
   if (conn.token_expires_at && new Date(conn.token_expires_at) <= new Date()) {
@@ -25,7 +49,7 @@ async function getAccessToken(partnerId: string): Promise<string | null> {
       const refreshed = await refreshSheetsToken(refreshToken);
       accessToken = refreshed.accessToken;
       await admin
-        .from("sheets_connections")
+        .from(table)
         .update({
           access_token_encrypted: encryptToken(refreshed.accessToken),
           token_expires_at: refreshed.expiresIn
