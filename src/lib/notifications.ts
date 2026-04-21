@@ -268,6 +268,59 @@ async function resolvePartnerNotifyEmails(
 }
 
 /**
+ * Render merge tags in a template string.
+ * Supported tags:
+ *   {all_fields}        -- HTML table of all submitted data
+ *   {client_name}       -- submitter name
+ *   {client_email}      -- submitter email
+ *   {partner_name}      -- partner/company name
+ *   {submission_link}   -- link to entry in dashboard
+ *   {field:field_id}    -- value of a specific form field
+ */
+function renderMergeTags(
+  template: string,
+  vars: {
+    clientName: string;
+    clientEmail: string;
+    partnerName: string;
+    submissionLink: string;
+    allFieldsHtml: string;
+    submissionData: Record<string, unknown>;
+    fieldLabels: Map<string, string>;
+  },
+): string {
+  let result = template;
+  result = result.replace(/\{all_fields\}/gi, vars.allFieldsHtml);
+  result = result.replace(/\{client_name\}/gi, escapeHtml(vars.clientName));
+  result = result.replace(/\{client_email\}/gi, escapeHtml(vars.clientEmail));
+  result = result.replace(/\{partner_name\}/gi, escapeHtml(vars.partnerName));
+  result = result.replace(/\{submission_link\}/gi, vars.submissionLink);
+
+  // {field:some_field_id} -- resolve individual field values
+  result = result.replace(/\{field:([^}]+)\}/gi, (_match, fieldId: string) => {
+    const value = vars.submissionData[fieldId.trim()];
+    if (value === null || value === undefined || value === "") return "";
+    if (typeof value === "boolean") return value ? "Yes" : "No";
+    if (Array.isArray(value)) return escapeHtml(value.join(", "));
+    if (typeof value === "object") return escapeHtml(JSON.stringify(value));
+    return escapeHtml(String(value));
+  });
+
+  return result;
+}
+
+/**
+ * Convert plain text template body to simple HTML paragraphs.
+ * Newlines become <br/>, and double newlines become paragraph breaks.
+ */
+function templateBodyToHtml(body: string): string {
+  return body
+    .split(/\n\n+/)
+    .map((paragraph) => `<p style="margin: 0 0 12px; line-height: 1.6;">${paragraph.replace(/\n/g, "<br/>")}</p>`)
+    .join("");
+}
+
+/**
  * Called when a client finalizes (submits) their onboarding.
  * Sends a notification email to the partner's team + a confirmation to the client.
  */
@@ -276,7 +329,7 @@ export async function notifyPartnerOfSubmission(submissionId: string): Promise<v
 
   const { data: sub } = await admin
     .from("submissions")
-    .select("id, client_name, client_email, data, partner_id, submitted_at")
+    .select("id, client_name, client_email, data, partner_id, partner_form_id, submitted_at")
     .eq("id", submissionId)
     .maybeSingle();
   if (!sub) return;
@@ -288,35 +341,143 @@ export async function notifyPartnerOfSubmission(submissionId: string): Promise<v
     .maybeSingle();
   if (!partner) return;
 
-  const partnerEmails = await resolvePartnerNotifyEmails(sub.partner_id);
+  // Load form-level email templates + form schema
+  const { data: pf } = await admin
+    .from("partner_forms")
+    .select(
+      `partner_email_subject, partner_email_body,
+       client_email_subject, client_email_body,
+       notification_emails,
+       form_templates ( schema )`,
+    )
+    .eq("id", sub.partner_form_id)
+    .maybeSingle();
+
+  // Use form-level notification_emails if set, otherwise fall back to partner-level
+  const formEmails = (pf?.notification_emails as string[] | null) ?? [];
+  const partnerEmails = formEmails.length > 0
+    ? formEmails
+    : await resolvePartnerNotifyEmails(sub.partner_id);
 
   const clientName = sub.client_name || "A client";
   const clientEmail = sub.client_email || "(no email provided)";
   const dashboardLink = appUrl(`/dashboard/submissions/${sub.id}`);
 
+  // Resolve form schema for field labels + all_fields rendering
+  const tplRaw = pf?.form_templates;
+  const tplObj = Array.isArray(tplRaw) ? tplRaw[0] : tplRaw;
+  const formSchema = (tplObj?.schema as {
+    steps: Array<{ fields: Array<{ id: string; label: string; type?: string }> }>;
+  }) ?? null;
+
+  const allFields = formSchema?.steps?.flatMap((s) => s.fields) ?? [];
+  const submissionData = (sub.data ?? {}) as Record<string, unknown>;
+  const fieldLabels = new Map(allFields.map((f) => [f.id, f.label]));
+
+  // Build {all_fields} HTML table
+  let allFieldsHtml = "";
+  {
+    const rows: string[] = [];
+    for (const field of allFields) {
+      if (field.type === "heading") continue;
+      const value = submissionData[field.id];
+      if (value === null || value === undefined || value === "") continue;
+
+      const label = escapeHtml(field.label || field.id);
+      let displayValue: string;
+      if (typeof value === "boolean") {
+        displayValue = value ? "Yes" : "No";
+      } else if (Array.isArray(value)) {
+        displayValue = escapeHtml(value.join(", "));
+      } else if (typeof value === "object") {
+        displayValue = escapeHtml(JSON.stringify(value));
+      } else {
+        displayValue = escapeHtml(String(value));
+      }
+
+      rows.push(
+        `<tr>` +
+        `<td style="padding:8px 12px;border-bottom:1px solid rgba(105,108,248,0.1);color:#94a3b8;font-size:13px;line-height:1.5;vertical-align:top;white-space:nowrap;width:140px;">${label}</td>` +
+        `<td style="padding:8px 12px;border-bottom:1px solid rgba(105,108,248,0.1);color:#e2e8f0;font-size:13px;line-height:1.5;vertical-align:top;">${displayValue}</td>` +
+        `</tr>`,
+      );
+    }
+
+    if (rows.length > 0) {
+      allFieldsHtml =
+        `<table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="background:#0b1326;border-radius:12px;margin-top:16px;">` +
+        `<tr><td style="padding:16px;">` +
+        `<table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="border-collapse:collapse;">` +
+        rows.join("") +
+        `</table>` +
+        `</td></tr>` +
+        `</table>`;
+    }
+  }
+
+  const mergeVars = {
+    clientName,
+    clientEmail,
+    partnerName: partner.name,
+    submissionLink: dashboardLink,
+    allFieldsHtml,
+    submissionData,
+    fieldLabels,
+  };
+
+  const customPartnerSubject = (pf?.partner_email_subject as string) || null;
+  const customPartnerBody = (pf?.partner_email_body as string) || null;
+  const customClientSubject = (pf?.client_email_subject as string) || null;
+  const customClientBody = (pf?.client_email_body as string) || null;
+
   // --- Partner notification ------------------------------------------------
   if (partnerEmails.length > 0) {
-    const dbPartnerEmail = await getRenderedEmail("submission_partner", {
-      partner_name: partner.name,
-      client_name: clientName,
-      client_email: clientEmail,
-      dashboard_link: dashboardLink,
-    });
+    let subject: string;
+    let html: string;
 
-    const html = dbPartnerEmail?.html ?? emailTemplate({
-      heading: `New submission for ${partner.name}`,
-      body: `
-        <p style="margin: 0 0 8px;">
-          <strong>${escapeHtml(clientName)}</strong> just submitted their onboarding form.
-        </p>
-        <p style="margin: 0 0 0;">Client email: <a href="mailto:${escapeHtml(clientEmail)}" style="color: #696cf8;">${escapeHtml(clientEmail)}</a></p>
-      `,
-      cta: { label: "View submission →", url: dashboardLink },
-      partnerName: partner.name,
-    });
+    if (customPartnerSubject || customPartnerBody) {
+      // Use form-level custom template
+      subject = customPartnerSubject
+        ? renderMergeTags(customPartnerSubject, mergeVars)
+        : `New submission -- ${clientName} -- ${partner.name}`;
+
+      const bodyHtml = customPartnerBody
+        ? templateBodyToHtml(renderMergeTags(customPartnerBody, mergeVars))
+        : `<p style="margin: 0 0 8px;"><strong>${escapeHtml(clientName)}</strong> just submitted their form.</p>
+           <p style="margin: 0 0 0;">Client email: <a href="mailto:${escapeHtml(clientEmail)}" style="color: #696cf8;">${escapeHtml(clientEmail)}</a></p>`;
+
+      html = emailTemplate({
+        heading: subject,
+        body: bodyHtml,
+        cta: { label: "View submission", url: dashboardLink },
+        partnerName: partner.name,
+      });
+    } else {
+      // Fall back to DB-managed template or hardcoded default
+      const dbPartnerEmail = await getRenderedEmail("submission_partner", {
+        partner_name: partner.name,
+        client_name: clientName,
+        client_email: clientEmail,
+        dashboard_link: dashboardLink,
+      });
+
+      html = dbPartnerEmail?.html ?? emailTemplate({
+        heading: `New submission for ${partner.name}`,
+        body: `
+          <p style="margin: 0 0 8px;">
+            <strong>${escapeHtml(clientName)}</strong> just submitted their onboarding form.
+          </p>
+          <p style="margin: 0 0 0;">Client email: <a href="mailto:${escapeHtml(clientEmail)}" style="color: #696cf8;">${escapeHtml(clientEmail)}</a></p>
+        `,
+        cta: { label: "View submission →", url: dashboardLink },
+        partnerName: partner.name,
+      });
+      subject = dbPartnerEmail?.subject ?? `New submission · ${clientName} · ${partner.name}`;
+    }
+
     await sendMail({
       to: partnerEmails,
-      subject: dbPartnerEmail?.subject ?? `New submission · ${clientName} · ${partner.name}`,
+      subject,
       html,
       replyTo: sub.client_email || undefined,
     });
@@ -410,99 +571,61 @@ export async function notifyPartnerOfSubmission(submissionId: string): Promise<v
     }
   }
 
-  // --- Build form data summary for client email --------------------------
-  let formSummaryHtml = "";
-  {
-    // Fetch the form schema — the submission's partner_form_id tells us which
-    // form was used, and we join through to the template schema.
-    const { data: partnerForm } = await admin
-      .from("submissions")
-      .select("partner_form_id, partner_forms ( form_templates ( schema ) )")
-      .eq("id", sub.id)
-      .maybeSingle();
-
-    // Resolve the nested join (Supabase may return object or array)
-    const pf = partnerForm?.partner_forms as
-      | { form_templates: { schema: unknown } | Array<{ schema: unknown }> }
-      | Array<{ form_templates: { schema: unknown } | Array<{ schema: unknown }> }>
-      | null;
-    const pfObj = Array.isArray(pf) ? pf[0] : pf;
-    const tpl = pfObj?.form_templates;
-    const tplObj = Array.isArray(tpl) ? tpl[0] : tpl;
-    const formSchema = tplObj?.schema as
-      | { steps: Array<{ fields: Array<{ id: string; label: string; type?: string }> }> }
-      | null;
-
-    const submissionData = (sub.data ?? {}) as Record<string, unknown>;
-
-    // Flatten all fields across steps
-    const allFields = formSchema?.steps?.flatMap((s) => s.fields) ?? [];
-
-    if (allFields.length > 0 && Object.keys(submissionData).length > 0) {
-      const rows: string[] = [];
-      for (const field of allFields) {
-        // Skip headings / decorative fields — they have no user data
-        if (field.type === "heading" || field.type === "divider") continue;
-
-        const value = submissionData[field.id];
-        if (value === null || value === undefined || value === "") continue;
-
-        const label = escapeHtml(field.label || field.id);
-        let displayValue: string;
-
-        if (typeof value === "boolean") {
-          displayValue = value ? "Yes" : "No";
-        } else if (Array.isArray(value)) {
-          displayValue = escapeHtml(value.join(", "));
-        } else {
-          displayValue = escapeHtml(String(value));
-        }
-
-        rows.push(
-          `<tr>` +
-          `<td style="padding:8px 12px;border-bottom:1px solid rgba(105,108,248,0.1);color:#94a3b8;font-size:13px;line-height:1.5;vertical-align:top;white-space:nowrap;width:140px;">${label}</td>` +
-          `<td style="padding:8px 12px;border-bottom:1px solid rgba(105,108,248,0.1);color:#e2e8f0;font-size:13px;line-height:1.5;vertical-align:top;">${displayValue}</td>` +
-          `</tr>`,
-        );
-      }
-
-      if (rows.length > 0) {
-        formSummaryHtml =
-          `<table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="background:#0b1326;border-radius:12px;margin-top:16px;">` +
-          `<tr><td style="padding:16px;">` +
-          `<p style="margin:0 0 12px;color:#e2e8f0;font-size:14px;font-weight:700;">Your submitted information</p>` +
-          `<table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="border-collapse:collapse;">` +
-          rows.join("") +
-          `</table>` +
-          `</td></tr>` +
-          `</table>`;
-      }
-    }
-  }
-
   // --- Client confirmation -------------------------------------------------
   if (sub.client_email) {
-    const dbClientEmail = await getRenderedEmail("submission_client", {
-      client_name: clientName,
-      partner_name: partner.name,
-      form_summary: formSummaryHtml,
-    });
+    let clientSubject: string;
+    let clientHtml: string;
 
-    const html = dbClientEmail?.html ?? emailTemplate({
-      heading: `Thanks, ${clientName}! We got it.`,
-      body: `
-        <p style="margin: 0 0 0;">
-          Your onboarding info has been received by <strong>${escapeHtml(partner.name)}</strong>.
-          They&rsquo;ll reach out with next steps shortly.
-        </p>
-        ${formSummaryHtml}
-      `,
-      partnerName: partner.name,
-    });
+    // Build a client-facing summary with header
+    const clientSummaryHtml = allFieldsHtml
+      ? `<table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="background:#0b1326;border-radius:12px;margin-top:16px;">` +
+        `<tr><td style="padding:16px;">` +
+        `<p style="margin:0 0 12px;color:#e2e8f0;font-size:14px;font-weight:700;">Your submitted information</p>` +
+        allFieldsHtml.replace(/^<table[^>]*>/, "").replace(/<\/table>$/, "") +
+        `</td></tr></table>`
+      : "";
+
+    if (customClientSubject || customClientBody) {
+      // Use form-level custom template
+      clientSubject = customClientSubject
+        ? renderMergeTags(customClientSubject, mergeVars)
+        : `We received your info -- ${partner.name}`;
+
+      const bodyHtml = customClientBody
+        ? templateBodyToHtml(renderMergeTags(customClientBody, mergeVars))
+        : `<p style="margin: 0 0 0;">Your info has been received by <strong>${escapeHtml(partner.name)}</strong>. They'll reach out with next steps shortly.</p>${allFieldsHtml}`;
+
+      clientHtml = emailTemplate({
+        heading: clientSubject,
+        body: bodyHtml,
+        partnerName: partner.name,
+      });
+    } else {
+      // Fall back to DB-managed template or hardcoded default
+      const dbClientEmail = await getRenderedEmail("submission_client", {
+        client_name: clientName,
+        partner_name: partner.name,
+        form_summary: clientSummaryHtml,
+      });
+
+      clientHtml = dbClientEmail?.html ?? emailTemplate({
+        heading: `Thanks, ${clientName}! We got it.`,
+        body: `
+          <p style="margin: 0 0 0;">
+            Your onboarding info has been received by <strong>${escapeHtml(partner.name)}</strong>.
+            They'll reach out with next steps shortly.
+          </p>
+          ${clientSummaryHtml}
+        `,
+        partnerName: partner.name,
+      });
+      clientSubject = dbClientEmail?.subject ?? `We received your onboarding info -- ${partner.name}`;
+    }
+
     await sendMail({
       to: sub.client_email,
-      subject: dbClientEmail?.subject ?? `We received your onboarding info · ${partner.name}`,
-      html,
+      subject: clientSubject,
+      html: clientHtml,
       replyTo: partner.support_email || undefined,
     });
   }

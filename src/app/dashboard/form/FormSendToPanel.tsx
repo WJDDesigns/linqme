@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useState, useTransition, useRef, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import type { FormSchema } from "@/lib/forms";
 import { updateFormNotificationSettingsAction } from "./form-actions";
@@ -71,6 +71,10 @@ export default function FormSendToPanel({
   confirmPageHeading: initialConfirmHeading,
   confirmPageBody: initialConfirmBody,
   redirectUrl: initialRedirectUrl,
+  partnerEmailSubject: initialPartnerSubject,
+  partnerEmailBody: initialPartnerBody,
+  clientEmailSubject: initialClientSubject,
+  clientEmailBody: initialClientBody,
 }: {
   formId: string;
   schema: FormSchema;
@@ -82,6 +86,10 @@ export default function FormSendToPanel({
   confirmPageHeading: string;
   confirmPageBody: string;
   redirectUrl: string;
+  partnerEmailSubject: string;
+  partnerEmailBody: string;
+  clientEmailSubject: string;
+  clientEmailBody: string;
 }) {
   const router = useRouter();
 
@@ -94,6 +102,67 @@ export default function FormSendToPanel({
   const [notifSaving, startNotifSave] = useTransition();
   const [notifMsg, setNotifMsg] = useState<string | null>(null);
 
+  /* ── Email template state ──────────────────────────────────────── */
+  const [templateTab, setTemplateTab] = useState<"partner" | "client">("partner");
+  const [partnerSubject, setPartnerSubject] = useState(initialPartnerSubject);
+  const [partnerBody, setPartnerBody] = useState(initialPartnerBody);
+  const [clientSubject, setClientSubject] = useState(initialClientSubject);
+  const [clientBody, setClientBody] = useState(initialClientBody);
+  const [showTagPicker, setShowTagPicker] = useState(false);
+  const [tagTarget, setTagTarget] = useState<"subject" | "body">("body");
+  const tagPickerRef = useRef<HTMLDivElement>(null);
+
+  const partnerBodyRef = useRef<HTMLTextAreaElement>(null);
+  const partnerSubjectRef = useRef<HTMLInputElement>(null);
+  const clientBodyRef = useRef<HTMLTextAreaElement>(null);
+  const clientSubjectRef = useRef<HTMLInputElement>(null);
+
+  // Gather merge tags from form schema
+  const mergeTags = [
+    { tag: "{all_fields}", label: "All Fields", desc: "Table of all submitted data" },
+    { tag: "{client_name}", label: "Client Name", desc: "Submitter's name" },
+    { tag: "{client_email}", label: "Client Email", desc: "Submitter's email" },
+    { tag: "{partner_name}", label: "Partner Name", desc: "Your company name" },
+    { tag: "{submission_link}", label: "Submission Link", desc: "Link to entry in dashboard" },
+    ...schema.steps.flatMap((s) =>
+      s.fields
+        .filter((f) => f.type !== "heading")
+        .map((f) => ({
+          tag: `{field:${f.id}}`,
+          label: f.label,
+          desc: `${s.title} -- ${f.type ?? "text"}`,
+        })),
+    ),
+  ];
+
+  const insertTag = useCallback((tag: string) => {
+    const isPartner = templateTab === "partner";
+    const ref = tagTarget === "body"
+      ? (isPartner ? partnerBodyRef : clientBodyRef)
+      : (isPartner ? partnerSubjectRef : clientSubjectRef);
+    const setter = tagTarget === "body"
+      ? (isPartner ? setPartnerBody : setClientBody)
+      : (isPartner ? setPartnerSubject : setClientSubject);
+
+    const el = ref.current;
+    if (el) {
+      const start = el.selectionStart ?? el.value.length;
+      const end = el.selectionEnd ?? start;
+      const before = el.value.slice(0, start);
+      const after = el.value.slice(end);
+      setter(before + tag + after);
+      // Restore cursor after React re-render
+      requestAnimationFrame(() => {
+        el.focus();
+        const pos = start + tag.length;
+        el.setSelectionRange(pos, pos);
+      });
+    } else {
+      setter((prev) => prev + tag);
+    }
+    setShowTagPicker(false);
+  }, [templateTab, tagTarget]);
+
   function handleSaveNotifications() {
     setNotifMsg(null);
     startNotifSave(async () => {
@@ -105,6 +174,10 @@ export default function FormSendToPanel({
         confirmPageHeading: confirmHeading,
         confirmPageBody: confirmBody,
         redirectUrl,
+        partnerEmailSubject: partnerSubject || null,
+        partnerEmailBody: partnerBody || null,
+        clientEmailSubject: clientSubject || null,
+        clientEmailBody: clientBody || null,
       });
       setNotifMsg(result.ok ? "Saved!" : (result.error ?? "Failed."));
       if (result.ok) router.refresh();
@@ -378,6 +451,151 @@ export default function FormSendToPanel({
                 className="w-full px-3 py-2.5 text-sm bg-surface-container-lowest border-0 rounded-lg text-on-surface placeholder:text-on-surface-variant/40 focus:ring-1 focus:ring-primary/40 outline-none"
               />
             </label>
+
+            {/* ── Email Templates ──────────────────────────────────── */}
+            <div className="border-t border-outline-variant/10 pt-4">
+              <div className="flex items-center justify-between mb-3">
+                <div>
+                  <h4 className="text-xs font-semibold text-on-surface-variant/60 uppercase tracking-widest">Email Templates</h4>
+                  <p className="text-[11px] text-on-surface-variant/40 mt-0.5">
+                    Customize the emails sent when a form is submitted. Leave blank to use defaults.
+                  </p>
+                </div>
+              </div>
+
+              {/* Tab switcher */}
+              <div className="flex gap-1 mb-4 bg-surface-container-lowest rounded-lg p-0.5">
+                <button
+                  onClick={() => setTemplateTab("partner")}
+                  className={`flex-1 px-3 py-2 text-xs font-bold rounded-md transition-all ${
+                    templateTab === "partner"
+                      ? "bg-primary/10 text-primary shadow-sm"
+                      : "text-on-surface-variant/50 hover:text-on-surface-variant"
+                  }`}
+                >
+                  <i className="fa-solid fa-building text-[10px] mr-1.5" />
+                  Admin Notification
+                </button>
+                <button
+                  onClick={() => setTemplateTab("client")}
+                  className={`flex-1 px-3 py-2 text-xs font-bold rounded-md transition-all ${
+                    templateTab === "client"
+                      ? "bg-primary/10 text-primary shadow-sm"
+                      : "text-on-surface-variant/50 hover:text-on-surface-variant"
+                  }`}
+                >
+                  <i className="fa-solid fa-user text-[10px] mr-1.5" />
+                  Client Confirmation
+                </button>
+              </div>
+
+              {/* Template editor */}
+              <div className="space-y-3">
+                {/* Subject */}
+                <div>
+                  <div className="flex items-center justify-between mb-1.5">
+                    <label className="text-xs font-medium text-on-surface">Subject</label>
+                    <button
+                      onClick={() => { setTagTarget("subject"); setShowTagPicker(!showTagPicker || tagTarget !== "subject"); }}
+                      className="flex items-center gap-1 px-2 py-1 text-[10px] font-bold text-primary/70 hover:text-primary hover:bg-primary/5 rounded transition-all"
+                    >
+                      <i className="fa-solid fa-code text-[9px]" />
+                      Insert Tag
+                    </button>
+                  </div>
+                  <input
+                    ref={templateTab === "partner" ? partnerSubjectRef : clientSubjectRef}
+                    value={templateTab === "partner" ? partnerSubject : clientSubject}
+                    onChange={(e) => (templateTab === "partner" ? setPartnerSubject : setClientSubject)(e.target.value)}
+                    placeholder={templateTab === "partner"
+                      ? "New submission -- {client_name} -- {partner_name}"
+                      : "We received your info -- {partner_name}"}
+                    className="w-full px-3 py-2.5 text-sm bg-surface-container-lowest border-0 rounded-lg text-on-surface placeholder:text-on-surface-variant/40 focus:ring-1 focus:ring-primary/40 outline-none font-mono text-[13px]"
+                  />
+                </div>
+
+                {/* Body */}
+                <div>
+                  <div className="flex items-center justify-between mb-1.5">
+                    <label className="text-xs font-medium text-on-surface">Body</label>
+                    <button
+                      onClick={() => { setTagTarget("body"); setShowTagPicker(!showTagPicker || tagTarget !== "body"); }}
+                      className="flex items-center gap-1 px-2 py-1 text-[10px] font-bold text-primary/70 hover:text-primary hover:bg-primary/5 rounded transition-all"
+                    >
+                      <i className="fa-solid fa-code text-[9px]" />
+                      Insert Tag
+                    </button>
+                  </div>
+                  <textarea
+                    ref={templateTab === "partner" ? partnerBodyRef : clientBodyRef}
+                    value={templateTab === "partner" ? partnerBody : clientBody}
+                    onChange={(e) => (templateTab === "partner" ? setPartnerBody : setClientBody)(e.target.value)}
+                    placeholder={templateTab === "partner"
+                      ? "{client_name} submitted their form.\n\nClient email: {client_email}\n\n{all_fields}"
+                      : "Thanks, {client_name}! Your info has been received by {partner_name}.\n\n{all_fields}"}
+                    rows={6}
+                    className="w-full px-3 py-2.5 text-sm bg-surface-container-lowest border-0 rounded-lg text-on-surface placeholder:text-on-surface-variant/40 focus:ring-1 focus:ring-primary/40 outline-none resize-none font-mono text-[13px] leading-relaxed"
+                  />
+                  <p className="text-[11px] text-on-surface-variant/40 mt-1.5">
+                    Use merge tags to insert dynamic data. <span className="font-mono text-[10px] text-primary/50">{"{all_fields}"}</span> inserts a table of all submitted data.
+                  </p>
+                </div>
+
+                {/* Tag picker dropdown */}
+                {showTagPicker && (
+                  <div ref={tagPickerRef} className="rounded-xl border border-outline-variant/15 bg-surface-container overflow-hidden shadow-xl shadow-black/20">
+                    <div className="px-3 py-2 border-b border-outline-variant/10 flex items-center justify-between">
+                      <span className="text-[10px] font-bold text-on-surface-variant/60 uppercase tracking-widest">
+                        Merge Tags
+                      </span>
+                      <button
+                        onClick={() => setShowTagPicker(false)}
+                        className="text-on-surface-variant/40 hover:text-on-surface text-xs"
+                      >
+                        <i className="fa-solid fa-xmark" />
+                      </button>
+                    </div>
+                    <div className="max-h-52 overflow-y-auto divide-y divide-outline-variant/5">
+                      {mergeTags.map((t) => (
+                        <button
+                          key={t.tag}
+                          onClick={() => insertTag(t.tag)}
+                          className="w-full px-3 py-2 flex items-center gap-3 hover:bg-primary/5 transition-colors text-left"
+                        >
+                          <code className="text-[11px] font-mono text-primary bg-primary/5 px-1.5 py-0.5 rounded shrink-0">
+                            {t.tag}
+                          </code>
+                          <div className="flex-1 min-w-0">
+                            <p className="text-xs font-medium text-on-surface truncate">{t.label}</p>
+                            <p className="text-[10px] text-on-surface-variant/40 truncate">{t.desc}</p>
+                          </div>
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Reset to default link */}
+                {((templateTab === "partner" && (partnerSubject || partnerBody)) ||
+                  (templateTab === "client" && (clientSubject || clientBody))) && (
+                  <button
+                    onClick={() => {
+                      if (templateTab === "partner") {
+                        setPartnerSubject("");
+                        setPartnerBody("");
+                      } else {
+                        setClientSubject("");
+                        setClientBody("");
+                      }
+                    }}
+                    className="text-[11px] font-medium text-on-surface-variant/50 hover:text-error transition-colors"
+                  >
+                    <i className="fa-solid fa-rotate-left text-[9px] mr-1" />
+                    Reset to default template
+                  </button>
+                )}
+              </div>
+            </div>
 
             <div className="border-t border-outline-variant/10 pt-4">
               <h4 className="text-xs font-semibold text-on-surface-variant/60 uppercase tracking-widest mb-3">After Submission</h4>

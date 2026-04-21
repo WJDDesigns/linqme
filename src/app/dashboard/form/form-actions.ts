@@ -280,6 +280,10 @@ export async function updateFormNotificationSettingsAction(
     confirmPageHeading: string | null;
     confirmPageBody: string | null;
     redirectUrl: string | null;
+    partnerEmailSubject?: string | null;
+    partnerEmailBody?: string | null;
+    clientEmailSubject?: string | null;
+    clientEmailBody?: string | null;
   },
 ): Promise<ActionResult> {
   const session = await requireSession();
@@ -323,6 +327,10 @@ export async function updateFormNotificationSettingsAction(
       confirm_page_heading: settings.confirmPageHeading?.trim() || null,
       confirm_page_body: settings.confirmPageBody?.trim() || null,
       redirect_url: settings.redirectUrl?.trim() || null,
+      partner_email_subject: settings.partnerEmailSubject?.trim() || null,
+      partner_email_body: settings.partnerEmailBody?.trim() || null,
+      client_email_subject: settings.clientEmailSubject?.trim() || null,
+      client_email_body: settings.clientEmailBody?.trim() || null,
     })
     .eq("id", formId);
 

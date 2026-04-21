@@ -36,6 +36,8 @@ export default async function FormEditorPage({ params }: PageProps) {
       `id, name, slug, template_id, is_default, is_active,
        notification_emails, notification_bcc,
        confirm_page_heading, confirm_page_body, redirect_url, layout_style,
+       partner_email_subject, partner_email_body,
+       client_email_subject, client_email_body,
        form_templates ( id, schema )`,
     )
     .eq("id", formId)
@@ -155,6 +157,10 @@ export default async function FormEditorPage({ params }: PageProps) {
               confirmPageHeading={(pf.confirm_page_heading as string) ?? ""}
               confirmPageBody={(pf.confirm_page_body as string) ?? ""}
               redirectUrl={(pf.redirect_url as string) ?? ""}
+              partnerEmailSubject={(pf.partner_email_subject as string) ?? ""}
+              partnerEmailBody={(pf.partner_email_body as string) ?? ""}
+              clientEmailSubject={(pf.client_email_subject as string) ?? ""}
+              clientEmailBody={(pf.client_email_body as string) ?? ""}
             />
           ) : undefined
         }
