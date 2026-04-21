@@ -62,12 +62,31 @@ export default function SmartOverviewBox({
     });
   }
 
+  // Collapsed state: no cached overview and not currently generating
+  if (!overview && !isPending && !error) {
+    return (
+      <button
+        type="button"
+        onClick={handleGenerate}
+        className="group flex items-center gap-2.5 px-4 py-2.5 rounded-xl border border-primary/15 bg-primary/[0.03] hover:bg-primary/[0.06] hover:border-primary/25 transition-all w-full"
+      >
+        <span className="inline-flex items-center justify-center w-7 h-7 rounded-lg bg-primary/10 group-hover:bg-primary/15 transition-colors">
+          <i className="fa-solid fa-wand-magic-sparkles text-primary text-[10px]" />
+        </span>
+        <span className="text-sm font-medium text-on-surface-variant group-hover:text-primary transition-colors">
+          Generate Smart Overview
+        </span>
+        <i className="fa-solid fa-chevron-right text-[8px] text-on-surface-variant/40 group-hover:text-primary/60 ml-auto transition-colors" />
+      </button>
+    );
+  }
+
   return (
-    <div className="rounded-2xl border border-primary/15 bg-primary/[0.03] p-5">
+    <div className="rounded-2xl border border-primary/15 bg-primary/[0.03] p-5 animate-in fade-in duration-300">
       <div className="flex items-start justify-between gap-4">
         <div className="flex-1 min-w-0">
-          {/* Header badge */}
-          <div className="flex items-center gap-2 mb-3">
+          {/* Header row */}
+          <div className="flex items-center gap-2 mb-2.5">
             <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-primary/10 text-primary text-[10px] font-bold uppercase tracking-widest">
               <i className="fa-solid fa-wand-magic-sparkles text-[9px]" />
               Smart Overview
@@ -78,12 +97,28 @@ export default function SmartOverviewBox({
                 last analysis
               </span>
             )}
+            {generatedAt && !isPending && (
+              <span className="text-[10px] text-on-surface-variant/40 ml-auto hidden sm:inline">
+                {relativeTime(generatedAt)}
+              </span>
+            )}
+            <button
+              type="button"
+              onClick={handleGenerate}
+              disabled={isPending}
+              className="inline-flex items-center gap-1 text-[10px] font-bold uppercase tracking-wider text-primary/60 hover:text-primary transition-colors disabled:opacity-40 ml-auto sm:ml-0"
+              title="Refresh overview"
+            >
+              <i
+                className={`fa-solid fa-arrows-rotate text-[9px] ${isPending ? "animate-spin" : ""}`}
+              />
+            </button>
           </div>
 
           {/* Content */}
           {isPending ? (
-            <div className="flex items-center gap-2 py-2">
-              <div className="h-4 w-4 rounded-full border-2 border-primary/30 border-t-primary animate-spin" />
+            <div className="flex items-center gap-2 py-1">
+              <div className="h-3.5 w-3.5 rounded-full border-2 border-primary/30 border-t-primary animate-spin" />
               <span className="text-sm text-on-surface-variant/60">
                 Analyzing entries...
               </span>
@@ -94,41 +129,6 @@ export default function SmartOverviewBox({
             <p className="text-sm text-error/80">{error}</p>
           ) : null}
         </div>
-      </div>
-
-      {/* Footer */}
-      <div className="flex items-center justify-between mt-3">
-        <div>
-          {generatedAt && !isPending && (
-            <span className="text-[10px] text-on-surface-variant/40">
-              Last updated: {relativeTime(generatedAt)}
-            </span>
-          )}
-        </div>
-
-        {overview ? (
-          <button
-            type="button"
-            onClick={handleGenerate}
-            disabled={isPending}
-            className="inline-flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider text-primary/70 hover:text-primary transition-colors disabled:opacity-40"
-          >
-            <i
-              className={`fa-solid fa-arrows-rotate text-[9px] ${isPending ? "animate-spin" : ""}`}
-            />
-            Refresh
-          </button>
-        ) : !isPending ? (
-          <button
-            type="button"
-            onClick={handleGenerate}
-            disabled={isPending}
-            className="inline-flex items-center gap-1.5 px-3 py-1.5 text-[10px] font-bold uppercase tracking-wider rounded-lg bg-primary/10 text-primary hover:bg-primary/20 transition-colors disabled:opacity-40"
-          >
-            <i className="fa-solid fa-wand-magic-sparkles text-[9px]" />
-            Generate Overview
-          </button>
-        ) : null}
       </div>
     </div>
   );
