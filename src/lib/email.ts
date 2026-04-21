@@ -13,6 +13,7 @@ export interface SendMailArgs {
   html: string;
   text?: string;
   replyTo?: string;
+  bcc?: string | string[];
 }
 
 export interface SendMailResult {
@@ -48,6 +49,7 @@ export async function sendMail(args: SendMailArgs): Promise<SendMailResult> {
     const { data, error } = await client.emails.send({
       from: defaultFrom(),
       to: Array.isArray(args.to) ? args.to : [args.to],
+      bcc: args.bcc ? (Array.isArray(args.bcc) ? args.bcc : [args.bcc]) : undefined,
       subject: args.subject,
       html: args.html,
       text: args.text,

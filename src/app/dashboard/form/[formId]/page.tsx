@@ -6,6 +6,7 @@ import type { FormSchema } from "@/lib/forms";
 import FormEditorShell from "../FormEditorShell";
 import FormSettingsPanel from "./FormSettingsPanel";
 import FormSendToPanel from "../FormSendToPanel";
+import type { NotificationCondition } from "../notification-actions";
 
 interface PageProps {
   params: Promise<{ formId: string }>;
@@ -132,6 +133,20 @@ export default async function FormEditorPage({ params }: PageProps) {
   }[];
   const hasSheetsConnection = (sheetsConnCount ?? 0) > 0 || (driveConnCount ?? 0) > 0;
 
+  // Load form notifications
+  const { data: notifRows } = await admin
+    .from("form_notifications")
+    .select("id, name, is_enabled, to_emails, bcc_emails, reply_to, email_subject, email_body, conditions, sort_order")
+    .eq("partner_form_id", formId)
+    .order("sort_order", { ascending: true })
+    .order("created_at", { ascending: true });
+  const notifications = (notifRows ?? []) as {
+    id: string; name: string; is_enabled: boolean;
+    to_emails: string[]; bcc_emails: string[];
+    reply_to: string | null; email_subject: string | null; email_body: string | null;
+    conditions: NotificationCondition | null; sort_order: number;
+  }[];
+
   return (
     <div className="flex flex-col h-screen">
       <FormEditorShell
@@ -152,15 +167,10 @@ export default async function FormEditorPage({ params }: PageProps) {
               initialWebhooks={webhooks}
               initialSheetsFeeds={sheetsFeeds}
               hasSheetsConnection={hasSheetsConnection}
-              notificationEmails={(pf.notification_emails as string[]) ?? []}
-              notificationBcc={(pf.notification_bcc as string[]) ?? []}
+              initialNotifications={notifications}
               confirmPageHeading={(pf.confirm_page_heading as string) ?? ""}
               confirmPageBody={(pf.confirm_page_body as string) ?? ""}
               redirectUrl={(pf.redirect_url as string) ?? ""}
-              partnerEmailSubject={(pf.partner_email_subject as string) ?? ""}
-              partnerEmailBody={(pf.partner_email_body as string) ?? ""}
-              clientEmailSubject={(pf.client_email_subject as string) ?? ""}
-              clientEmailBody={(pf.client_email_body as string) ?? ""}
             />
           ) : undefined
         }

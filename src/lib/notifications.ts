@@ -224,6 +224,8 @@ export async function createNotificationBatch(
 import { createAdminClient } from "@/lib/supabase/admin";
 import { sendMail } from "@/lib/email";
 import { emailTemplate, escapeHtml, getRenderedEmail } from "@/lib/email-templates";
+import { evaluateCondition } from "@/lib/forms";
+import type { ShowCondition } from "@/lib/forms";
 
 function appUrl(path: string): string {
   const root = process.env.NEXT_PUBLIC_APP_URL ?? "https://app.linqme.io";
@@ -322,7 +324,10 @@ function templateBodyToHtml(body: string): string {
 
 /**
  * Called when a client finalizes (submits) their onboarding.
- * Sends a notification email to the partner's team + a confirmation to the client.
+ * Loads per-form notification rules from form_notifications, evaluates
+ * conditions against the submission data, and sends each enabled
+ * notification with its own template/recipients. Also sends in-app
+ * notifications and agency-level emails.
  */
 export async function notifyPartnerOfSubmission(submissionId: string): Promise<void> {
   const admin = createAdminClient();
@@ -341,23 +346,12 @@ export async function notifyPartnerOfSubmission(submissionId: string): Promise<v
     .maybeSingle();
   if (!partner) return;
 
-  // Load form-level email templates + form schema
+  // Load form schema for field labels + merge tag rendering
   const { data: pf } = await admin
     .from("partner_forms")
-    .select(
-      `partner_email_subject, partner_email_body,
-       client_email_subject, client_email_body,
-       notification_emails,
-       form_templates ( schema )`,
-    )
+    .select("form_templates ( schema )")
     .eq("id", sub.partner_form_id)
     .maybeSingle();
-
-  // Use form-level notification_emails if set, otherwise fall back to partner-level
-  const formEmails = (pf?.notification_emails as string[] | null) ?? [];
-  const partnerEmails = formEmails.length > 0
-    ? formEmails
-    : await resolvePartnerNotifyEmails(sub.partner_id);
 
   const clientName = sub.client_name || "A client";
   const clientEmail = sub.client_email || "(no email provided)";
@@ -425,35 +419,77 @@ export async function notifyPartnerOfSubmission(submissionId: string): Promise<v
     fieldLabels,
   };
 
-  const customPartnerSubject = (pf?.partner_email_subject as string) || null;
-  const customPartnerBody = (pf?.partner_email_body as string) || null;
-  const customClientSubject = (pf?.client_email_subject as string) || null;
-  const customClientBody = (pf?.client_email_body as string) || null;
+  // --- Load form_notifications rows ----------------------------------------
+  const { data: notifRows } = await admin
+    .from("form_notifications")
+    .select("id, name, is_enabled, to_emails, bcc_emails, reply_to, email_subject, email_body, conditions")
+    .eq("partner_form_id", sub.partner_form_id)
+    .order("sort_order", { ascending: true });
 
-  // --- Partner notification ------------------------------------------------
-  if (partnerEmails.length > 0) {
-    let subject: string;
-    let html: string;
+  const notifications = (notifRows ?? []) as {
+    id: string; name: string; is_enabled: boolean;
+    to_emails: string[]; bcc_emails: string[];
+    reply_to: string | null; email_subject: string | null; email_body: string | null;
+    conditions: { fieldId: string; operator: string; value?: string; extraConditions?: { fieldId: string; operator: string; value?: string }[]; combinator?: "and" | "or" } | null;
+  }[];
 
-    if (customPartnerSubject || customPartnerBody) {
-      // Use form-level custom template
-      subject = customPartnerSubject
-        ? renderMergeTags(customPartnerSubject, mergeVars)
+  // If there are form_notifications rows, use those. Otherwise fall back to
+  // legacy partner-level emails for backward compatibility.
+  if (notifications.length > 0) {
+    for (const notif of notifications) {
+      if (!notif.is_enabled) continue;
+
+      // Evaluate conditions -- null conditions means "always send"
+      if (notif.conditions) {
+        const conditionAsShow: ShowCondition = {
+          fieldId: notif.conditions.fieldId,
+          operator: notif.conditions.operator as ShowCondition["operator"],
+          value: notif.conditions.value,
+          extraConditions: notif.conditions.extraConditions,
+          combinator: notif.conditions.combinator,
+        };
+        const shouldSend = evaluateCondition(conditionAsShow, submissionData);
+        if (!shouldSend) continue;
+      }
+
+      // Resolve recipients -- if to_emails is empty, fall back to partner-level
+      const toEmails = notif.to_emails.length > 0
+        ? notif.to_emails
+        : await resolvePartnerNotifyEmails(sub.partner_id);
+
+      if (toEmails.length === 0) continue;
+
+      // Build email from notification template or defaults
+      const subject = notif.email_subject
+        ? renderMergeTags(notif.email_subject, mergeVars)
         : `New submission -- ${clientName} -- ${partner.name}`;
 
-      const bodyHtml = customPartnerBody
-        ? templateBodyToHtml(renderMergeTags(customPartnerBody, mergeVars))
-        : `<p style="margin: 0 0 8px;"><strong>${escapeHtml(clientName)}</strong> just submitted their form.</p>
-           <p style="margin: 0 0 0;">Client email: <a href="mailto:${escapeHtml(clientEmail)}" style="color: #696cf8;">${escapeHtml(clientEmail)}</a></p>`;
+      const bodyHtml = notif.email_body
+        ? templateBodyToHtml(renderMergeTags(notif.email_body, mergeVars))
+        : `<p style="margin: 0 0 8px;"><strong>${escapeHtml(clientName)}</strong> just submitted their form.</p>` +
+          `<p style="margin: 0 0 0;">Client email: <a href="mailto:${escapeHtml(clientEmail)}" style="color: #696cf8;">${escapeHtml(clientEmail)}</a></p>` +
+          allFieldsHtml;
 
-      html = emailTemplate({
+      const html = emailTemplate({
         heading: subject,
         body: bodyHtml,
         cta: { label: "View submission", url: dashboardLink },
         partnerName: partner.name,
       });
-    } else {
-      // Fall back to DB-managed template or hardcoded default
+
+      await sendMail({
+        to: toEmails,
+        bcc: notif.bcc_emails.length > 0 ? notif.bcc_emails : undefined,
+        subject,
+        html,
+        replyTo: notif.reply_to || sub.client_email || undefined,
+      });
+    }
+  } else {
+    // Legacy fallback: use partner-level notification emails
+    const partnerEmails = await resolvePartnerNotifyEmails(sub.partner_id);
+
+    if (partnerEmails.length > 0) {
       const dbPartnerEmail = await getRenderedEmail("submission_partner", {
         partner_name: partner.name,
         client_name: clientName,
@@ -461,7 +497,7 @@ export async function notifyPartnerOfSubmission(submissionId: string): Promise<v
         dashboard_link: dashboardLink,
       });
 
-      html = dbPartnerEmail?.html ?? emailTemplate({
+      const html = dbPartnerEmail?.html ?? emailTemplate({
         heading: `New submission for ${partner.name}`,
         body: `
           <p style="margin: 0 0 8px;">
@@ -472,15 +508,52 @@ export async function notifyPartnerOfSubmission(submissionId: string): Promise<v
         cta: { label: "View submission →", url: dashboardLink },
         partnerName: partner.name,
       });
-      subject = dbPartnerEmail?.subject ?? `New submission · ${clientName} · ${partner.name}`;
+      const subject = dbPartnerEmail?.subject ?? `New submission -- ${clientName} -- ${partner.name}`;
+
+      await sendMail({
+        to: partnerEmails,
+        subject,
+        html,
+        replyTo: sub.client_email || undefined,
+      });
     }
 
-    await sendMail({
-      to: partnerEmails,
-      subject,
-      html,
-      replyTo: sub.client_email || undefined,
-    });
+    // Legacy client confirmation
+    if (sub.client_email) {
+      const clientSummaryHtml = allFieldsHtml
+        ? `<table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="background:#0b1326;border-radius:12px;margin-top:16px;">` +
+          `<tr><td style="padding:16px;">` +
+          `<p style="margin:0 0 12px;color:#e2e8f0;font-size:14px;font-weight:700;">Your submitted information</p>` +
+          allFieldsHtml.replace(/^<table[^>]*>/, "").replace(/<\/table>$/, "") +
+          `</td></tr></table>`
+        : "";
+
+      const dbClientEmail = await getRenderedEmail("submission_client", {
+        client_name: clientName,
+        partner_name: partner.name,
+        form_summary: clientSummaryHtml,
+      });
+
+      const clientHtml = dbClientEmail?.html ?? emailTemplate({
+        heading: `Thanks, ${clientName}! We got it.`,
+        body: `
+          <p style="margin: 0 0 0;">
+            Your onboarding info has been received by <strong>${escapeHtml(partner.name)}</strong>.
+            They'll reach out with next steps shortly.
+          </p>
+          ${clientSummaryHtml}
+        `,
+        partnerName: partner.name,
+      });
+      const clientSubject = dbClientEmail?.subject ?? `We received your onboarding info -- ${partner.name}`;
+
+      await sendMail({
+        to: sub.client_email,
+        subject: clientSubject,
+        html: clientHtml,
+        replyTo: partner.support_email || undefined,
+      });
+    }
   }
 
   // --- In-app notifications for direct partner members --------------------
@@ -512,7 +585,6 @@ export async function notifyPartnerOfSubmission(submissionId: string): Promise<v
     if (partnerRow?.parent_partner_id) {
       const parentPartnerId = partnerRow.parent_partner_id;
 
-      // Fetch parent partner name
       const { data: parentPartner } = await admin
         .from("partners")
         .select("id, name")
@@ -544,13 +616,12 @@ export async function notifyPartnerOfSubmission(submissionId: string): Promise<v
 
         await sendMail({
           to: agencyEmails,
-          subject: `New submission · ${clientName} · via ${partner.name}`,
+          subject: `New submission -- ${clientName} -- via ${partner.name}`,
           html: agencyHtml,
           replyTo: sub.client_email || undefined,
         });
       }
 
-      // In-app notifications for agency owner(s)
       if (parentPartner) {
         const { data: agencyOwners } = await admin
           .from("partner_members")
@@ -569,64 +640,5 @@ export async function notifyPartnerOfSubmission(submissionId: string): Promise<v
         }
       }
     }
-  }
-
-  // --- Client confirmation -------------------------------------------------
-  if (sub.client_email) {
-    let clientSubject: string;
-    let clientHtml: string;
-
-    // Build a client-facing summary with header
-    const clientSummaryHtml = allFieldsHtml
-      ? `<table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="background:#0b1326;border-radius:12px;margin-top:16px;">` +
-        `<tr><td style="padding:16px;">` +
-        `<p style="margin:0 0 12px;color:#e2e8f0;font-size:14px;font-weight:700;">Your submitted information</p>` +
-        allFieldsHtml.replace(/^<table[^>]*>/, "").replace(/<\/table>$/, "") +
-        `</td></tr></table>`
-      : "";
-
-    if (customClientSubject || customClientBody) {
-      // Use form-level custom template
-      clientSubject = customClientSubject
-        ? renderMergeTags(customClientSubject, mergeVars)
-        : `We received your info -- ${partner.name}`;
-
-      const bodyHtml = customClientBody
-        ? templateBodyToHtml(renderMergeTags(customClientBody, mergeVars))
-        : `<p style="margin: 0 0 0;">Your info has been received by <strong>${escapeHtml(partner.name)}</strong>. They'll reach out with next steps shortly.</p>${allFieldsHtml}`;
-
-      clientHtml = emailTemplate({
-        heading: clientSubject,
-        body: bodyHtml,
-        partnerName: partner.name,
-      });
-    } else {
-      // Fall back to DB-managed template or hardcoded default
-      const dbClientEmail = await getRenderedEmail("submission_client", {
-        client_name: clientName,
-        partner_name: partner.name,
-        form_summary: clientSummaryHtml,
-      });
-
-      clientHtml = dbClientEmail?.html ?? emailTemplate({
-        heading: `Thanks, ${clientName}! We got it.`,
-        body: `
-          <p style="margin: 0 0 0;">
-            Your onboarding info has been received by <strong>${escapeHtml(partner.name)}</strong>.
-            They'll reach out with next steps shortly.
-          </p>
-          ${clientSummaryHtml}
-        `,
-        partnerName: partner.name,
-      });
-      clientSubject = dbClientEmail?.subject ?? `We received your onboarding info -- ${partner.name}`;
-    }
-
-    await sendMail({
-      to: sub.client_email,
-      subject: clientSubject,
-      html: clientHtml,
-      replyTo: partner.support_email || undefined,
-    });
   }
 }
