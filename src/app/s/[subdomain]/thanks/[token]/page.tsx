@@ -1,5 +1,6 @@
 import { notFound } from "next/navigation";
 import Image from "next/image";
+import Link from "next/link";
 import { createAdminClient } from "@/lib/supabase/admin";
 
 interface Props {
@@ -13,13 +14,14 @@ const LOGO_DIMS: Record<string, { wrapper: string; img: string; fallback: string
 };
 
 export default async function ThanksPage({ params }: Props) {
-  const { token } = await params;
+  const { subdomain, token } = await params;
   const admin = createAdminClient();
   const { data: sub } = await admin
     .from("submissions")
     .select(
-      `id, status, submitted_at, client_name,
-       partners ( slug, name, custom_domain, logo_url, primary_color, support_email, plan_tier, hide_branding, custom_footer_text, logo_size, theme_mode )`,
+      `id, status, submitted_at, client_name, partner_form_id,
+       partners ( slug, name, custom_domain, logo_url, primary_color, support_email, plan_tier, hide_branding, custom_footer_text, logo_size, theme_mode ),
+       partner_forms!partner_form_id ( name, slug, is_default, confirm_page_heading, confirm_page_body )`,
     )
     .eq("access_token", token)
     .maybeSingle();
@@ -27,6 +29,7 @@ export default async function ThanksPage({ params }: Props) {
   if (!sub) notFound();
   const partner = Array.isArray(sub.partners) ? sub.partners[0] : sub.partners;
   if (!partner) notFound();
+  const form = Array.isArray(sub.partner_forms) ? sub.partner_forms[0] : sub.partner_forms;
 
   const primary = partner.primary_color || "#c0c1ff";
   const isPaid = (partner as Record<string, unknown>).plan_tier !== "free";
@@ -38,35 +41,47 @@ export default async function ThanksPage({ params }: Props) {
   const dims = LOGO_DIMS[logoSize] ?? LOGO_DIMS.default;
   const isFullWidth = logoSize === "full-width";
 
+  // Build the form name and custom confirmation text
+  const formName = form?.name ?? "submission";
+  const customHeading = form?.confirm_page_heading ? String(form.confirm_page_heading) : null;
+  const customBody = form?.confirm_page_body ? String(form.confirm_page_body) : null;
+
+  // Logo link: go to the hub page (storefront root) or the default form
+  const rootHost = (process.env.NEXT_PUBLIC_ROOT_DOMAIN ?? "linqme.io").replace(/:\d+$/, "");
+  const storefrontHost = partner.custom_domain || `${subdomain}.${rootHost}`;
+  const logoHref = `https://${storefrontHost}/`;
+
   return (
     <main className="min-h-screen bg-background flex flex-col">
       {/* Header */}
       <header className={`fixed top-0 w-full z-50 bg-background/60 backdrop-blur-xl ${isFullWidth ? "flex flex-col items-center px-8 py-4" : "flex items-center px-8 py-6"}`}>
-        {isFullWidth ? (
-          <div className="flex flex-col items-center gap-1">
-            {partner.logo_url ? (
-              <Image src={partner.logo_url} alt={partner.name} width={200} height={48} className="h-12 w-auto object-contain" />
-            ) : (
-              <div className="w-12 h-12 rounded-xl flex items-center justify-center" style={{ backgroundColor: primary }}>
-                <span className="text-on-primary font-bold text-xl">{partner.name.slice(0, 1).toUpperCase()}</span>
-              </div>
-            )}
-            <span className="text-sm font-bold text-on-surface font-headline tracking-tight">{partner.name}</span>
-          </div>
-        ) : (
-          <div className="flex items-center gap-3">
-            {partner.logo_url ? (
-              <div className={`${dims.wrapper} flex items-center justify-center`}>
-                <Image src={partner.logo_url} alt={partner.name} width={200} height={80} className={`${dims.img} object-contain`} />
-              </div>
-            ) : (
-              <div className={`${dims.fallback} flex items-center justify-center`} style={{ backgroundColor: primary }}>
-                <span className="text-on-primary font-bold text-lg">{partner.name.slice(0, 1).toUpperCase()}</span>
-              </div>
-            )}
-            <span className="text-lg font-bold text-on-surface font-headline tracking-tight">{partner.name}</span>
-          </div>
-        )}
+        <Link href={logoHref} className="transition-opacity hover:opacity-80">
+          {isFullWidth ? (
+            <div className="flex flex-col items-center gap-1">
+              {partner.logo_url ? (
+                <Image src={partner.logo_url} alt={partner.name} width={200} height={48} className="h-12 w-auto object-contain" />
+              ) : (
+                <div className="w-12 h-12 rounded-xl flex items-center justify-center" style={{ backgroundColor: primary }}>
+                  <span className="text-on-primary font-bold text-xl">{partner.name.slice(0, 1).toUpperCase()}</span>
+                </div>
+              )}
+              <span className="text-sm font-bold text-on-surface font-headline tracking-tight">{partner.name}</span>
+            </div>
+          ) : (
+            <div className="flex items-center gap-3">
+              {partner.logo_url ? (
+                <div className={`${dims.wrapper} flex items-center justify-center`}>
+                  <Image src={partner.logo_url} alt={partner.name} width={200} height={80} className={`${dims.img} object-contain`} />
+                </div>
+              ) : (
+                <div className={`${dims.fallback} flex items-center justify-center`} style={{ backgroundColor: primary }}>
+                  <span className="text-on-primary font-bold text-lg">{partner.name.slice(0, 1).toUpperCase()}</span>
+                </div>
+              )}
+              <span className="text-lg font-bold text-on-surface font-headline tracking-tight">{partner.name}</span>
+            </div>
+          )}
+        </Link>
       </header>
 
       {/* Content */}
@@ -80,10 +95,14 @@ export default async function ThanksPage({ params }: Props) {
           </div>
           <div>
             <h1 className="text-3xl md:text-4xl font-extrabold font-headline text-on-surface tracking-tight">
-              {sub.client_name ? `Thanks, ${sub.client_name.split(" ")[0]}!` : "All done!"}
+              {customHeading
+                ? customHeading
+                : sub.client_name ? `Thanks, ${sub.client_name.split(" ")[0]}!` : "All done!"}
             </h1>
             <p className="text-on-surface-variant mt-2 text-lg leading-relaxed">
-              Your onboarding has been submitted to {partner.name}. They&apos;ll be in touch soon.
+              {customBody
+                ? customBody
+                : `Your ${formName} has been submitted to ${partner.name}. They\u2019ll be in touch soon.`}
             </p>
           </div>
           {partner.support_email && (

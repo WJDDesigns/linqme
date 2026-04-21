@@ -231,6 +231,17 @@ export default function SubmissionForm({
     e.preventDefault();
     const fd = new FormData(e.currentTarget);
 
+    // Inject React-state-managed field values that don't have native form elements.
+    // Complex fields (timeline, approval, budget_allocator, rating, etc.) store data
+    // in React state via onChange but never render <input name=...> into the DOM,
+    // so new FormData() misses them. We fill in the gaps from the `data` state.
+    for (const f of step.fields) {
+      if (!fd.has(f.id) && data[f.id] !== undefined && data[f.id] !== null && data[f.id] !== "") {
+        const val = data[f.id];
+        fd.set(f.id, typeof val === "string" ? val : JSON.stringify(val));
+      }
+    }
+
     // Dev mode: skip validation, just move to next step
     if (devMode) {
       setErrors({});
@@ -352,6 +363,12 @@ export default function SubmissionForm({
       e.preventDefault();
       if (!convoField) return;
       const fd = new FormData(e.currentTarget);
+
+      // Inject React-state data for the current conversation field
+      if (!fd.has(convoField.id) && data[convoField.id] !== undefined && data[convoField.id] !== null && data[convoField.id] !== "") {
+        const val = data[convoField.id];
+        fd.set(convoField.id, typeof val === "string" ? val : JSON.stringify(val));
+      }
 
       if (devMode) {
         if (isConvoLast) {

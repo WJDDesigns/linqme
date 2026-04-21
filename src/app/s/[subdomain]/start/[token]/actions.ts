@@ -57,7 +57,26 @@ export async function saveStepAction(
   for (const f of step.fields) {
     const raw = formData.get(f.id);
     if (raw === null) continue;
-    stepData[f.id] = typeof raw === "string" ? raw : raw;
+    // Complex fields (timeline, approval, budget_allocator, etc.) send their
+    // data as JSON strings. Try to parse them back into structured objects so
+    // the JSONB column stores real objects instead of stringified JSON.
+    if (typeof raw === "string") {
+      const trimmed = raw.trim();
+      if (
+        (trimmed.startsWith("{") && trimmed.endsWith("}")) ||
+        (trimmed.startsWith("[") && trimmed.endsWith("]"))
+      ) {
+        try {
+          stepData[f.id] = JSON.parse(trimmed);
+          continue;
+        } catch {
+          // Not valid JSON -- store as plain string
+        }
+      }
+      stepData[f.id] = raw;
+    } else {
+      stepData[f.id] = raw;
+    }
   }
 
   // Merge with existing data for condition evaluation
