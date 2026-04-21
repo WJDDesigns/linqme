@@ -18,20 +18,41 @@ export default async function EntriesPage() {
   const admin = createAdminClient();
 
   // Load all submissions for this partner
-  const { data: submissions } = await admin
-    .from("submissions")
-    .select(
-      `id, status, client_name, client_email, submitted_at, created_at, form_slug,
-       partner_form_id,
-       partners ( id, name, slug, primary_color, logo_url ),
-       partner_forms ( id, name )`,
-    )
-    .eq("partner_id", account.id)
-    .order("created_at", { ascending: false })
-    .limit(500);
+  const [{ data: submissions }, { data: forms }, { data: partner }, { data: aiIntegrations }, { data: cachedOverviews }] =
+    await Promise.all([
+      admin
+        .from("submissions")
+        .select(
+          `id, status, client_name, client_email, submitted_at, created_at, form_slug,
+           partner_form_id,
+           partners ( id, name, slug, primary_color, logo_url ),
+           partner_forms ( id, name )`,
+        )
+        .eq("partner_id", account.id)
+        .order("created_at", { ascending: false })
+        .limit(500),
+      admin
+        .from("partner_forms")
+        .select("id, slug, name")
+        .eq("partner_id", account.id)
+        .order("name"),
+      admin
+        .from("partners")
+        .select("settings, parent_partner_id")
+        .eq("id", account.id)
+        .maybeSingle(),
+      admin
+        .from("ai_integrations")
+        .select("id")
+        .eq("partner_id", account.id)
+        .limit(1),
+      admin
+        .from("smart_overview_cache")
+        .select("partner_form_id, overview_html, generated_at, entry_count")
+        .eq("partner_id", account.id),
+    ]);
 
   const rows = (submissions ?? []).map((s) => {
-    const partner = Array.isArray(s.partners) ? s.partners[0] : s.partners;
     const pf = Array.isArray(s.partner_forms) ? s.partner_forms[0] : s.partner_forms;
     return {
       id: s.id as string,
@@ -46,18 +67,29 @@ export default async function EntriesPage() {
     };
   });
 
-  // Get forms for the filter dropdown
-  const { data: forms } = await admin
-    .from("partner_forms")
-    .select("id, slug, name")
-    .eq("partner_id", account.id)
-    .order("name");
-
   const formOptions = (forms ?? []).map((f) => ({
     id: f.id as string,
     slug: f.slug as string,
     name: f.name as string,
   }));
+
+  // Smart overview check
+  const partnerSettings = (partner?.settings as Record<string, unknown>) ?? {};
+  const smartOverviewEnabled = partnerSettings.smart_overview_enabled === true;
+  const hasAiProvider = (aiIntegrations ?? []).length > 0;
+  const showSmartOverview = smartOverviewEnabled && hasAiProvider;
+
+  // Build map of form ID -> cached overview
+  const overviewMap: Record<string, { overview: string; generatedAt: string; entryCount: number }> = {};
+  if (cachedOverviews) {
+    for (const c of cachedOverviews) {
+      overviewMap[c.partner_form_id as string] = {
+        overview: c.overview_html as string,
+        generatedAt: c.generated_at as string,
+        entryCount: c.entry_count as number,
+      };
+    }
+  }
 
   const isSuperadmin = session.role === "superadmin";
 
@@ -74,6 +106,8 @@ export default async function EntriesPage() {
         submissions={rows}
         forms={formOptions}
         isSuperadmin={isSuperadmin}
+        showSmartOverview={showSmartOverview}
+        overviewMap={overviewMap}
       />
     </div>
   );

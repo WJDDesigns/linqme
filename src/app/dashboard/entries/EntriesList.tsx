@@ -4,6 +4,7 @@ import { useState, useTransition, useMemo } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import Pagination from "@/components/Pagination";
+import SmartOverviewBox from "../form/[formId]/entries/SmartOverviewBox";
 
 const PAGE_SIZE = 25;
 import {
@@ -31,10 +32,18 @@ interface FormOption {
   name: string;
 }
 
+interface CachedOverview {
+  overview: string;
+  generatedAt: string;
+  entryCount: number;
+}
+
 interface Props {
   submissions: SubmissionRow[];
   forms: FormOption[];
   isSuperadmin: boolean;
+  showSmartOverview?: boolean;
+  overviewMap?: Record<string, CachedOverview>;
 }
 
 const STATUS_STYLES: Record<string, string> = {
@@ -52,7 +61,7 @@ function fmtDate(d: string | null) {
   return new Date(d).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
 }
 
-export default function EntriesList({ submissions, forms, isSuperadmin }: Props) {
+export default function EntriesList({ submissions, forms, isSuperadmin, showSmartOverview, overviewMap }: Props) {
   const router = useRouter();
   const searchParams = useSearchParams();
   const initialFormId = searchParams.get("form") ?? "";
@@ -248,6 +257,15 @@ export default function EntriesList({ submissions, forms, isSuperadmin }: Props)
             <i className="fa-solid fa-xmark" /> Clear
           </button>
         </div>
+      )}
+
+      {/* Smart Overview -- shown when filtering to a single form */}
+      {showSmartOverview && formFilter && (
+        <SmartOverviewBox
+          formId={formFilter}
+          currentEntryCount={filtered.length}
+          cachedOverview={overviewMap?.[formFilter] ?? null}
+        />
       )}
 
       {/* Bulk actions */}
