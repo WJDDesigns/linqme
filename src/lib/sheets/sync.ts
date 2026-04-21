@@ -117,7 +117,7 @@ export async function fireSheetsSync(submissionId: string): Promise<void> {
             const field = allFields.find((f) => f.id === m.fieldId);
             const val = rawData[m.fieldId];
             if (field && val !== undefined && val !== null && val !== "") {
-              return formatFieldValue(val, field);
+              try { return formatFieldValue(val, field); } catch { return formatCellValue(val); }
             }
             return formatCellValue(val);
           });
@@ -131,14 +131,16 @@ export async function fireSheetsSync(submissionId: string): Promise<void> {
             if (val === undefined || val === null || val === "") {
               values.push("");
             } else {
-              values.push(formatFieldValue(val, field));
+              try { values.push(formatFieldValue(val, field)); } catch { values.push(formatCellValue(val)); }
             }
           }
         }
 
         await appendRow(accessToken, feed.spreadsheet_id, feed.sheet_name, values);
       } catch (err) {
-        console.error(`[sheets-sync] failed for feed ${feed.id}:`, err);
+        const errMsg = err instanceof Error ? err.message : String(err);
+        const errStack = err instanceof Error ? err.stack : "";
+        console.error(`[sheets-sync] failed for feed ${feed.id}: ${errMsg}`, errStack);
       }
     }),
   );

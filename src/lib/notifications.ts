@@ -225,7 +225,8 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { sendMail } from "@/lib/email";
 import { emailTemplate, escapeHtml, getRenderedEmail } from "@/lib/email-templates";
 import { evaluateCondition } from "@/lib/forms";
-import type { ShowCondition } from "@/lib/forms";
+import type { ShowCondition, FormSchema, FieldDef } from "@/lib/forms";
+import { formatFieldValue } from "@/lib/format-field-value";
 
 function appUrl(path: string): string {
   const root = process.env.NEXT_PUBLIC_APP_URL ?? "https://app.linqme.io";
@@ -289,6 +290,7 @@ function renderMergeTags(
     allFieldsHtml: string;
     submissionData: Record<string, unknown>;
     fieldLabels: Map<string, string>;
+    allFields: FieldDef[];
   },
 ): string {
   let result = template;
@@ -300,11 +302,13 @@ function renderMergeTags(
 
   // {field:some_field_id} -- resolve individual field values
   result = result.replace(/\{field:([^}]+)\}/gi, (_match, fieldId: string) => {
-    const value = vars.submissionData[fieldId.trim()];
+    const id = fieldId.trim();
+    const value = vars.submissionData[id];
     if (value === null || value === undefined || value === "") return "";
+    const fieldDef = vars.allFields.find((f) => f.id === id);
+    if (fieldDef) return escapeHtml(formatFieldValue(value, fieldDef));
+    // Fallback for fields not in schema
     if (typeof value === "boolean") return value ? "Yes" : "No";
-    if (Array.isArray(value)) return escapeHtml(value.join(", "));
-    if (typeof value === "object") return escapeHtml(JSON.stringify(value));
     return escapeHtml(String(value));
   });
 
@@ -360,11 +364,9 @@ export async function notifyPartnerOfSubmission(submissionId: string): Promise<v
   // Resolve form schema for field labels + all_fields rendering
   const tplRaw = pf?.form_templates;
   const tplObj = Array.isArray(tplRaw) ? tplRaw[0] : tplRaw;
-  const formSchema = (tplObj?.schema as {
-    steps: Array<{ fields: Array<{ id: string; label: string; type?: string }> }>;
-  }) ?? null;
+  const formSchema = (tplObj?.schema as FormSchema) ?? null;
 
-  const allFields = formSchema?.steps?.flatMap((s) => s.fields) ?? [];
+  const allFields: FieldDef[] = formSchema?.steps?.flatMap((s) => s.fields) ?? [];
   const submissionData = (sub.data ?? {}) as Record<string, unknown>;
   const fieldLabels = new Map(allFields.map((f) => [f.id, f.label]));
 
@@ -373,21 +375,12 @@ export async function notifyPartnerOfSubmission(submissionId: string): Promise<v
   {
     const rows: string[] = [];
     for (const field of allFields) {
-      if (field.type === "heading") continue;
+      if (field.type === "heading" || field.type === "captcha") continue;
       const value = submissionData[field.id];
       if (value === null || value === undefined || value === "") continue;
 
       const label = escapeHtml(field.label || field.id);
-      let displayValue: string;
-      if (typeof value === "boolean") {
-        displayValue = value ? "Yes" : "No";
-      } else if (Array.isArray(value)) {
-        displayValue = escapeHtml(value.join(", "));
-      } else if (typeof value === "object") {
-        displayValue = escapeHtml(JSON.stringify(value));
-      } else {
-        displayValue = escapeHtml(String(value));
-      }
+      const displayValue = escapeHtml(formatFieldValue(value, field));
 
       rows.push(
         `<tr>` +
@@ -417,6 +410,7 @@ export async function notifyPartnerOfSubmission(submissionId: string): Promise<v
     allFieldsHtml,
     submissionData,
     fieldLabels,
+    allFields,
   };
 
   // --- Load form_notifications rows ----------------------------------------

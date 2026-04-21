@@ -111,7 +111,7 @@ export async function createSheetsFeedAction(
       partner_form_id: formId,
       spreadsheet_id: spreadsheetId,
       spreadsheet_name: spreadsheetName,
-      sheet_name: data.sheetName ?? "Sheet1",
+      sheet_name: data.sheetName ?? (data.createNew ? "Submissions" : "Sheet1"),
       field_map: data.fieldMap ?? null,
       is_enabled: true,
     })
