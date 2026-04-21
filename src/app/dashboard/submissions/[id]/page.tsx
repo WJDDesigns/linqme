@@ -260,11 +260,355 @@ export default async function SubmissionDetailPage({ params }: Props) {
                 );
               }
 
+              /* ── Skip display-only fields ── */
+              if (f.type === "heading" || f.type === "captcha" || f.type === "payment") {
+                if (v === undefined || v === null || v === "") return null;
+              }
+
+              /* ── Empty value ── */
+              if (v === undefined || v === null || v === "") {
+                return (
+                  <div key={f.id} className="grid grid-cols-1 sm:grid-cols-3 gap-2 sm:gap-4">
+                    <dt className="text-xs text-on-surface-variant/60">{f.label}</dt>
+                    <dd className="sm:col-span-2 text-sm text-on-surface-variant/40">&mdash;</dd>
+                  </div>
+                );
+              }
+
+              /* Helper to parse JSON values safely */
+              const parsed = (() => {
+                if (typeof v === "object" && v !== null) return v;
+                if (typeof v === "string") {
+                  const trimmed = v.trim();
+                  if ((trimmed.startsWith("{") && trimmed.endsWith("}")) || (trimmed.startsWith("[") && trimmed.endsWith("]"))) {
+                    try { return JSON.parse(trimmed); } catch { /* ignore */ }
+                  }
+                }
+                return null;
+              })();
+
+              /* ── Timeline ── */
+              if (f.type === "timeline") {
+                const td = parsed as { startDate?: string; endDate?: string; milestones?: Record<string, string>; blackoutDates?: { start: string; end: string }[] } | null;
+                if (td) {
+                  const milestoneLabels = new Map((f.timelineConfig?.milestones ?? []).map((m) => [m.id, m.label]));
+                  return (
+                    <div key={f.id} className="grid grid-cols-1 sm:grid-cols-3 gap-2 sm:gap-4">
+                      <dt className="text-xs text-on-surface-variant/60">{f.label}</dt>
+                      <dd className="sm:col-span-2 space-y-1.5">
+                        {td.startDate && (
+                          <div className="flex items-center gap-2 text-sm">
+                            <i className="fa-solid fa-play text-[9px] text-emerald-400" />
+                            <span className="text-on-surface-variant/60 text-xs w-24">Start</span>
+                            <span className="text-on-surface">{new Date(td.startDate).toLocaleDateString()}</span>
+                          </div>
+                        )}
+                        {td.milestones && Object.entries(td.milestones).map(([id, date]) => (
+                          <div key={id} className="flex items-center gap-2 text-sm">
+                            <i className="fa-solid fa-diamond text-[9px] text-primary" />
+                            <span className="text-on-surface-variant/60 text-xs w-24">{milestoneLabels.get(id) ?? id}</span>
+                            <span className="text-on-surface">{new Date(date).toLocaleDateString()}</span>
+                          </div>
+                        ))}
+                        {td.endDate && (
+                          <div className="flex items-center gap-2 text-sm">
+                            <i className="fa-solid fa-flag-checkered text-[9px] text-red-400" />
+                            <span className="text-on-surface-variant/60 text-xs w-24">Deadline</span>
+                            <span className="text-on-surface">{new Date(td.endDate).toLocaleDateString()}</span>
+                          </div>
+                        )}
+                        {td.blackoutDates && td.blackoutDates.length > 0 && td.blackoutDates.map((b, i) => (
+                          <div key={i} className="flex items-center gap-2 text-sm">
+                            <i className="fa-solid fa-ban text-[9px] text-error/60" />
+                            <span className="text-on-surface-variant/60 text-xs w-24">Blackout</span>
+                            <span className="text-on-surface">{new Date(b.start).toLocaleDateString()} -- {new Date(b.end).toLocaleDateString()}</span>
+                          </div>
+                        ))}
+                      </dd>
+                    </div>
+                  );
+                }
+              }
+
+              /* ── Budget Allocation ── */
+              if (f.type === "budget_allocator") {
+                const alloc = parsed as Record<string, number> | null;
+                if (alloc && typeof alloc === "object" && !Array.isArray(alloc)) {
+                  const channelLabels = new Map((f.budgetAllocatorConfig?.channels ?? []).map((c) => [c.id, c.label]));
+                  const currency = f.budgetAllocatorConfig?.currency ?? "$";
+                  const total = Object.values(alloc).reduce((s, n) => s + (typeof n === "number" ? n : 0), 0);
+                  return (
+                    <div key={f.id} className="grid grid-cols-1 sm:grid-cols-3 gap-2 sm:gap-4">
+                      <dt className="text-xs text-on-surface-variant/60">{f.label}</dt>
+                      <dd className="sm:col-span-2 space-y-1">
+                        {Object.entries(alloc).map(([id, amt]) => (
+                          <div key={id} className="flex items-center justify-between text-sm">
+                            <span className="text-on-surface">{channelLabels.get(id) ?? id}</span>
+                            <div className="flex items-center gap-2">
+                              <span className="font-semibold text-on-surface tabular-nums">{currency}{(typeof amt === "number" ? amt : 0).toLocaleString()}</span>
+                              {total > 0 && (
+                                <span className="text-[10px] text-on-surface-variant/50 w-10 text-right">{Math.round(((typeof amt === "number" ? amt : 0) / total) * 100)}%</span>
+                              )}
+                            </div>
+                          </div>
+                        ))}
+                        <div className="flex items-center justify-between text-sm pt-1 border-t border-outline-variant/10 mt-1">
+                          <span className="font-semibold text-on-surface-variant">Total</span>
+                          <span className="font-bold text-primary tabular-nums">{currency}{total.toLocaleString()}</span>
+                        </div>
+                      </dd>
+                    </div>
+                  );
+                }
+              }
+
+              /* ── Feature Selector (pipe-delimited IDs) ── */
+              if (f.type === "feature_selector") {
+                const raw = String(v);
+                const selectedIds = raw.split("||").filter(Boolean);
+                const featureLabelsMap = new Map((f.featureSelectorConfig?.features ?? []).map((ft) => [ft.id, ft.name]));
+                return (
+                  <div key={f.id} className="grid grid-cols-1 sm:grid-cols-3 gap-2 sm:gap-4">
+                    <dt className="text-xs text-on-surface-variant/60">{f.label}</dt>
+                    <dd className="sm:col-span-2 flex flex-wrap gap-1.5">
+                      {selectedIds.map((id) => (
+                        <span key={id} className="text-[11px] px-2.5 py-1 rounded-lg bg-primary/10 text-primary font-medium flex items-center gap-1">
+                          <i className="fa-solid fa-check text-[8px]" />
+                          {featureLabelsMap.get(id) ?? id}
+                        </span>
+                      ))}
+                    </dd>
+                  </div>
+                );
+              }
+
+              /* ── Package Selector (single ID) ── */
+              if (f.type === "package") {
+                const pkgId = String(v);
+                const pkg = (f.packageConfig?.packages ?? []).find((p) => p.id === pkgId);
+                return (
+                  <div key={f.id} className="grid grid-cols-1 sm:grid-cols-3 gap-2 sm:gap-4">
+                    <dt className="text-xs text-on-surface-variant/60">{f.label}</dt>
+                    <dd className="sm:col-span-2">
+                      {pkg ? (
+                        <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-xl bg-primary/10 border border-primary/20">
+                          <i className="fa-solid fa-box text-xs text-primary" />
+                          <span className="text-sm font-semibold text-primary">{pkg.name}</span>
+                          {!pkg.hidePrice && <span className="text-xs text-on-surface-variant">{f.budgetAllocatorConfig?.currency ?? "$"}{pkg.price}/mo</span>}
+                        </div>
+                      ) : (
+                        <span className="text-sm text-on-surface">{pkgId}</span>
+                      )}
+                    </dd>
+                  </div>
+                );
+              }
+
+              /* ── Rating / Stars ── */
+              if (f.type === "rating") {
+                const stars = Number(v) || 0;
+                const maxStars = f.ratingConfig?.maxStars ?? 5;
+                return (
+                  <div key={f.id} className="grid grid-cols-1 sm:grid-cols-3 gap-2 sm:gap-4">
+                    <dt className="text-xs text-on-surface-variant/60">{f.label}</dt>
+                    <dd className="sm:col-span-2 flex items-center gap-1">
+                      {Array.from({ length: maxStars }, (_, i) => (
+                        <i key={i} className={`fa-solid fa-star text-sm ${i < stars ? "text-amber-400" : "text-on-surface-variant/20"}`} />
+                      ))}
+                      <span className="text-xs text-on-surface-variant/60 ml-1">{stars} / {maxStars}</span>
+                    </dd>
+                  </div>
+                );
+              }
+
+              /* ── Yes/No Toggle ── */
+              if (f.type === "toggle") {
+                const isYes = String(v) === "yes";
+                return (
+                  <div key={f.id} className="grid grid-cols-1 sm:grid-cols-3 gap-2 sm:gap-4">
+                    <dt className="text-xs text-on-surface-variant/60">{f.label}</dt>
+                    <dd className="sm:col-span-2">
+                      <span className={`inline-flex items-center gap-1.5 text-sm font-semibold ${isYes ? "text-emerald-400" : "text-on-surface-variant/60"}`}>
+                        <i className={`fa-solid ${isYes ? "fa-circle-check" : "fa-circle-xmark"} text-xs`} />
+                        {isYes ? "Yes" : "No"}
+                      </span>
+                    </dd>
+                  </div>
+                );
+              }
+
+              /* ── Social Handles ── */
+              if (f.type === "social_handles") {
+                const handles = (Array.isArray(parsed) ? parsed : []) as { platform: string; handle: string }[];
+                if (handles.length > 0) {
+                  const platformIcons: Record<string, string> = {
+                    instagram: "fa-brands fa-instagram", facebook: "fa-brands fa-facebook",
+                    x: "fa-brands fa-x-twitter", linkedin: "fa-brands fa-linkedin",
+                    tiktok: "fa-brands fa-tiktok", youtube: "fa-brands fa-youtube",
+                    pinterest: "fa-brands fa-pinterest", threads: "fa-brands fa-threads",
+                  };
+                  return (
+                    <div key={f.id} className="grid grid-cols-1 sm:grid-cols-3 gap-2 sm:gap-4">
+                      <dt className="text-xs text-on-surface-variant/60">{f.label}</dt>
+                      <dd className="sm:col-span-2 space-y-1.5">
+                        {handles.map((h, i) => (
+                          <div key={i} className="flex items-center gap-2 text-sm">
+                            <i className={`${platformIcons[h.platform] ?? "fa-solid fa-at"} text-xs text-on-surface-variant/60 w-4 text-center`} />
+                            <span className="text-on-surface-variant/60 text-xs capitalize w-20">{h.platform}</span>
+                            <span className="text-on-surface font-medium">{h.handle}</span>
+                          </div>
+                        ))}
+                      </dd>
+                    </div>
+                  );
+                }
+              }
+
+              /* ── Address ── */
+              if (f.type === "address") {
+                const addr = parsed as { street?: string; city?: string; state?: string; zip?: string; country?: string } | null;
+                if (addr && typeof addr === "object" && !Array.isArray(addr) && (addr.street || addr.city)) {
+                  const line1 = addr.street ?? "";
+                  const line2 = [addr.city, addr.state, addr.zip].filter(Boolean).join(", ");
+                  const line3 = addr.country && addr.country !== "US" ? addr.country : "";
+                  return (
+                    <div key={f.id} className="grid grid-cols-1 sm:grid-cols-3 gap-2 sm:gap-4">
+                      <dt className="text-xs text-on-surface-variant/60">{f.label}</dt>
+                      <dd className="sm:col-span-2 text-sm text-on-surface">
+                        <div className="flex items-start gap-2">
+                          <i className="fa-solid fa-location-dot text-xs text-primary mt-0.5" />
+                          <div>
+                            {line1 && <div>{line1}</div>}
+                            {line2 && <div>{line2}</div>}
+                            {line3 && <div className="text-on-surface-variant/60">{line3}</div>}
+                          </div>
+                        </div>
+                      </dd>
+                    </div>
+                  );
+                }
+              }
+
+              /* ── Approval ── */
+              if (f.type === "approval") {
+                const appr = parsed as { approved?: boolean; fullName?: string; signature?: string; timestamp?: string } | null;
+                if (appr && typeof appr === "object") {
+                  return (
+                    <div key={f.id} className="grid grid-cols-1 sm:grid-cols-3 gap-2 sm:gap-4">
+                      <dt className="text-xs text-on-surface-variant/60">{f.label}</dt>
+                      <dd className="sm:col-span-2 space-y-1.5">
+                        <div className={`inline-flex items-center gap-1.5 text-sm font-semibold ${appr.approved ? "text-emerald-400" : "text-error/70"}`}>
+                          <i className={`fa-solid ${appr.approved ? "fa-circle-check" : "fa-circle-xmark"} text-xs`} />
+                          {appr.approved ? "Approved" : "Not Approved"}
+                        </div>
+                        {appr.fullName && (
+                          <div className="text-sm text-on-surface"><span className="text-on-surface-variant/60 text-xs">Name:</span> {appr.fullName}</div>
+                        )}
+                        {appr.timestamp && (
+                          <div className="text-xs text-on-surface-variant/50">{new Date(appr.timestamp).toLocaleString()}</div>
+                        )}
+                        {appr.signature && (
+                          <div className="mt-1 p-2 rounded-lg bg-white/5 border border-outline-variant/10 inline-block">
+                            {/* eslint-disable-next-line @next/next/no-img-element */}
+                            <img src={appr.signature} alt="Signature" className="h-12 w-auto" />
+                          </div>
+                        )}
+                      </dd>
+                    </div>
+                  );
+                }
+              }
+
+              /* ── Checkbox (pipe-delimited) ── */
+              if (f.type === "checkbox") {
+                const raw = String(v);
+                if (raw.includes("||")) {
+                  const items = raw.split("||").filter(Boolean);
+                  return (
+                    <div key={f.id} className="grid grid-cols-1 sm:grid-cols-3 gap-2 sm:gap-4">
+                      <dt className="text-xs text-on-surface-variant/60">{f.label}</dt>
+                      <dd className="sm:col-span-2 flex flex-wrap gap-1.5">
+                        {items.map((item, i) => (
+                          <span key={i} className="text-[11px] px-2.5 py-1 rounded-lg bg-surface-container-highest/50 text-on-surface font-medium flex items-center gap-1">
+                            <i className="fa-solid fa-check text-[8px] text-primary" />
+                            {item}
+                          </span>
+                        ))}
+                      </dd>
+                    </div>
+                  );
+                }
+              }
+
+              /* ── Matrix / Questionnaire (object with question->answer) ── */
+              if ((f.type === "matrix" || f.type === "questionnaire") && parsed && typeof parsed === "object" && !Array.isArray(parsed)) {
+                const entries = Object.entries(parsed as Record<string, unknown>);
+                if (entries.length > 0) {
+                  const questionLabels = new Map<string, string>();
+                  if (f.type === "matrix" && f.matrixConfig) {
+                    f.matrixConfig.rows.forEach((r) => questionLabels.set(r, r));
+                  }
+                  if (f.type === "questionnaire" && f.questionnaireConfig) {
+                    f.questionnaireConfig.questions.forEach((q) => questionLabels.set(q.id, q.text));
+                  }
+                  return (
+                    <div key={f.id} className="grid grid-cols-1 sm:grid-cols-3 gap-2 sm:gap-4">
+                      <dt className="text-xs text-on-surface-variant/60">{f.label}</dt>
+                      <dd className="sm:col-span-2 space-y-1">
+                        {entries.map(([key, answer]) => (
+                          <div key={key} className="flex items-start gap-2 text-sm">
+                            <span className="text-on-surface-variant/60 text-xs min-w-0 flex-1">{questionLabels.get(key) ?? key}</span>
+                            <span className="text-on-surface font-medium shrink-0">{String(answer)}</span>
+                          </div>
+                        ))}
+                      </dd>
+                    </div>
+                  );
+                }
+              }
+
+              /* ── Name (structured) ── */
+              if (f.type === "name" && parsed && typeof parsed === "object" && !Array.isArray(parsed)) {
+                const nd = parsed as Record<string, string>;
+                const parts = [nd.prefix, nd.first, nd.middle, nd.last, nd.suffix].filter(Boolean);
+                if (parts.length > 0) {
+                  return (
+                    <div key={f.id} className="grid grid-cols-1 sm:grid-cols-3 gap-2 sm:gap-4">
+                      <dt className="text-xs text-on-surface-variant/60">{f.label}</dt>
+                      <dd className="sm:col-span-2 text-sm text-on-surface">{parts.join(" ")}</dd>
+                    </div>
+                  );
+                }
+              }
+
+              /* ── Repeater ── */
+              if (f.type === "repeater" && Array.isArray(parsed)) {
+                const entries = parsed as Record<string, unknown>[];
+                const subLabels = new Map((f.repeaterConfig?.subFields ?? []).map((sf) => [sf.id, sf.label]));
+                return (
+                  <div key={f.id}>
+                    <dt className="text-xs text-on-surface-variant/60 mb-2">{f.label}</dt>
+                    <dd className="space-y-2">
+                      {entries.map((entry, ei) => (
+                        <div key={ei} className="rounded-lg border border-outline-variant/10 bg-surface-container-low/30 px-4 py-3">
+                          <span className="text-[10px] font-bold text-on-surface-variant/40 uppercase tracking-wider">Entry {ei + 1}</span>
+                          <div className="mt-1.5 space-y-1">
+                            {Object.entries(entry).map(([key, val]) => (
+                              <div key={key} className="flex items-start gap-2 text-sm">
+                                <span className="text-on-surface-variant/60 text-xs w-28 shrink-0">{subLabels.get(key) ?? key}</span>
+                                <span className="text-on-surface">{val === null || val === undefined ? "--" : String(val)}</span>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      ))}
+                    </dd>
+                  </div>
+                );
+              }
+
               /* ── Default field rendering ── */
-              const display =
-                v === undefined || v === null || v === ""
-                  ? "\u2014"
-                  : typeof v === "object" ? JSON.stringify(v) : String(v);
+              const display = typeof v === "object" ? JSON.stringify(v) : String(v);
               return (
                 <div key={f.id} className="grid grid-cols-1 sm:grid-cols-3 gap-2 sm:gap-4">
                   <dt className="text-xs text-on-surface-variant/60">{f.label}</dt>
