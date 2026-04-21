@@ -1880,31 +1880,52 @@ function TimelineField({ field, value, error, onChange, primaryColor }: {
 
         {/* Timeline preview bar */}
         {allDates.length >= 2 && (
-          <div className="rounded-xl border border-outline-variant/50 bg-surface-container p-4">
-            <p className="text-[10px] font-semibold text-on-surface-variant uppercase tracking-wider mb-6">
+          <div className="rounded-xl border border-outline-variant/50 bg-surface-container p-4 pb-3">
+            <p className="text-[10px] font-semibold text-on-surface-variant uppercase tracking-wider mb-2">
               <i className="fa-solid fa-timeline mr-1" style={{ color: primaryColor }} />Timeline Preview
             </p>
-            <div className="relative mx-3">
-              {/* Track */}
-              <div className="h-1 rounded-full bg-surface-container-highest" />
-              {/* Dots + labels */}
-              {allDates.map((d, i) => {
-                const pct = allDates.length === 1 ? 50 : (i / (allDates.length - 1)) * 100;
-                const isEven = i % 2 === 0;
-                return (
-                  <div key={i} className="absolute -translate-x-1/2" style={{ left: `${pct}%`, top: "-5px" }}>
-                    <div className="w-3 h-3 rounded-full shadow-sm" style={{ backgroundColor: d.color }} />
-                    {/* Labels alternate above/below to avoid overlap */}
-                    <div className={`absolute left-1/2 -translate-x-1/2 flex flex-col items-center ${isEven ? "-top-10" : "top-5"}`}>
-                      <span className="text-[9px] font-semibold text-on-surface whitespace-nowrap">{d.label}</span>
-                      <span className="text-[8px] text-on-surface-variant/50 whitespace-nowrap">{d.date}</span>
+            {/* Three-row layout: above labels, track + dots, below labels */}
+            <div className="px-4">
+              {/* Row 1: Above labels (even indices) */}
+              <div className="relative h-8">
+                {allDates.map((d, i) => {
+                  if (i % 2 !== 0) return null;
+                  const pct = allDates.length === 1 ? 50 : (i / (allDates.length - 1)) * 100;
+                  return (
+                    <div key={i} className="absolute -translate-x-1/2 bottom-0 flex flex-col items-center" style={{ left: `${pct}%` }}>
+                      <span className="text-[9px] font-semibold text-on-surface whitespace-nowrap leading-tight">{d.label}</span>
+                      <span className="text-[8px] text-on-surface-variant/50 whitespace-nowrap leading-tight">{d.date}</span>
                     </div>
-                  </div>
-                );
-              })}
+                  );
+                })}
+              </div>
+              {/* Row 2: Track + dots */}
+              <div className="relative my-2">
+                <div className="h-1 rounded-full bg-surface-container-highest" />
+                {allDates.map((d, i) => {
+                  const pct = allDates.length === 1 ? 50 : (i / (allDates.length - 1)) * 100;
+                  return (
+                    <div key={i} className="absolute top-1/2 -translate-x-1/2 -translate-y-1/2"
+                      style={{ left: `${pct}%` }}>
+                      <div className="w-3 h-3 rounded-full shadow-sm" style={{ backgroundColor: d.color }} />
+                    </div>
+                  );
+                })}
+              </div>
+              {/* Row 3: Below labels (odd indices) */}
+              <div className="relative h-8">
+                {allDates.map((d, i) => {
+                  if (i % 2 === 0) return null;
+                  const pct = allDates.length === 1 ? 50 : (i / (allDates.length - 1)) * 100;
+                  return (
+                    <div key={i} className="absolute -translate-x-1/2 top-0 flex flex-col items-center" style={{ left: `${pct}%` }}>
+                      <span className="text-[9px] font-semibold text-on-surface whitespace-nowrap leading-tight">{d.label}</span>
+                      <span className="text-[8px] text-on-surface-variant/50 whitespace-nowrap leading-tight">{d.date}</span>
+                    </div>
+                  );
+                })}
+              </div>
             </div>
-            {/* Spacer for bottom labels */}
-            <div className="h-10" />
           </div>
         )}
       </div>
