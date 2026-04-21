@@ -1863,27 +1863,31 @@ function TimelineField({ field, value, error, onChange, primaryColor }: {
 
         {/* Timeline preview bar */}
         {allDates.length >= 2 && (
-          <div className="rounded-xl border border-outline-variant/50 bg-surface-container p-3">
-            <p className="text-[10px] font-semibold text-on-surface-variant uppercase tracking-wider mb-3">
+          <div className="rounded-xl border border-outline-variant/50 bg-surface-container p-4">
+            <p className="text-[10px] font-semibold text-on-surface-variant uppercase tracking-wider mb-6">
               <i className="fa-solid fa-timeline mr-1" style={{ color: primaryColor }} />Timeline Preview
             </p>
-            <div className="relative h-2 rounded-full bg-surface-container-highest">
+            <div className="relative mx-3">
+              {/* Track */}
+              <div className="h-1 rounded-full bg-surface-container-highest" />
+              {/* Dots + labels */}
               {allDates.map((d, i) => {
                 const pct = allDates.length === 1 ? 50 : (i / (allDates.length - 1)) * 100;
+                const isEven = i % 2 === 0;
                 return (
-                  <div key={i} className="absolute -translate-x-1/2 group/dot" style={{ left: `${pct}%` }}>
-                    <div className="w-3.5 h-3.5 rounded-full border-2 border-surface -mt-[3px]" style={{ backgroundColor: d.color }} />
-                    <div className="absolute top-5 left-1/2 -translate-x-1/2 whitespace-nowrap text-[9px] text-on-surface-variant font-medium">
-                      {d.label}
-                    </div>
-                    <div className="absolute -top-5 left-1/2 -translate-x-1/2 whitespace-nowrap text-[8px] text-on-surface-variant/60">
-                      {d.date}
+                  <div key={i} className="absolute -translate-x-1/2" style={{ left: `${pct}%`, top: "-5px" }}>
+                    <div className="w-3 h-3 rounded-full shadow-sm" style={{ backgroundColor: d.color }} />
+                    {/* Labels alternate above/below to avoid overlap */}
+                    <div className={`absolute left-1/2 -translate-x-1/2 flex flex-col items-center ${isEven ? "-top-10" : "top-5"}`}>
+                      <span className="text-[9px] font-semibold text-on-surface whitespace-nowrap">{d.label}</span>
+                      <span className="text-[8px] text-on-surface-variant/50 whitespace-nowrap">{d.date}</span>
                     </div>
                   </div>
                 );
               })}
             </div>
-            <div className="h-6" /> {/* spacer for labels */}
+            {/* Spacer for bottom labels */}
+            <div className="h-10" />
           </div>
         )}
       </div>
