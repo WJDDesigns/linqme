@@ -127,6 +127,7 @@ export default function PricingPage() {
         <div className="hidden md:flex items-center gap-8">
           <Link className="text-sm text-on-surface-variant hover:text-on-surface transition-colors duration-300" href="/#features">Features</Link>
           <Link className="text-sm text-on-surface-variant hover:text-on-surface transition-colors duration-300" href="/#how-it-works">How It Works</Link>
+          <Link className="text-sm text-on-surface-variant hover:text-on-surface transition-colors duration-300" href="/integrations">Integrations</Link>
           <Link className="text-sm text-primary font-semibold transition-colors duration-300" href="/pricing">Pricing</Link>
           <Link className="text-sm text-on-surface-variant hover:text-on-surface transition-colors duration-300" href="/docs">Docs</Link>
         </div>
