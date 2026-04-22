@@ -989,11 +989,12 @@ export function validateStepData(
     const v = data[f.id];
     // Repeater entries are validated inline â the component handles required sub-fields.
     if (f.type === "repeater") {
-      if (f.required && f.repeaterConfig?.minEntries) {
+      if (f.required) {
+        const minEntries = f.repeaterConfig?.minEntries ?? 1;
         try {
           const entries = typeof v === "string" ? JSON.parse(v || "[]") : (Array.isArray(v) ? v : []);
-          if (entries.length < f.repeaterConfig.minEntries) {
-            errors[f.id] = `At least ${f.repeaterConfig.minEntries} ${f.repeaterConfig.entryLabel?.toLowerCase() || "entry"}(s) required`;
+          if (entries.length < minEntries) {
+            errors[f.id] = `At least ${minEntries} ${f.repeaterConfig?.entryLabel?.toLowerCase() || "entry"}(s) required`;
           }
         } catch { /* malformed JSON â let it pass */ }
       }
@@ -1007,6 +1008,17 @@ export function validateStepData(
     // Consent fields must be checked ("yes") when required.
     if (f.type === "consent") {
       if (f.required && v !== "yes") errors[f.id] = "You must agree to continue";
+      continue;
+    }
+    if (f.type === "approval") {
+      if (f.required) {
+        try {
+          const parsed = typeof v === "string" ? JSON.parse(v) : (typeof v === "object" ? v : null);
+          if (!parsed || parsed.approved !== true) {
+            errors[f.id] = "Approval is required to continue";
+          }
+        } catch { errors[f.id] = "Approval is required to continue"; }
+      }
       continue;
     }
     if (f.required) {
@@ -1033,6 +1045,9 @@ export function validateStepData(
     }
     if (f.type === "tel" && f.phoneConfig?.format === "international" && typeof v === "string") {
       if (v.length > 0 && !/^\+?\d[\d\s\-().]{4,}$/.test(v)) errors[f.id] = "Please enter a valid phone number";
+    }
+    if (f.type === "tel" && f.phoneConfig?.format !== "international" && typeof v === "string") {
+      if (v.length > 0 && !/^[\d\s\-().+]{7,}$/.test(v)) errors[f.id] = "Please enter a valid phone number";
     }
     if (f.type === "url" && typeof v === "string") {
       try {
@@ -1067,6 +1082,14 @@ export function validateStepData(
         const missing = reqFields.filter((fld) => !addr[fld]?.trim());
         if (f.required && missing.length > 0) errors[f.id] = "Please fill in all address fields";
       } catch { /* plain text fallback, already validated by required check above */ }
+    }
+    if (f.type === "address" && f.addressConfig?.mode === "autocomplete" && typeof v === "string") {
+      try {
+        const addr = JSON.parse(v);
+        const reqFields = (f.addressConfig.fields ?? ["street", "city", "state", "zip"]).filter((fld) => fld !== "street2");
+        const missing = reqFields.filter((fld) => !addr[fld]?.trim());
+        if (f.required && missing.length > 0) errors[f.id] = "Please fill in all address fields";
+      } catch { /* plain text fallback */ }
     }
     if (f.type === "social_handles" && typeof v === "string") {
       try {

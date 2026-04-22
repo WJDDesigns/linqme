@@ -314,7 +314,7 @@ export default function SubmissionForm({
     }
     return (
       <div key={f.id} className={`${colCls} ${animClass} sl-d${Math.min(i + 2, 5)}`}>
-        <CelestialField field={f} value={data[f.id]} error={errors[f.id]} onChange={(v) => updateField(f.id, v)} primaryColor={primaryColor} allData={data} partnerId={partnerId} captchaSiteKey={captchaSiteKey} captchaProvider={captchaProvider} captchaTokenRef={captchaTokenRef} hasPaymentGateway={hasPaymentGateway} geocodingProvider={geocodingProvider} googleMapsReady={googleMapsReady} />
+        <CelestialField field={f} value={data[f.id]} error={errors[f.id]} onChange={(v) => updateField(f.id, v)} primaryColor={primaryColor} allData={data} partnerId={partnerId} captchaSiteKey={captchaSiteKey} captchaProvider={captchaProvider} captchaTokenRef={captchaTokenRef} hasPaymentGateway={hasPaymentGateway} geocodingProvider={geocodingProvider} googleMapsReady={googleMapsReady} onUpdateField={updateField} />
       </div>
     );
   };
@@ -2319,14 +2319,268 @@ function BudgetAllocatorField({ field, value, error, onChange, primaryColor }: {
   );
 }
 
+function TurnstileWidget({ siteKey, captchaTokenRef, onChange, error, primaryColor }: {
+  siteKey: string; captchaTokenRef?: React.MutableRefObject<string | null>; onChange: (v: unknown) => void; error?: string; primaryColor: string;
+}) {
+  const turnstileRef = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    if (!turnstileRef.current || typeof window === "undefined") return;
+    const w = window as unknown as { turnstile?: { render: (el: HTMLElement, opts: Record<string, unknown>) => string } };
+    if (!w.turnstile) return;
+    turnstileRef.current.innerHTML = "";
+    w.turnstile.render(turnstileRef.current, {
+      sitekey: siteKey,
+      callback: (token: string) => {
+        if (captchaTokenRef) captchaTokenRef.current = token;
+        onChange(token);
+      },
+      theme: "dark",
+    });
+  }, [siteKey, onChange, captchaTokenRef]);
+  return (
+    <div className="group">
+      <div ref={turnstileRef} className="flex items-center justify-center" />
+      {error && <p className="text-sm text-error mt-1.5 sl-fade-up flex items-center gap-1.5"><i className="fa-solid fa-circle-exclamation text-xs flex-shrink-0" />{error}</p>}
+    </div>
+  );
+}
+
+function RecaptchaVisibleWidget({ siteKey, captchaTokenRef, onChange }: {
+  siteKey: string; captchaTokenRef?: React.MutableRefObject<string | null>; onChange: (v: unknown) => void;
+}) {
+  const recaptchaRef = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    if (!recaptchaRef.current || typeof window === "undefined") return;
+    const w = window as unknown as { grecaptcha?: { ready: (fn: () => void) => void; execute: (key: string, opts: Record<string, string>) => Promise<string> } };
+    if (!w.grecaptcha) return;
+    w.grecaptcha.ready(() => {
+      w.grecaptcha!.execute(siteKey, { action: "submit" }).then((token) => {
+        if (captchaTokenRef) captchaTokenRef.current = token;
+        onChange(token);
+      });
+    });
+  }, [siteKey, onChange, captchaTokenRef]);
+  return (
+    <div className="flex items-center gap-2 px-4 py-3 rounded-xl border border-green-500/20 bg-green-500/[0.06]">
+      <i className="fa-solid fa-shield-halved text-lg text-green-500" />
+      <span className="text-xs text-on-surface-variant/70">Protected by reCAPTCHA</span>
+    </div>
+  );
+}
+
+function AddressAutocompleteField({ field, value, error, onChange, primaryColor, geocodingProvider, googleMapsReady }: {
+  field: FieldDef; value: unknown; error?: string; onChange: (v: unknown) => void; primaryColor: string;
+  geocodingProvider?: "google" | "openstreetmap" | null; googleMapsReady?: boolean;
+}) {
+  const focusRing = { "--tw-ring-color": primaryColor + "66" } as React.CSSProperties;
+  const errBorder = error ? "#ffb4ab" : undefined;
+  const addrFields = field.addressConfig!.fields ?? ["street", "street2", "city", "state", "zip", "country"];
+  let addr: Record<string, string> = {};
+  try { addr = typeof value === "string" && value ? JSON.parse(value) : {}; } catch { /* legacy plain text */ }
+  const updateAddr = (key: string, val: string) => {
+    const next = { ...addr, [key]: val };
+    onChange(JSON.stringify(next));
+  };
+  const labels: Record<string, string> = { street: "Street Address", street2: "Address Line 2", city: "City", state: "State / Province", zip: "ZIP / Postal Code", country: "Country" };
+  const placeholders: Record<string, string> = { street: "Start typing an address...", street2: "Apt, Suite, Unit (optional)", city: "City", state: "State", zip: "ZIP Code", country: "Country" };
+  const usStates = field.addressConfig!.region === "us" ? (COUNTRIES_DATA.find((c) => c.code === "US")?.states ?? []) : [];
+
+  const resolvedProvider = field.addressConfig!.autocompleteProvider ?? geocodingProvider ?? "openstreetmap";
+
+  const autocompleteRef = useRef<google.maps.places.Autocomplete | null>(null);
+  const inputRef = useRef<HTMLInputElement | null>(null);
+
+  const [osmSuggestions, setOsmSuggestions] = useState<Array<{ display_name: string; address: Record<string, string> }>>([]);
+  const [osmOpen, setOsmOpen] = useState(false);
+  const osmTimerRef = useRef<ReturnType<typeof setTimeout>>(undefined);
+
+  useEffect(() => {
+    if (resolvedProvider !== "google") return;
+    if (!googleMapsReady) return;
+    if (!inputRef.current || typeof google === "undefined" || !google.maps?.places) return;
+    if (autocompleteRef.current) return;
+    const options: google.maps.places.AutocompleteOptions = {
+      types: ["address"],
+      fields: ["address_components", "formatted_address"],
+    };
+    if (field.addressConfig?.region === "us") {
+      options.componentRestrictions = { country: "us" };
+    }
+    autocompleteRef.current = new google.maps.places.Autocomplete(inputRef.current, options);
+    autocompleteRef.current.addListener("place_changed", () => {
+      const place = autocompleteRef.current!.getPlace();
+      if (!place.address_components) return;
+      const get = (type: string) => place.address_components!.find((c) => c.types.includes(type));
+      const next: Record<string, string> = {
+        street: `${get("street_number")?.long_name ?? ""} ${get("route")?.long_name ?? ""}`.trim(),
+        city: get("locality")?.long_name ?? get("sublocality_level_1")?.long_name ?? "",
+        state: get("administrative_area_level_1")?.short_name ?? "",
+        zip: get("postal_code")?.long_name ?? "",
+        country: get("country")?.short_name ?? "",
+      };
+      onChange(JSON.stringify(next));
+    });
+  }, [resolvedProvider, field.addressConfig?.region, onChange, googleMapsReady]);
+
+  const osmSearch = useCallback((query: string) => {
+    if (osmTimerRef.current) clearTimeout(osmTimerRef.current);
+    if (!query || query.length < 3) { setOsmSuggestions([]); setOsmOpen(false); return; }
+    osmTimerRef.current = setTimeout(async () => {
+      try {
+        const countryParam = field.addressConfig?.region === "us" ? "&countrycodes=us" : "";
+        const res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&addressdetails=1&limit=5&q=${encodeURIComponent(query)}${countryParam}`, {
+          headers: { "Accept-Language": "en" },
+        });
+        if (!res.ok) return;
+        const results = await res.json();
+        setOsmSuggestions(results);
+        setOsmOpen(results.length > 0);
+      } catch { /* network error -- fail silently */ }
+    }, 350);
+  }, [field.addressConfig?.region]);
+
+  const selectOsmResult = (result: { display_name: string; address: Record<string, string> }) => {
+    const a = result.address;
+    const rawState = a.state ?? "";
+    const countryCode = a.country_code?.toUpperCase() ?? "";
+    const countryEntry = COUNTRIES_DATA.find((c) => c.code === countryCode);
+    const stateCode = countryEntry?.states.find(
+      (s) => s.name.toLowerCase() === rawState.toLowerCase() || s.code.toLowerCase() === rawState.toLowerCase(),
+    )?.code ?? rawState;
+    const next: Record<string, string> = {
+      street: [a.house_number, a.road].filter(Boolean).join(" "),
+      city: a.city ?? a.town ?? a.village ?? a.hamlet ?? "",
+      state: stateCode,
+      zip: a.postcode ?? "",
+      country: countryCode,
+    };
+    onChange(JSON.stringify(next));
+    setOsmOpen(false);
+    setOsmSuggestions([]);
+  };
+
+  const serializedValue = typeof value === "string" ? value : (value ? JSON.stringify(value) : "");
+
+  return (
+    <div className="group">
+      <label className="block text-xs font-semibold text-on-surface-variant uppercase tracking-widest mb-1.5 ml-1">
+        <FieldIcon icon={field.icon} color={primaryColor} />{field.label}
+        {field.required && <span className="ml-1" style={{ color: primaryColor }}>*</span>}
+      </label>
+      {field.hint && <p className="text-xs text-on-surface-variant/60 mb-2 ml-1">{field.hint}</p>}
+      <input type="hidden" name={field.id} value={serializedValue} />
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+        {addrFields.includes("street") && (
+          <div className="sm:col-span-2 relative">
+            <label className="block text-[10px] font-semibold text-on-surface-variant uppercase tracking-wider mb-1 ml-0.5">{labels.street}</label>
+            <input
+              ref={inputRef}
+              type="text"
+              placeholder={placeholders.street}
+              value={addr.street ?? ""}
+              onChange={(e) => {
+                updateAddr("street", e.target.value);
+                if (resolvedProvider === "openstreetmap") osmSearch(e.target.value);
+              }}
+              onFocus={() => { if (osmSuggestions.length > 0) setOsmOpen(true); }}
+              onBlur={() => { setTimeout(() => setOsmOpen(false), 200); }}
+              className={INPUT_CLS}
+              style={{ ...focusRing, borderColor: errBorder }}
+              autoComplete="off"
+            />
+            {resolvedProvider === "openstreetmap" && osmOpen && osmSuggestions.length > 0 && (
+              <div className="absolute z-50 left-0 right-0 top-full mt-1 bg-surface-container-lowest border border-outline-variant/20 rounded-xl shadow-xl max-h-60 overflow-y-auto">
+                {osmSuggestions.map((s, i) => (
+                  <button
+                    key={i}
+                    type="button"
+                    onMouseDown={(e) => e.preventDefault()}
+                    onClick={() => selectOsmResult(s)}
+                    className="w-full text-left px-4 py-2.5 text-sm text-on-surface hover:bg-surface-container-high/50 transition-colors border-b border-outline-variant/10 last:border-0"
+                  >
+                    <i className="fa-solid fa-location-dot text-[10px] text-primary/60 mr-2" />
+                    {s.display_name}
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
+        {addrFields.includes("street2") && (
+          <div className="sm:col-span-2">
+            <label className="block text-[10px] font-semibold text-on-surface-variant uppercase tracking-wider mb-1 ml-0.5">{labels.street2}</label>
+            <input type="text" placeholder={placeholders.street2} value={addr.street2 ?? ""} onChange={(e) => updateAddr("street2", e.target.value)}
+              className={INPUT_CLS} style={focusRing} />
+          </div>
+        )}
+        {addrFields.includes("city") && (
+          <div>
+            <label className="block text-[10px] font-semibold text-on-surface-variant uppercase tracking-wider mb-1 ml-0.5">{labels.city}</label>
+            <input type="text" placeholder={placeholders.city} value={addr.city ?? ""} onChange={(e) => updateAddr("city", e.target.value)}
+              className={INPUT_CLS} style={focusRing} />
+          </div>
+        )}
+        {addrFields.includes("state") && field.addressConfig!.region === "us" ? (
+          <div>
+            <label className="block text-[10px] font-semibold text-on-surface-variant uppercase tracking-wider mb-1 ml-0.5">{labels.state}</label>
+            <select value={addr.state ?? ""} onChange={(e) => updateAddr("state", e.target.value)}
+              className={INPUT_CLS} style={focusRing}>
+              <option value="">Select state...</option>
+              {usStates.map((s) => <option key={s.code} value={s.code}>{s.name}</option>)}
+            </select>
+          </div>
+        ) : addrFields.includes("state") ? (
+          <div>
+            <label className="block text-[10px] font-semibold text-on-surface-variant uppercase tracking-wider mb-1 ml-0.5">{labels.state}</label>
+            <input type="text" placeholder={placeholders.state} value={addr.state ?? ""} onChange={(e) => updateAddr("state", e.target.value)}
+              className={INPUT_CLS} style={focusRing} />
+          </div>
+        ) : null}
+        {addrFields.includes("zip") && (
+          <div>
+            <label className="block text-[10px] font-semibold text-on-surface-variant uppercase tracking-wider mb-1 ml-0.5">{labels.zip}</label>
+            <input type="text" placeholder={placeholders.zip} value={addr.zip ?? ""} onChange={(e) => updateAddr("zip", e.target.value)}
+              className={INPUT_CLS} style={focusRing} />
+          </div>
+        )}
+        {addrFields.includes("country") && (
+          <div>
+            <label className="block text-[10px] font-semibold text-on-surface-variant uppercase tracking-wider mb-1 ml-0.5">{labels.country}</label>
+            <select value={addr.country ?? ""} onChange={(e) => updateAddr("country", e.target.value)}
+              className={INPUT_CLS} style={focusRing}>
+              <option value="">Select country...</option>
+              {COUNTRIES_DATA.map((c) => <option key={c.code} value={c.code}>{c.name}</option>)}
+            </select>
+          </div>
+        )}
+      </div>
+      {resolvedProvider === "google" && !googleMapsReady && (
+        <p className="text-[10px] text-on-surface-variant/50 mt-2 ml-1">
+          <i className="fa-solid fa-spinner fa-spin mr-1" />
+          Loading address autocomplete...
+        </p>
+      )}
+      {resolvedProvider === "openstreetmap" && (
+        <p className="text-[10px] text-on-surface-variant/40 mt-2 ml-1">
+          <i className="fa-solid fa-map mr-1" />
+          Powered by OpenStreetMap
+        </p>
+      )}
+      {error && <p className="text-sm text-error mt-1.5 sl-fade-up flex items-center gap-1.5"><i className="fa-solid fa-circle-exclamation text-xs flex-shrink-0" />{error}</p>}
+    </div>
+  );
+}
+
 function CelestialField({
   field, value, error, onChange, primaryColor, allData, partnerId,
   captchaSiteKey, captchaProvider, captchaTokenRef, hasPaymentGateway, geocodingProvider, googleMapsReady,
+  onUpdateField,
 }: {
   field: FieldDef; value: unknown; error?: string; onChange: (v: unknown) => void; primaryColor: string; allData: Record<string, unknown>; partnerId?: string;
   captchaSiteKey?: string | null; captchaProvider?: "recaptcha" | "turnstile" | null; captchaTokenRef?: React.MutableRefObject<string | null>; hasPaymentGateway?: boolean;
   geocodingProvider?: "google" | "openstreetmap" | null;
   googleMapsReady?: boolean;
+  onUpdateField?: (id: string, v: unknown) => void;
 }) {
   const str = (value as string) ?? "";
   const focusRing = { "--tw-ring-color": primaryColor + "66" } as React.CSSProperties;
@@ -2371,49 +2625,11 @@ function CelestialField({
 
     // Turnstile visible widget
     if (provider === "turnstile") {
-      const turnstileRef = useRef<HTMLDivElement>(null);
-      useEffect(() => {
-        if (!turnstileRef.current || typeof window === "undefined") return;
-        const w = window as unknown as { turnstile?: { render: (el: HTMLElement, opts: Record<string, unknown>) => string } };
-        if (!w.turnstile) return;
-        // Clear previous render
-        turnstileRef.current.innerHTML = "";
-        w.turnstile.render(turnstileRef.current, {
-          sitekey: siteKey,
-          callback: (token: string) => {
-            if (captchaTokenRef) captchaTokenRef.current = token;
-            onChange(token);
-          },
-          theme: "dark",
-        });
-      }, [siteKey, onChange]);
-      return (
-        <div className="group">
-          <div ref={turnstileRef} className="flex items-center justify-center" />
-          {error && <p className="text-sm text-error mt-1.5 sl-fade-up flex items-center gap-1.5"><i className="fa-solid fa-circle-exclamation text-xs flex-shrink-0" />{error}</p>}
-        </div>
-      );
+      return <TurnstileWidget siteKey={siteKey} captchaTokenRef={captchaTokenRef} onChange={onChange} error={error} primaryColor={primaryColor} />;
     }
 
     // reCAPTCHA v3 visible checkbox
-    const recaptchaRef = useRef<HTMLDivElement>(null);
-    useEffect(() => {
-      if (!recaptchaRef.current || typeof window === "undefined") return;
-      const w = window as unknown as { grecaptcha?: { ready: (fn: () => void) => void; execute: (key: string, opts: Record<string, string>) => Promise<string> } };
-      if (!w.grecaptcha) return;
-      w.grecaptcha.ready(() => {
-        w.grecaptcha!.execute(siteKey, { action: "submit" }).then((token) => {
-          if (captchaTokenRef) captchaTokenRef.current = token;
-          onChange(token);
-        });
-      });
-    }, [siteKey, onChange]);
-    return (
-      <div className="flex items-center gap-2 px-4 py-3 rounded-xl border border-green-500/20 bg-green-500/[0.06]">
-        <i className="fa-solid fa-shield-halved text-lg text-green-500" />
-        <span className="text-xs text-on-surface-variant/70">Protected by reCAPTCHA</span>
-      </div>
-    );
+    return <RecaptchaVisibleWidget siteKey={siteKey} captchaTokenRef={captchaTokenRef} onChange={onChange} />;
   }
 
   /* Payment field -- Stripe card input or fallback notice */
@@ -3145,6 +3361,7 @@ function CelestialField({
           {field.required && <span className="ml-1" style={{ color: primaryColor }}>*</span>}
         </label>
         {field.hint && <p className="text-xs text-on-surface-variant/60 mb-2 ml-1">{field.hint}</p>}
+        <input type="hidden" name={field.id} value={typeof value === "string" ? value : (value ? JSON.stringify(value) : "")} />
         <div className={isInline ? "grid grid-cols-1 sm:grid-cols-2 gap-3" : "space-y-3"}>
           {nameFields.map((fld) => (
             <div key={fld}>
@@ -3195,10 +3412,7 @@ function CelestialField({
               <input id={confirmKey} name={confirmKey} type="email" required={field.required}
                 placeholder="Re-enter your email address" value={confirmVal}
                 onChange={(e) => {
-                  if (typeof allData === "object" && allData) {
-                    (allData as Record<string, unknown>)[confirmKey] = e.target.value;
-                  }
-                  // Force re-render
+                  if (onUpdateField) onUpdateField(confirmKey, e.target.value);
                   onChange(str);
                 }}
                 className={INPUT_CLS} style={{ ...focusRing, borderColor: confirmErr ? primaryColor : undefined }} />
@@ -3296,6 +3510,7 @@ function CelestialField({
           {field.required && <span className="ml-1" style={{ color: primaryColor }}>*</span>}
         </label>
         {field.hint && <p className="text-xs text-on-surface-variant/60 mb-2 ml-1">{field.hint}</p>}
+        <input type="hidden" name={field.id} value={typeof value === "string" ? value : (value ? JSON.stringify(value) : "")} />
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           {addrFields.map((fld) => {
             // Street fields span full width
@@ -3343,207 +3558,7 @@ function CelestialField({
 
   /* ── Address (autocomplete -- Google Places or OpenStreetMap Nominatim) ── */
   if (field.type === "address" && field.addressConfig?.mode === "autocomplete") {
-    const addrFields = field.addressConfig.fields ?? ["street", "street2", "city", "state", "zip", "country"];
-    let addr: Record<string, string> = {};
-    try { addr = typeof value === "string" && value ? JSON.parse(value) : {}; } catch { /* legacy plain text */ }
-    const updateAddr = (key: string, val: string) => {
-      const next = { ...addr, [key]: val };
-      onChange(JSON.stringify(next));
-    };
-    const labels: Record<string, string> = { street: "Street Address", street2: "Address Line 2", city: "City", state: "State / Province", zip: "ZIP / Postal Code", country: "Country" };
-    const placeholders: Record<string, string> = { street: "Start typing an address...", street2: "Apt, Suite, Unit (optional)", city: "City", state: "State", zip: "ZIP Code", country: "Country" };
-    const usStates = field.addressConfig.region === "us" ? (COUNTRIES_DATA.find((c) => c.code === "US")?.states ?? []) : [];
-
-    // Determine which provider to use: field-level override > workspace-level prop
-    const resolvedProvider = field.addressConfig.autocompleteProvider ?? geocodingProvider ?? "openstreetmap";
-
-    // Google Places autocomplete ref
-    const autocompleteRef = useRef<google.maps.places.Autocomplete | null>(null);
-    const inputRef = useRef<HTMLInputElement | null>(null);
-
-    // OpenStreetMap Nominatim state
-    const [osmSuggestions, setOsmSuggestions] = useState<Array<{ display_name: string; address: Record<string, string> }>>([]);
-    const [osmOpen, setOsmOpen] = useState(false);
-    const osmTimerRef = useRef<ReturnType<typeof setTimeout>>(undefined);
-
-    // Google Places init -- googleMapsReady triggers re-run when script finishes loading
-    useEffect(() => {
-      if (resolvedProvider !== "google") return;
-      if (!googleMapsReady) return;
-      if (!inputRef.current || typeof google === "undefined" || !google.maps?.places) return;
-      if (autocompleteRef.current) return;
-      const options: google.maps.places.AutocompleteOptions = {
-        types: ["address"],
-        fields: ["address_components", "formatted_address"],
-      };
-      if (field.addressConfig?.region === "us") {
-        options.componentRestrictions = { country: "us" };
-      }
-      autocompleteRef.current = new google.maps.places.Autocomplete(inputRef.current, options);
-      autocompleteRef.current.addListener("place_changed", () => {
-        const place = autocompleteRef.current!.getPlace();
-        if (!place.address_components) return;
-        const get = (type: string) => place.address_components!.find((c) => c.types.includes(type));
-        const next: Record<string, string> = {
-          street: `${get("street_number")?.long_name ?? ""} ${get("route")?.long_name ?? ""}`.trim(),
-          city: get("locality")?.long_name ?? get("sublocality_level_1")?.long_name ?? "",
-          state: get("administrative_area_level_1")?.short_name ?? "",
-          zip: get("postal_code")?.long_name ?? "",
-          country: get("country")?.short_name ?? "",
-        };
-        onChange(JSON.stringify(next));
-      });
-    }, [resolvedProvider, field.addressConfig?.region, onChange, googleMapsReady]);
-
-    // OpenStreetMap Nominatim debounced search
-    const osmSearch = useCallback((query: string) => {
-      if (osmTimerRef.current) clearTimeout(osmTimerRef.current);
-      if (!query || query.length < 3) { setOsmSuggestions([]); setOsmOpen(false); return; }
-      osmTimerRef.current = setTimeout(async () => {
-        try {
-          const countryParam = field.addressConfig?.region === "us" ? "&countrycodes=us" : "";
-          const res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&addressdetails=1&limit=5&q=${encodeURIComponent(query)}${countryParam}`, {
-            headers: { "Accept-Language": "en" },
-          });
-          if (!res.ok) return;
-          const results = await res.json();
-          setOsmSuggestions(results);
-          setOsmOpen(results.length > 0);
-        } catch { /* network error -- fail silently */ }
-      }, 350);
-    }, [field.addressConfig?.region]);
-
-    const selectOsmResult = (result: { display_name: string; address: Record<string, string> }) => {
-      const a = result.address;
-      // OSM returns full state names (e.g. "Virginia") but the dropdown uses codes ("VA").
-      // Look up the code from COUNTRIES_DATA so the select value matches an option.
-      const rawState = a.state ?? "";
-      const countryCode = a.country_code?.toUpperCase() ?? "";
-      const countryEntry = COUNTRIES_DATA.find((c) => c.code === countryCode);
-      const stateCode = countryEntry?.states.find(
-        (s) => s.name.toLowerCase() === rawState.toLowerCase() || s.code.toLowerCase() === rawState.toLowerCase(),
-      )?.code ?? rawState;
-      const next: Record<string, string> = {
-        street: [a.house_number, a.road].filter(Boolean).join(" "),
-        city: a.city ?? a.town ?? a.village ?? a.hamlet ?? "",
-        state: stateCode,
-        zip: a.postcode ?? "",
-        country: countryCode,
-      };
-      onChange(JSON.stringify(next));
-      setOsmOpen(false);
-      setOsmSuggestions([]);
-    };
-
-    return (
-      <div className="group">
-        <label className="block text-xs font-semibold text-on-surface-variant uppercase tracking-widest mb-1.5 ml-1">
-          <FieldIcon icon={field.icon} color={primaryColor} />{field.label}
-          {field.required && <span className="ml-1" style={{ color: primaryColor }}>*</span>}
-        </label>
-        {field.hint && <p className="text-xs text-on-surface-variant/60 mb-2 ml-1">{field.hint}</p>}
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-          {/* Street field with autocomplete */}
-          {addrFields.includes("street") && (
-            <div className="sm:col-span-2 relative">
-              <label className="block text-[10px] font-semibold text-on-surface-variant uppercase tracking-wider mb-1 ml-0.5">{labels.street}</label>
-              <input
-                ref={inputRef}
-                type="text"
-                placeholder={placeholders.street}
-                value={addr.street ?? ""}
-                onChange={(e) => {
-                  updateAddr("street", e.target.value);
-                  if (resolvedProvider === "openstreetmap") osmSearch(e.target.value);
-                }}
-                onFocus={() => { if (osmSuggestions.length > 0) setOsmOpen(true); }}
-                onBlur={() => { setTimeout(() => setOsmOpen(false), 200); }}
-                className={INPUT_CLS}
-                style={{ ...focusRing, borderColor: errBorder }}
-                autoComplete="off"
-              />
-              {/* OpenStreetMap suggestions dropdown */}
-              {resolvedProvider === "openstreetmap" && osmOpen && osmSuggestions.length > 0 && (
-                <div className="absolute z-50 left-0 right-0 top-full mt-1 bg-surface-container-lowest border border-outline-variant/20 rounded-xl shadow-xl max-h-60 overflow-y-auto">
-                  {osmSuggestions.map((s, i) => (
-                    <button
-                      key={i}
-                      type="button"
-                      onMouseDown={(e) => e.preventDefault()}
-                      onClick={() => selectOsmResult(s)}
-                      className="w-full text-left px-4 py-2.5 text-sm text-on-surface hover:bg-surface-container-high/50 transition-colors border-b border-outline-variant/10 last:border-0"
-                    >
-                      <i className="fa-solid fa-location-dot text-[10px] text-primary/60 mr-2" />
-                      {s.display_name}
-                    </button>
-                  ))}
-                </div>
-              )}
-            </div>
-          )}
-          {addrFields.includes("street2") && (
-            <div className="sm:col-span-2">
-              <label className="block text-[10px] font-semibold text-on-surface-variant uppercase tracking-wider mb-1 ml-0.5">{labels.street2}</label>
-              <input type="text" placeholder={placeholders.street2} value={addr.street2 ?? ""} onChange={(e) => updateAddr("street2", e.target.value)}
-                className={INPUT_CLS} style={focusRing} />
-            </div>
-          )}
-          {addrFields.includes("city") && (
-            <div>
-              <label className="block text-[10px] font-semibold text-on-surface-variant uppercase tracking-wider mb-1 ml-0.5">{labels.city}</label>
-              <input type="text" placeholder={placeholders.city} value={addr.city ?? ""} onChange={(e) => updateAddr("city", e.target.value)}
-                className={INPUT_CLS} style={focusRing} />
-            </div>
-          )}
-          {addrFields.includes("state") && field.addressConfig.region === "us" ? (
-            <div>
-              <label className="block text-[10px] font-semibold text-on-surface-variant uppercase tracking-wider mb-1 ml-0.5">{labels.state}</label>
-              <select value={addr.state ?? ""} onChange={(e) => updateAddr("state", e.target.value)}
-                className={INPUT_CLS} style={focusRing}>
-                <option value="">Select state...</option>
-                {usStates.map((s) => <option key={s.code} value={s.code}>{s.name}</option>)}
-              </select>
-            </div>
-          ) : addrFields.includes("state") ? (
-            <div>
-              <label className="block text-[10px] font-semibold text-on-surface-variant uppercase tracking-wider mb-1 ml-0.5">{labels.state}</label>
-              <input type="text" placeholder={placeholders.state} value={addr.state ?? ""} onChange={(e) => updateAddr("state", e.target.value)}
-                className={INPUT_CLS} style={focusRing} />
-            </div>
-          ) : null}
-          {addrFields.includes("zip") && (
-            <div>
-              <label className="block text-[10px] font-semibold text-on-surface-variant uppercase tracking-wider mb-1 ml-0.5">{labels.zip}</label>
-              <input type="text" placeholder={placeholders.zip} value={addr.zip ?? ""} onChange={(e) => updateAddr("zip", e.target.value)}
-                className={INPUT_CLS} style={focusRing} />
-            </div>
-          )}
-          {addrFields.includes("country") && (
-            <div>
-              <label className="block text-[10px] font-semibold text-on-surface-variant uppercase tracking-wider mb-1 ml-0.5">{labels.country}</label>
-              <select value={addr.country ?? ""} onChange={(e) => updateAddr("country", e.target.value)}
-                className={INPUT_CLS} style={focusRing}>
-                <option value="">Select country...</option>
-                {COUNTRIES_DATA.map((c) => <option key={c.code} value={c.code}>{c.name}</option>)}
-              </select>
-            </div>
-          )}
-        </div>
-        {resolvedProvider === "google" && !googleMapsReady && (
-          <p className="text-[10px] text-on-surface-variant/50 mt-2 ml-1">
-            <i className="fa-solid fa-spinner fa-spin mr-1" />
-            Loading address autocomplete...
-          </p>
-        )}
-        {resolvedProvider === "openstreetmap" && (
-          <p className="text-[10px] text-on-surface-variant/40 mt-2 ml-1">
-            <i className="fa-solid fa-map mr-1" />
-            Powered by OpenStreetMap
-          </p>
-        )}
-        {error && <p className="text-sm text-error mt-1.5 sl-fade-up flex items-center gap-1.5"><i className="fa-solid fa-circle-exclamation text-xs flex-shrink-0" />{error}</p>}
-      </div>
-    );
+    return <AddressAutocompleteField field={field} value={value} error={error} onChange={onChange} primaryColor={primaryColor} geocodingProvider={geocodingProvider} googleMapsReady={googleMapsReady} />;
   }
 
   /* ── Matrix / Grid ── */
@@ -4274,6 +4289,7 @@ function CelestialField({
           {field.required && <span className="ml-1" style={{ color: primaryColor }}>*</span>}
         </label>
         {field.hint && <p className="text-xs text-on-surface-variant/60 mb-2 ml-1">{field.hint}</p>}
+        <input type="hidden" name={field.id} value={typeof value === "string" ? value : (value ? JSON.stringify(value) : "")} />
         <div className="space-y-4">
           {/* Recurring toggle */}
           {cfg.showRecurring && cfg.recurringOptions && cfg.recurringOptions.length > 0 && (
@@ -4344,6 +4360,7 @@ function CelestialField({
           {field.required && <span className="ml-1" style={{ color: primaryColor }}>*</span>}
         </label>
         {field.hint && <p className="text-xs text-on-surface-variant/60 mb-2 ml-1">{field.hint}</p>}
+        <input type="hidden" name={field.id} value={typeof value === "string" ? value : (value ? JSON.stringify(value) : "")} />
         <div className="space-y-4">
           {/* Frequency toggle */}
           {cfg.showFrequency && (
@@ -4443,6 +4460,7 @@ function CelestialField({
           {field.required && <span className="ml-1" style={{ color: primaryColor }}>*</span>}
         </label>
         {field.hint && <p className="text-xs text-on-surface-variant/60 mb-2 ml-1">{field.hint}</p>}
+        <input type="hidden" name={field.id} value={typeof value === "string" ? value : ""} />
         <div className={`grid ${gridCls} gap-4`}>
           {cfg.causes.map((cause) => {
             const isSelected = selectedIds.includes(cause.id);
