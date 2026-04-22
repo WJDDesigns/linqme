@@ -184,6 +184,57 @@ function makeFieldId(label: string, existingIds: string[]): string {
   return `${base}_${n}`;
 }
 
+/** Migrate old random field IDs (field_a8x2k...) to slug-based IDs on load */
+function migrateFieldIds(schema: FormSchema): FormSchema {
+  const oldToNew = new Map<string, string>();
+  const usedIds: string[] = [];
+
+  // First pass: build the mapping
+  for (const step of schema.steps) {
+    for (const field of step.fields) {
+      if (/^field_[a-z0-9]{6,}$/.test(field.id)) {
+        const newId = makeFieldId(field.label, usedIds);
+        oldToNew.set(field.id, newId);
+        usedIds.push(newId);
+      } else {
+        usedIds.push(field.id);
+      }
+    }
+  }
+
+  if (oldToNew.size === 0) return schema;
+
+  // Second pass: apply the mapping everywhere
+  return {
+    ...schema,
+    steps: schema.steps.map((step) => ({
+      ...step,
+      fields: step.fields.map((field) => {
+        let updated = { ...field };
+        // Rename the field itself
+        if (oldToNew.has(field.id)) {
+          updated.id = oldToNew.get(field.id)!;
+        }
+        // Update showCondition references
+        if (updated.showCondition?.fieldId && oldToNew.has(updated.showCondition.fieldId)) {
+          updated.showCondition = { ...updated.showCondition, fieldId: oldToNew.get(updated.showCondition.fieldId)! };
+        }
+        // Update calculated field formula references
+        if (updated.calculatedFieldConfig?.formula) {
+          let formula = updated.calculatedFieldConfig.formula;
+          for (const [oldId, newId] of oldToNew) {
+            formula = formula.replaceAll(`{${oldId}}`, `{${newId}}`);
+          }
+          if (formula !== updated.calculatedFieldConfig.formula) {
+            updated.calculatedFieldConfig = { ...updated.calculatedFieldConfig, formula };
+          }
+        }
+        return updated;
+      }),
+    })),
+  };
+}
+
 /* ── Chained Select tree editor ────────────────────────────── */
 
 function ChainedOptionTreeEditor({
@@ -670,7 +721,7 @@ const INPUT_CLS =
 /* ── Main editor ───────────────────────────────────────────── */
 
 export default function FormEditor({ initialSchema, onOpenTemplates, formId, hasAI, hasPaymentGateway }: { initialSchema: FormSchema; onOpenTemplates?: () => void; formId?: string; hasAI?: boolean; hasPaymentGateway?: boolean }) {
-  const [schema, setSchemaRaw] = useState<FormSchema>(initialSchema);
+  const [schema, setSchemaRaw] = useState<FormSchema>(() => migrateFieldIds(initialSchema));
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState<{ kind: "ok" | "err"; text: string } | null>(null);
   const [selectedStepId, setSelectedStepId] = useState<string | null>(null);
