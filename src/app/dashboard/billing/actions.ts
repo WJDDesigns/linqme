@@ -148,9 +148,18 @@ export async function switchPlanAction(
     .maybeSingle();
 
   if (!activeSub) {
-    // No active subscription — redirect to checkout for new subscription
-    await createCheckoutAction(targetSlug, couponCode);
-    return { ok: true }; // won't reach here due to redirect
+    // No active subscription -- redirect to checkout for new subscription
+    try {
+      await createCheckoutAction(targetSlug, couponCode);
+      return { ok: true }; // won't reach here due to redirect
+    } catch (err) {
+      // Re-throw redirect errors so Next.js can handle them
+      if (err instanceof Error && err.message === "NEXT_REDIRECT") throw err;
+      // Check for Next.js redirect digest
+      if (err && typeof err === "object" && "digest" in err) throw err;
+      const message = err instanceof Error ? err.message : "Failed to start checkout";
+      return { ok: false, error: message };
+    }
   }
 
   try {
