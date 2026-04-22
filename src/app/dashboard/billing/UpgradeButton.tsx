@@ -44,9 +44,16 @@ export default function UpgradeButton({ tier, label, highlight }: Props) {
     setCouponLabel(null);
   }
 
+  const [error, setError] = useState<string | null>(null);
+
   function handleClick() {
+    setError(null);
     startTransition(async () => {
-      await createCheckoutAction(tier, couponValid ? couponCode.trim() : undefined);
+      try {
+        await createCheckoutAction(tier, couponValid ? couponCode.trim() : undefined);
+      } catch (err) {
+        setError(err instanceof Error ? err.message : "Something went wrong. Please try again.");
+      }
     });
   }
 
@@ -99,6 +106,13 @@ export default function UpgradeButton({ tier, label, highlight }: Props) {
               <i className="fa-solid fa-xmark text-[9px]" />
             </button>
           )}
+        </div>
+      )}
+
+      {/* Error message */}
+      {error && (
+        <div className="text-[10px] text-error text-center px-2 py-1.5 bg-error/5 rounded-lg border border-error/10">
+          {error}
         </div>
       )}
 
