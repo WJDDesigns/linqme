@@ -1723,16 +1723,6 @@ export default function FormEditor({ initialSchema, onOpenTemplates, formId, has
                                         {field.showCondition?.fieldId && <span className="text-amber-400 font-medium">&middot; <i className="fa-solid fa-eye text-[8px]" /></span>}
                                       </div>
                                     </div>
-                                    {/* Column span badge */}
-                                    {displaySpan < GRID_COLUMNS && (
-                                      <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded border shrink-0 tabular-nums ${
-                                        isResizing
-                                          ? "bg-primary/20 text-primary border-primary/40 scale-110"
-                                          : "bg-primary/10 text-primary border-primary/20"
-                                      }`} title={`${displaySpan} of ${GRID_COLUMNS} columns${minSpan < GRID_COLUMNS ? ` (min ${minSpan})` : ""}`}>
-                                        {displaySpan}/{GRID_COLUMNS}
-                                      </span>
-                                    )}
                                     <button
                                       onClick={(e) => { e.stopPropagation(); removeField(step.id, field.id); }}
                                       className="p-1 text-on-surface-variant/40 hover:text-error text-sm transition-colors shrink-0"
