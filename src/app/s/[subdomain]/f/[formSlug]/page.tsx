@@ -9,6 +9,7 @@ import { startSubmissionAction } from "../../actions";
 import LinqMeLogo from "@/components/LinqMeLogo";
 import StorefrontThemeToggle from "../../StorefrontThemeToggle";
 import AnalyticsTracker from "../../AnalyticsTracker";
+import AutoSubmitForm from "../../AutoSubmitForm";
 import Link from "next/link";
 
 interface Props {
@@ -56,10 +57,13 @@ export default async function FormSlugPage({ params }: Props) {
 
   // Find the form by slug — either owned by this partner or assigned to them
   let formName: string | null = null;
+  let startButtonText = "Start onboarding";
+  let startDescription: string | null = null;
+  let skipStartPage = false;
 
   const { data: ownedForm } = await admin
     .from("partner_forms")
-    .select("id, name, slug")
+    .select("id, name, slug, start_button_text, start_description, skip_start_page")
     .eq("partner_id", partner.id)
     .eq("slug", formSlug)
     .eq("is_active", true)
@@ -67,6 +71,9 @@ export default async function FormSlugPage({ params }: Props) {
 
   if (ownedForm) {
     formName = ownedForm.name;
+    startButtonText = (ownedForm.start_button_text as string) || "Start onboarding";
+    startDescription = (ownedForm.start_description as string) || null;
+    skipStartPage = ownedForm.skip_start_page ?? false;
   } else {
     // Check assignments from parent partner
     const { data: assignments } = await admin
@@ -126,25 +133,29 @@ export default async function FormSlugPage({ params }: Props) {
             {formName}
           </h1>
           <p className="text-lg text-on-surface-variant/70 font-body leading-relaxed max-w-xl mx-auto">
-            Let&rsquo;s get started. This form takes about 10 minutes and you can come back to it anytime with your unique link.
+            {startDescription || "Let\u2019s get started. This form takes about 10 minutes and you can come back to it anytime with your unique link."}
           </p>
-          <form action={startSubmissionAction} className="pt-4">
-            <input type="hidden" name="partner_id" value={partner.id} />
-            <input type="hidden" name="subdomain" value={identifier} />
-            <input type="hidden" name="form_slug" value={formSlug} />
-            <button
-              type="submit"
-              className="group px-10 py-4 font-headline font-bold rounded-xl shadow-xl hover:-translate-y-1 transition-all duration-500 flex items-center gap-3 mx-auto"
-              style={{
-                backgroundColor: primary,
-                color: contrastText(primary),
-                boxShadow: `0 10px 40px ${primary}30`,
-              }}
-            >
-              Start onboarding
-              <i className="fa-solid fa-arrow-right text-sm group-hover:translate-x-1 transition-transform" />
-            </button>
-          </form>
+          {skipStartPage ? (
+            <AutoSubmitForm action={startSubmissionAction} partnerId={partner.id} subdomain={identifier} formSlug={formSlug} />
+          ) : (
+            <form action={startSubmissionAction} className="pt-4">
+              <input type="hidden" name="partner_id" value={partner.id} />
+              <input type="hidden" name="subdomain" value={identifier} />
+              <input type="hidden" name="form_slug" value={formSlug} />
+              <button
+                type="submit"
+                className="group px-10 py-4 font-headline font-bold rounded-xl shadow-xl hover:-translate-y-1 transition-all duration-500 flex items-center gap-3 mx-auto"
+                style={{
+                  backgroundColor: primary,
+                  color: contrastText(primary),
+                  boxShadow: `0 10px 40px ${primary}30`,
+                }}
+              >
+                {startButtonText}
+                <i className="fa-solid fa-arrow-right text-sm group-hover:translate-x-1 transition-transform" />
+              </button>
+            </form>
+          )}
           {partner.support_email && (
             <p className="text-xs text-on-surface-variant/50 pt-4">
               Questions? <a href={`mailto:${partner.support_email}`} style={{ color: primary }} className="hover:underline">{partner.support_email}</a>

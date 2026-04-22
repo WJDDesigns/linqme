@@ -39,6 +39,7 @@ export default async function FormEditorPage({ params }: PageProps) {
        confirm_page_heading, confirm_page_body, redirect_url, layout_style,
        partner_email_subject, partner_email_body,
        client_email_subject, client_email_body,
+       start_button_text, start_description, skip_start_page,
        form_templates ( id, schema )`,
     )
     .eq("id", formId)
@@ -185,6 +186,9 @@ export default async function FormEditorPage({ params }: PageProps) {
             storefrontHost={storefrontHost}
             themeMode={(partner?.theme_mode as "dark" | "light" | "auto") ?? "dark"}
             layoutStyle={(pf.layout_style as "default" | "top-nav" | "no-nav" | "conversation") ?? "default"}
+            startButtonText={(pf.start_button_text as string) ?? null}
+            startDescription={(pf.start_description as string) ?? null}
+            skipStartPage={pf.skip_start_page ?? false}
           />
         }
       />

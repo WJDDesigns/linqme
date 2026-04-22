@@ -460,3 +460,37 @@ export async function updateLayoutStyleAction(
   revalidatePath(`/dashboard/form/${formId}`);
   return { ok: true };
 }
+
+/**
+ * Update start page settings for a form.
+ */
+export async function updateStartPageSettingsAction(
+  formId: string,
+  settings: {
+    startButtonText?: string;
+    startDescription?: string;
+    skipStartPage?: boolean;
+  },
+): Promise<ActionResult> {
+  const session = await requireSession();
+  const account = await getCurrentAccount(session.userId);
+  if (!account) return { ok: false, error: "No account found." };
+
+  const supabase = await createClient();
+  const update: Record<string, unknown> = {};
+  if (settings.startButtonText !== undefined) update.start_button_text = settings.startButtonText || null;
+  if (settings.startDescription !== undefined) update.start_description = settings.startDescription || null;
+  if (settings.skipStartPage !== undefined) update.skip_start_page = settings.skipStartPage;
+
+  const { error } = await supabase
+    .from("partner_forms")
+    .update(update)
+    .eq("id", formId)
+    .eq("partner_id", account.id);
+
+  if (error) return { ok: false, error: error.message };
+
+  revalidatePath(`/dashboard/form/${formId}`);
+  revalidatePath("/dashboard/form");
+  return { ok: true };
+}

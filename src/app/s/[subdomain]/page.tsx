@@ -10,6 +10,7 @@ import LinqMeLogo from "@/components/LinqMeLogo";
 import FormGrid from "./FormGrid";
 import StorefrontThemeToggle from "./StorefrontThemeToggle";
 import AnalyticsTracker from "./AnalyticsTracker";
+import AutoSubmitForm from "./AutoSubmitForm";
 import Link from "next/link";
 
 interface Props {
@@ -67,10 +68,23 @@ export default async function PartnerHomePage({ params }: Props) {
   const dims = LOGO_DIMS[partner.logo_size] ?? LOGO_DIMS.default;
   const isFullWidth = partner.logo_size === "full-width";
 
+  // Query default form for start page settings
+  const admin = createAdminClient();
+  const { data: defaultForm } = await admin
+    .from("partner_forms")
+    .select("start_button_text, start_description, skip_start_page")
+    .eq("partner_id", partner.id)
+    .eq("is_default", true)
+    .eq("is_active", true)
+    .maybeSingle();
+
+  const startButtonText = (defaultForm?.start_button_text as string) || "Start onboarding";
+  const startDescription = (defaultForm?.start_description as string) || null;
+  const skipStartPage = defaultForm?.skip_start_page ?? false;
+
   // If "show all forms" is enabled, fetch all active forms for the grid
   let activeForms: { id: string; name: string; slug: string; description: string | null; is_default: boolean }[] = [];
   if (partner.show_all_forms) {
-    const admin = createAdminClient();
     const { data: forms } = await admin
       .from("partner_forms")
       .select("id, name, slug, description, is_default")
@@ -162,26 +176,32 @@ export default async function PartnerHomePage({ params }: Props) {
               {isFullWidth ? "Let\u2019s get started" : `Welcome to ${partner.name} onboarding`}
             </h1>
             <p className="text-lg text-on-surface-variant/70 font-body leading-relaxed max-w-xl mx-auto">
-              {isFullWidth
-                ? "This onboarding form takes about 10 minutes. You can come back to it anytime with your unique link."
-                : "Let\u2019s get your project started. This form takes about 10 minutes and you can come back to it anytime with your unique link."}
+              {startDescription
+                ? startDescription
+                : isFullWidth
+                  ? "This onboarding form takes about 10 minutes. You can come back to it anytime with your unique link."
+                  : "Let\u2019s get your project started. This form takes about 10 minutes and you can come back to it anytime with your unique link."}
             </p>
-            <form action={startSubmissionAction} className="pt-4">
-              <input type="hidden" name="partner_id" value={partner.id} />
-              <input type="hidden" name="subdomain" value={identifier} />
-              <button
-                type="submit"
-                className="group px-10 py-4 font-headline font-bold rounded-xl shadow-xl hover:-translate-y-1 transition-all duration-500 flex items-center gap-3 mx-auto"
-                style={{
-                  backgroundColor: primary,
-                  color: contrastText(primary),
-                  boxShadow: `0 10px 40px ${primary}30`,
-                }}
-              >
-                Start onboarding
-                <i className="fa-solid fa-arrow-right text-sm group-hover:translate-x-1 transition-transform" />
-              </button>
-            </form>
+            {skipStartPage ? (
+              <AutoSubmitForm action={startSubmissionAction} partnerId={partner.id} subdomain={identifier} />
+            ) : (
+              <form action={startSubmissionAction} className="pt-4">
+                <input type="hidden" name="partner_id" value={partner.id} />
+                <input type="hidden" name="subdomain" value={identifier} />
+                <button
+                  type="submit"
+                  className="group px-10 py-4 font-headline font-bold rounded-xl shadow-xl hover:-translate-y-1 transition-all duration-500 flex items-center gap-3 mx-auto"
+                  style={{
+                    backgroundColor: primary,
+                    color: contrastText(primary),
+                    boxShadow: `0 10px 40px ${primary}30`,
+                  }}
+                >
+                  {startButtonText}
+                  <i className="fa-solid fa-arrow-right text-sm group-hover:translate-x-1 transition-transform" />
+                </button>
+              </form>
+            )}
             {partner.support_email && (
               <p className="text-xs text-on-surface-variant/50 pt-4">
                 Questions? <a href={`mailto:${partner.support_email}`} style={{ color: primary }} className="hover:underline">{partner.support_email}</a>

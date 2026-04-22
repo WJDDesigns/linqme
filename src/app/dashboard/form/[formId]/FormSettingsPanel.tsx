@@ -2,7 +2,7 @@
 
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { renameFormAction, setDefaultFormAction, deleteFormAction, updateThemeModeAction, updateLayoutStyleAction } from "../form-actions";
+import { renameFormAction, setDefaultFormAction, deleteFormAction, updateThemeModeAction, updateLayoutStyleAction, updateStartPageSettingsAction } from "../form-actions";
 import type { LayoutStyle } from "../form-actions";
 import { updateFormPartnersAction } from "./assignment-actions";
 
@@ -21,6 +21,9 @@ interface Props {
   storefrontHost: string;
   themeMode: "dark" | "light" | "auto";
   layoutStyle: LayoutStyle;
+  startButtonText: string | null;
+  startDescription: string | null;
+  skipStartPage: boolean;
 }
 
 export default function FormSettingsPanel({
@@ -33,6 +36,9 @@ export default function FormSettingsPanel({
   storefrontHost,
   themeMode: initialThemeMode,
   layoutStyle: initialLayoutStyle,
+  startButtonText: initialStartButtonText,
+  startDescription: initialStartDescription,
+  skipStartPage: initialSkipStartPage,
 }: Props) {
   const router = useRouter();
   const [pending, startTransition] = useTransition();
@@ -49,12 +55,31 @@ export default function FormSettingsPanel({
   const [layoutStyle, setLayoutStyle] = useState<LayoutStyle>(initialLayoutStyle);
   const [layoutMsg, setLayoutMsg] = useState<string | null>(null);
 
+  // Start page state
+  const [startBtnText, setStartBtnText] = useState(initialStartButtonText ?? "");
+  const [startDesc, setStartDesc] = useState(initialStartDescription ?? "");
+  const [skipStart, setSkipStart] = useState(initialSkipStartPage);
+  const [startMsg, setStartMsg] = useState<string | null>(null);
+
   function handleLayoutChange(style: LayoutStyle) {
     setLayoutStyle(style);
     setLayoutMsg(null);
     startTransition(async () => {
       const result = await updateLayoutStyleAction(formId, style);
       setLayoutMsg(result.ok ? "Layout updated!" : (result.error ?? "Failed."));
+      if (result.ok) router.refresh();
+    });
+  }
+
+  function handleSaveStartPage() {
+    setStartMsg(null);
+    startTransition(async () => {
+      const result = await updateStartPageSettingsAction(formId, {
+        startButtonText: startBtnText.trim() || undefined,
+        startDescription: startDesc.trim() || undefined,
+        skipStartPage: skipStart,
+      });
+      setStartMsg(result.ok ? "Start page updated!" : (result.error ?? "Failed."));
       if (result.ok) router.refresh();
     });
   }
@@ -241,6 +266,63 @@ export default function FormSettingsPanel({
               </div>
               {layoutMsg && (
                 <p className={`text-xs font-medium mt-2 ${layoutMsg.includes("!") ? "text-tertiary" : "text-error"}`}>{layoutMsg}</p>
+              )}
+            </div>
+
+            {/* Start page */}
+            <div>
+              <span className="text-xs font-semibold text-on-surface-variant uppercase tracking-widest">Start page</span>
+              <p className="text-xs text-on-surface-variant/60 mt-0.5 mb-2">
+                Customize the landing page clients see before filling out the form.
+              </p>
+
+              {/* Skip toggle */}
+              <label className="flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-surface-container-high/50 cursor-pointer transition-colors mb-3">
+                <input
+                  type="checkbox"
+                  checked={skipStart}
+                  onChange={(e) => setSkipStart(e.target.checked)}
+                  className="w-4 h-4 rounded border-outline-variant/30 text-primary focus:ring-primary/40"
+                />
+                <div>
+                  <span className="text-sm font-medium text-on-surface">Skip start page</span>
+                  <p className="text-[10px] text-on-surface-variant/50 leading-tight">Clients go straight to the form fields with no intro.</p>
+                </div>
+              </label>
+
+              {!skipStart && (
+                <div className="space-y-3">
+                  <label className="block">
+                    <span className="text-[10px] font-semibold text-on-surface-variant/60 uppercase tracking-widest">Button text</span>
+                    <input
+                      value={startBtnText}
+                      onChange={(e) => setStartBtnText(e.target.value)}
+                      placeholder="Start onboarding"
+                      className="w-full mt-1 px-4 py-2.5 text-sm bg-surface-container-lowest border-0 rounded-xl text-on-surface placeholder:text-on-surface-variant/40 focus:ring-1 focus:ring-primary/40 outline-none"
+                    />
+                  </label>
+                  <label className="block">
+                    <span className="text-[10px] font-semibold text-on-surface-variant/60 uppercase tracking-widest">Description</span>
+                    <textarea
+                      value={startDesc}
+                      onChange={(e) => setStartDesc(e.target.value)}
+                      placeholder="This form takes about 10 minutes and you can come back to it anytime with your unique link."
+                      rows={3}
+                      className="w-full mt-1 px-4 py-2.5 text-sm bg-surface-container-lowest border-0 rounded-xl text-on-surface placeholder:text-on-surface-variant/40 focus:ring-1 focus:ring-primary/40 outline-none resize-none"
+                    />
+                  </label>
+                </div>
+              )}
+
+              <button
+                onClick={handleSaveStartPage}
+                disabled={pending}
+                className="mt-3 px-4 py-2 bg-primary text-on-primary font-bold rounded-lg text-xs disabled:opacity-50 transition-all"
+              >
+                {pending ? "Saving..." : "Save start page"}
+              </button>
+              {startMsg && (
+                <p className={`text-xs font-medium mt-2 ${startMsg.includes("!") ? "text-tertiary" : "text-error"}`}>{startMsg}</p>
               )}
             </div>
 

@@ -33,6 +33,7 @@ export default async function FormsListPage() {
       `id, name, slug, description, is_active, is_default, created_at, template_id,
        notification_emails, notification_bcc,
        confirm_page_heading, confirm_page_body, redirect_url, layout_style,
+       start_button_text, start_description, skip_start_page,
        form_templates ( id, schema )`,
     )
     .eq("partner_id", account.id)
@@ -182,6 +183,9 @@ export default async function FormsListPage() {
                         storefrontHost={storefrontHost}
                         themeMode={(partner?.theme_mode as "dark" | "light" | "auto") ?? "dark"}
                         layoutStyle={(form.layout_style as "default" | "top-nav" | "no-nav" | "conversation") ?? "default"}
+                        startButtonText={(form.start_button_text as string) ?? null}
+                        startDescription={(form.start_description as string) ?? null}
+                        skipStartPage={form.skip_start_page ?? false}
                       />
                       {(account.planType === "agency" || account.planType === "agency_plus_partners") && (
                         <EmbedButton formUrl={formUrl} formName={form.name} />
