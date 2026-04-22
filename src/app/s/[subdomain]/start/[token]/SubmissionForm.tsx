@@ -3418,12 +3418,18 @@ function CelestialField({
 
   /* ── Brand Style Picker ── */
   if (field.type === "brand_style" && field.brandStyleConfig) {
-    return <BrandStyleField field={field} value={value} error={error} onChange={onChange} primaryColor={primaryColor} />;
+    return (<>
+      <input type="hidden" name={field.id} value={typeof value === "string" ? value : ""} />
+      <BrandStyleField field={field} value={value} error={error} onChange={onChange} primaryColor={primaryColor} />
+    </>);
   }
 
   /* ── Competitor Analyzer ── */
   if (field.type === "competitor_analyzer" && field.competitorAnalyzerConfig) {
-    return <CompetitorAnalyzerField field={field} value={value} error={error} onChange={onChange} primaryColor={primaryColor} partnerId={partnerId} />;
+    return (<>
+      <input type="hidden" name={field.id} value={typeof value === "string" ? value : ""} />
+      <CompetitorAnalyzerField field={field} value={value} error={error} onChange={onChange} primaryColor={primaryColor} partnerId={partnerId} />
+    </>);
   }
 
   /* ── Timeline Selector ── */
@@ -4304,10 +4310,12 @@ function CelestialField({
     const cfg = field.caseIntakeConfig;
     const data: Record<string, string> = typeof value === "string" && value ? (() => { try { return JSON.parse(value); } catch { return {}; } })() : (typeof value === "object" && value ? value as Record<string, string> : {});
     const update = (key: string, val: string) => onChange(JSON.stringify({ ...data, [key]: val }));
+    const caseIntakeHidden = <input type="hidden" name={field.id} value={typeof value === "string" ? value : ""} />;
     const US_STATES = ["Alabama","Alaska","Arizona","Arkansas","California","Colorado","Connecticut","Delaware","Florida","Georgia","Hawaii","Idaho","Illinois","Indiana","Iowa","Kansas","Kentucky","Louisiana","Maine","Maryland","Massachusetts","Michigan","Minnesota","Mississippi","Missouri","Montana","Nebraska","Nevada","New Hampshire","New Jersey","New Mexico","New York","North Carolina","North Dakota","Ohio","Oklahoma","Oregon","Pennsylvania","Rhode Island","South Carolina","South Dakota","Tennessee","Texas","Utah","Vermont","Virginia","Washington","West Virginia","Wisconsin","Wyoming","District of Columbia"];
     const jurisdictions = cfg.jurisdictions ?? US_STATES;
     return (
       <div className="group">
+        {caseIntakeHidden}
         <label className="block text-xs font-semibold text-on-surface-variant uppercase tracking-widest mb-1.5 ml-1">
           <FieldIcon icon={field.icon} color={primaryColor} />{field.label}
           {field.required && <span className="ml-1" style={{ color: primaryColor }}>*</span>}

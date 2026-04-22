@@ -148,12 +148,24 @@ export async function redeemCoupon(
   }
 
   // Record the redemption details
-  await admin.from("coupon_redemptions").insert({
+  const { error: insertError } = await admin.from("coupon_redemptions").insert({
     coupon_id: couponId,
     partner_id: partnerId,
     plan_slug: planSlug,
     discount: discountCents,
   });
+
+  if (insertError) {
+    // Rollback: decrement the counter since we already incremented it
+    console.error("[redeemCoupon] redemption insert failed, rolling back counter:", insertError);
+    try {
+      const { data: coupon } = await admin.from("coupons").select("times_redeemed").eq("id", couponId).single();
+      if (coupon && typeof coupon.times_redeemed === "number" && coupon.times_redeemed > 0) {
+        await admin.from("coupons").update({ times_redeemed: coupon.times_redeemed - 1 }).eq("id", couponId);
+      }
+    } catch { /* best-effort rollback */ }
+    return false;
+  }
 
   return true;
 }
