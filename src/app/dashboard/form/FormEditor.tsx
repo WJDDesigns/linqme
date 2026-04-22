@@ -165,6 +165,25 @@ function uid() {
   return Math.random().toString(36).slice(2, 10);
 }
 
+/** Convert a label to a slug-style field ID (e.g. "Contact Email" -> "contact_email") */
+function toFieldSlug(label: string): string {
+  return label
+    .toLowerCase()
+    .trim()
+    .replace(/[^a-z0-9]+/g, "_")
+    .replace(/^_|_$/g, "")
+    || "field";
+}
+
+/** Generate a unique slug-based field ID, deduplicating against existing IDs */
+function makeFieldId(label: string, existingIds: string[]): string {
+  const base = toFieldSlug(label);
+  if (!existingIds.includes(base)) return base;
+  let n = 2;
+  while (existingIds.includes(`${base}_${n}`)) n++;
+  return `${base}_${n}`;
+}
+
 /* ── Chained Select tree editor ────────────────────────────── */
 
 function ChainedOptionTreeEditor({
@@ -250,8 +269,8 @@ function ChainedOptionTreeEditor({
   );
 }
 
-function makeField(type: FieldType, label: string): FieldDef {
-  const base: FieldDef = { id: `field_${uid()}`, type, label, required: false };
+function makeField(type: FieldType, label: string, existingIds: string[] = []): FieldDef {
+  const base: FieldDef = { id: makeFieldId(label, existingIds), type, label, required: false };
   if (type === "select" || type === "radio") base.options = ["Option 1", "Option 2"];
   if (type === "checkbox") base.options = [];
   if (type === "textarea") base.rows = 4;
@@ -1040,9 +1059,10 @@ export default function FormEditor({ initialSchema, onOpenTemplates, formId, has
     if (!payload) return;
 
     const side = dropTarget?.side;
+    const allFieldIds = schema.steps.flatMap((s) => s.fields.map((f) => f.id));
 
     if (payload.kind === "palette") {
-      const field = makeField(payload.fieldType, payload.label);
+      const field = makeField(payload.fieldType, payload.label, allFieldIds);
       if (side) {
         // Side drop: insert beside the target field and auto-size both
         const step = schema.steps.find((s) => s.id === stepId);
@@ -1324,7 +1344,8 @@ export default function FormEditor({ initialSchema, onOpenTemplates, formId, has
             <FieldPalette onDragStart={startDragPalette} onClickAdd={(type, label) => {
               const target = schema.steps.find((s) => expandedSteps.has(s.id)) ?? schema.steps[0];
               if (!target) return;
-              const field = makeField(type, label);
+              const allFieldIds = schema.steps.flatMap((s) => s.fields.map((f) => f.id));
+              const field = makeField(type, label, allFieldIds);
               insertField(target.id, target.fields.length, field);
               selectField(target.id, field.id);
             }} />
@@ -1495,6 +1516,7 @@ export default function FormEditor({ initialSchema, onOpenTemplates, formId, has
                                       <div className="text-sm font-medium text-on-surface truncate leading-tight">{field.label}</div>
                                       <div className="text-[10px] text-on-surface-variant/60 truncate flex items-center gap-1">
                                         {labelFor(field.type)}
+                                        <span className="font-mono text-[9px] text-on-surface-variant/40">{`{${field.id}}`}</span>
                                         {field.required && <span className="text-tertiary font-medium">&middot; Req</span>}
                                         {field.showCondition?.fieldId && <span className="text-amber-400 font-medium">&middot; <i className="fa-solid fa-eye text-[8px]" /></span>}
                                       </div>
@@ -1853,6 +1875,36 @@ function FieldSettingsPanel({ field, onUpdate, onClose, allFields, hasAI, hasPay
               <span className="text-[11px] font-medium text-on-surface-variant mb-1 block">Field Label</span>
               <input value={field.label} onChange={(e) => onUpdate({ label: e.target.value })} className={INPUT_CLS} />
             </label>
+            <div className="block">
+              <span className="text-[11px] font-medium text-on-surface-variant mb-1 block">Field ID</span>
+              <div className="flex gap-2 items-center">
+                <input
+                  value={field.id}
+                  onChange={(e) => {
+                    const raw = e.target.value.toLowerCase().replace(/[^a-z0-9_]/g, "_").replace(/^_|_$/g, "");
+                    if (raw && !allFields.some((f) => f.id !== field.id && f.id === raw)) {
+                      onUpdate({ id: raw });
+                    }
+                  }}
+                  className={INPUT_CLS + " font-mono text-[11px] flex-1"}
+                  spellCheck={false}
+                />
+                <button
+                  type="button"
+                  onClick={() => {
+                    const otherIds = allFields.filter((f) => f.id !== field.id).map((f) => f.id);
+                    onUpdate({ id: makeFieldId(field.label, otherIds) });
+                  }}
+                  className="text-[10px] text-primary hover:text-primary/80 shrink-0 whitespace-nowrap"
+                  title="Regenerate from label"
+                >
+                  <i className="fa-solid fa-rotate" />
+                </button>
+              </div>
+              <span className="text-[10px] text-on-surface-variant/50 mt-1 block">
+                Used in formulas and data exports. Auto-generated from label.
+              </span>
+            </div>
             <label className="block">
               <span className="text-[11px] font-medium text-on-surface-variant mb-1 block">Field Type</span>
               <select value={field.type} onChange={(e) => onUpdate({ type: e.target.value as FieldType })} className={INPUT_CLS}>
@@ -2908,7 +2960,7 @@ function FieldSettingsPanel({ field, onUpdate, onClose, allFields, hasAI, hasPay
                 className={INPUT_CLS}
               />
               <span className="text-[10px] text-on-surface-variant/50 mt-1 block">
-                Reference other fields with {"{field_id}"}. Supports +, -, *, /, parentheses, and numbers.
+                Reference other fields by their Field ID in curly braces, e.g. {"{price}"} or {"{quantity}"}. Supports +, -, *, /, parentheses, and numbers.
               </span>
             </label>
             <label className="block">
@@ -2966,97 +3018,21 @@ function FieldSettingsPanel({ field, onUpdate, onClose, allFields, hasAI, hasPay
           </section>
         )}
 
-        {/* -- Chained Select Settings -- */}
+        {/* -- Chained Select Settings (dialog) -- */}
         {field.type === "chained_select" && field.chainedSelectConfig && (
-          <section className="space-y-3">
-            <div className="text-[10px] font-bold text-on-surface-variant uppercase tracking-widest">Chained Dropdown Settings</div>
-
-            {/* Level labels */}
-            <div className="space-y-2">
-              <div className="flex items-center justify-between">
-                <span className="text-[11px] font-medium text-on-surface-variant">Levels</span>
-                <button
-                  type="button"
-                  onClick={() => {
-                    if (field.chainedSelectConfig!.levels.length >= 5) return;
-                    onUpdate({
-                      chainedSelectConfig: {
-                        ...field.chainedSelectConfig!,
-                        levels: [...field.chainedSelectConfig!.levels, { label: `Level ${field.chainedSelectConfig!.levels.length + 1}`, placeholder: "" }],
-                      },
-                    });
-                  }}
-                  disabled={field.chainedSelectConfig.levels.length >= 5}
-                  className="text-[10px] text-primary hover:text-primary/80 disabled:opacity-40"
-                >
-                  <i className="fa-solid fa-plus mr-0.5" /> Add Level
-                </button>
-              </div>
-              {field.chainedSelectConfig.levels.map((level, li) => (
-                <div key={li} className="flex gap-2 items-center">
-                  <input
-                    value={level.label}
-                    onChange={(e) => {
-                      const levels = [...field.chainedSelectConfig!.levels];
-                      levels[li] = { ...levels[li], label: e.target.value };
-                      onUpdate({ chainedSelectConfig: { ...field.chainedSelectConfig!, levels } });
-                    }}
-                    placeholder="Level label"
-                    className={INPUT_CLS + " flex-1"}
-                  />
-                  <input
-                    value={level.placeholder ?? ""}
-                    onChange={(e) => {
-                      const levels = [...field.chainedSelectConfig!.levels];
-                      levels[li] = { ...levels[li], placeholder: e.target.value || undefined };
-                      onUpdate({ chainedSelectConfig: { ...field.chainedSelectConfig!, levels } });
-                    }}
-                    placeholder="Placeholder"
-                    className={INPUT_CLS + " flex-1"}
-                  />
-                  {field.chainedSelectConfig!.levels.length > 2 && (
-                    <button
-                      type="button"
-                      onClick={() => {
-                        const levels = field.chainedSelectConfig!.levels.filter((_, i) => i !== li);
-                        onUpdate({ chainedSelectConfig: { ...field.chainedSelectConfig!, levels } });
-                      }}
-                      className="text-error/60 hover:text-error text-xs"
-                    >
-                      <i className="fa-solid fa-xmark" />
-                    </button>
-                  )}
-                </div>
-              ))}
-            </div>
-
-            {/* Option tree editor */}
-            <div className="space-y-2">
-              <div className="flex items-center justify-between">
-                <span className="text-[11px] font-medium text-on-surface-variant">Options Tree</span>
-                <button
-                  type="button"
-                  onClick={() => {
-                    onUpdate({
-                      chainedSelectConfig: {
-                        ...field.chainedSelectConfig!,
-                        options: [...field.chainedSelectConfig!.options, { label: "", value: "" }],
-                      },
-                    });
-                  }}
-                  className="text-[10px] text-primary hover:text-primary/80"
-                >
-                  <i className="fa-solid fa-plus mr-0.5" /> Add Root Option
-                </button>
-              </div>
-              <ChainedOptionTreeEditor
-                options={field.chainedSelectConfig.options}
-                depth={0}
-                maxDepth={field.chainedSelectConfig.levels.length - 1}
-                onChange={(options) => onUpdate({ chainedSelectConfig: { ...field.chainedSelectConfig!, options } })}
+          <DialogLauncher
+            icon="fa-bars-staggered"
+            label="Chained Dropdown"
+            summary={`${field.chainedSelectConfig.levels.length} levels, ${field.chainedSelectConfig.options.length} root options`}
+          >
+            {(onClose) => (
+              <ChainedSelectSettingsPanel
+                config={field.chainedSelectConfig!}
+                onUpdate={(cfg) => onUpdate({ chainedSelectConfig: cfg })}
+                onCloseDialog={onClose}
               />
-            </div>
-          </section>
+            )}
+          </DialogLauncher>
         )}
 
         {/* -- Social Media Handles Settings -- */}
@@ -4048,6 +4024,129 @@ function RepeaterSettingsPanel({ config, onUpdate, onCloseDialog }: {
 }
 
 /* ── Dialog Launcher (opens complex settings in a full modal) ── */
+
+/* ── Chained Select Settings Panel (opens inside DialogLauncher) ── */
+
+function ChainedSelectSettingsPanel({
+  config,
+  onUpdate,
+  onCloseDialog,
+}: {
+  config: ChainedSelectConfig;
+  onUpdate: (cfg: ChainedSelectConfig) => void;
+  onCloseDialog: () => void;
+}) {
+  return (
+    <div className="space-y-6">
+      {/* Level labels */}
+      <section className="space-y-3">
+        <div className="flex items-center justify-between">
+          <h3 className="text-sm font-bold text-on-surface">Levels</h3>
+          <button
+            type="button"
+            onClick={() => {
+              if (config.levels.length >= 5) return;
+              onUpdate({
+                ...config,
+                levels: [...config.levels, { label: `Level ${config.levels.length + 1}`, placeholder: "" }],
+              });
+            }}
+            disabled={config.levels.length >= 5}
+            className="text-xs text-primary hover:text-primary/80 disabled:opacity-40 font-medium"
+          >
+            <i className="fa-solid fa-plus mr-1" /> Add Level
+          </button>
+        </div>
+        <p className="text-[11px] text-on-surface-variant/60">
+          Define the hierarchy levels for your chained dropdown (e.g. Category &gt; Subcategory &gt; Item). Min 2, max 5.
+        </p>
+        <div className="space-y-2">
+          {config.levels.map((level, li) => (
+            <div key={li} className="flex gap-3 items-center bg-surface-container rounded-xl p-3">
+              <span className="text-[10px] font-bold text-on-surface-variant/50 w-5 shrink-0">L{li + 1}</span>
+              <div className="flex-1 space-y-2">
+                <input
+                  value={level.label}
+                  onChange={(e) => {
+                    const levels = [...config.levels];
+                    levels[li] = { ...levels[li], label: e.target.value };
+                    onUpdate({ ...config, levels });
+                  }}
+                  placeholder="Level label"
+                  className="w-full px-3 py-2 text-sm bg-surface-container-highest/50 border-0 rounded-lg text-on-surface outline-none placeholder:text-on-surface-variant/30"
+                />
+                <input
+                  value={level.placeholder ?? ""}
+                  onChange={(e) => {
+                    const levels = [...config.levels];
+                    levels[li] = { ...levels[li], placeholder: e.target.value || undefined };
+                    onUpdate({ ...config, levels });
+                  }}
+                  placeholder="Placeholder text (optional)"
+                  className="w-full px-3 py-2 text-sm bg-surface-container-highest/50 border-0 rounded-lg text-on-surface outline-none placeholder:text-on-surface-variant/30"
+                />
+              </div>
+              {config.levels.length > 2 && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    const levels = config.levels.filter((_, i) => i !== li);
+                    onUpdate({ ...config, levels });
+                  }}
+                  className="text-error/60 hover:text-error text-sm shrink-0"
+                >
+                  <i className="fa-solid fa-trash-can" />
+                </button>
+              )}
+            </div>
+          ))}
+        </div>
+      </section>
+
+      {/* Divider */}
+      <div className="border-t border-outline-variant/10" />
+
+      {/* Option tree editor */}
+      <section className="space-y-3">
+        <div className="flex items-center justify-between">
+          <h3 className="text-sm font-bold text-on-surface">Options Tree</h3>
+          <button
+            type="button"
+            onClick={() => {
+              onUpdate({
+                ...config,
+                options: [...config.options, { label: "", value: "" }],
+              });
+            }}
+            className="text-xs text-primary hover:text-primary/80 font-medium"
+          >
+            <i className="fa-solid fa-plus mr-1" /> Add Root Option
+          </button>
+        </div>
+        <p className="text-[11px] text-on-surface-variant/60">
+          Build the hierarchy of options. Each root option can have child options up to the number of levels defined above.
+        </p>
+        <ChainedOptionTreeEditor
+          options={config.options}
+          depth={0}
+          maxDepth={config.levels.length - 1}
+          onChange={(options) => onUpdate({ ...config, options })}
+        />
+      </section>
+
+      {/* Done button */}
+      <div className="flex justify-end pt-2">
+        <button
+          type="button"
+          onClick={onCloseDialog}
+          className="px-6 py-2.5 bg-primary text-on-primary rounded-xl text-sm font-bold hover:bg-primary/90 transition-all"
+        >
+          Done
+        </button>
+      </div>
+    </div>
+  );
+}
 
 function DialogLauncher({
   icon,
