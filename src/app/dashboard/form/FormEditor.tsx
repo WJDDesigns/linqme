@@ -235,86 +235,185 @@ function migrateFieldIds(schema: FormSchema): FormSchema {
   };
 }
 
-/* ── Chained Select tree editor ────────────────────────────── */
+/* ── Chained Select tree editor (with drag-and-drop reorder) ── */
 
 function ChainedOptionTreeEditor({
   options,
   depth,
   maxDepth,
   onChange,
+  levelLabels,
 }: {
   options: ChainedSelectOption[];
   depth: number;
   maxDepth: number;
   onChange: (opts: ChainedSelectOption[]) => void;
+  levelLabels?: string[];
 }) {
+  const dragIdx = useRef<number | null>(null);
+  const [dropIdx, setDropIdx] = useState<number | null>(null);
+  const [collapsed, setCollapsed] = useState<Set<number>>(new Set());
+
+  function handleDragStart(i: number) { dragIdx.current = i; }
+  function handleDragOver(e: React.DragEvent, i: number) {
+    e.preventDefault();
+    e.stopPropagation();
+    e.dataTransfer.dropEffect = "move";
+    setDropIdx(i);
+  }
+  function handleDrop(i: number) {
+    const from = dragIdx.current;
+    if (from !== null && from !== i) {
+      const arr = [...options];
+      const [moved] = arr.splice(from, 1);
+      arr.splice(i > from ? i - 1 : i, 0, moved);
+      onChange(arr);
+    }
+    dragIdx.current = null;
+    setDropIdx(null);
+  }
+  function handleDragEnd() { dragIdx.current = null; setDropIdx(null); }
+
+  const toggleCollapse = (i: number) => {
+    setCollapsed((prev) => {
+      const next = new Set(prev);
+      next.has(i) ? next.delete(i) : next.add(i);
+      return next;
+    });
+  };
+
+  const levelLabel = levelLabels?.[depth] ?? `Level ${depth + 1}`;
+  const childCount = (opt: ChainedSelectOption) => opt.children?.length ?? 0;
+
   return (
-    <div className={depth > 0 ? "ml-4 pl-3 border-l-2 border-outline-variant/20 space-y-1.5" : "space-y-1.5"}>
-      {options.map((opt, i) => (
-        <div key={i}>
-          <div className="flex gap-1.5 items-center">
-            <input
-              value={opt.label}
-              onChange={(e) => {
-                const updated = [...options];
-                updated[i] = { ...updated[i], label: e.target.value };
-                onChange(updated);
-              }}
-              placeholder="Label"
-              className="flex-1 px-2 py-1 text-xs bg-surface-container-highest/50 border-0 rounded-lg text-on-surface outline-none placeholder:text-on-surface-variant/30"
-            />
-            <input
-              value={opt.value}
-              onChange={(e) => {
-                const updated = [...options];
-                updated[i] = { ...updated[i], value: e.target.value };
-                onChange(updated);
-              }}
-              placeholder="value_key"
-              className="flex-1 px-2 py-1 text-xs bg-surface-container-highest/50 border-0 rounded-lg text-on-surface outline-none placeholder:text-on-surface-variant/30 font-mono"
-            />
-            {depth < maxDepth && (
-              <button
-                type="button"
-                onClick={() => {
+    <div className={depth > 0 ? "ml-6 pl-4 border-l-2 border-primary/10 space-y-2 mt-2" : "space-y-2"}>
+      {options.map((opt, i) => {
+        const hasChildren = opt.children && opt.children.length > 0 && depth < maxDepth;
+        const isCollapsed = collapsed.has(i);
+        return (
+          <div
+            key={i}
+            draggable
+            onDragStart={() => handleDragStart(i)}
+            onDragOver={(e) => handleDragOver(e, i)}
+            onDragLeave={() => setDropIdx(null)}
+            onDrop={() => handleDrop(i)}
+            onDragEnd={handleDragEnd}
+            className={`rounded-xl transition-all ${
+              dropIdx === i ? "ring-2 ring-primary/40" : ""
+            }`}
+          >
+            <div className={`flex gap-2 items-center p-3 rounded-xl ${
+              depth === 0 ? "bg-surface-container" : "bg-surface-container-high/50"
+            }`}>
+              {/* Drag handle */}
+              <div className="text-on-surface-variant/30 hover:text-on-surface-variant cursor-grab active:cursor-grabbing shrink-0">
+                <i className="fa-solid fa-grip-vertical text-[10px]" />
+              </div>
+
+              {/* Collapse toggle for items with children */}
+              {hasChildren ? (
+                <button
+                  type="button"
+                  onClick={() => toggleCollapse(i)}
+                  className="text-on-surface-variant/50 hover:text-on-surface-variant shrink-0 w-5 h-5 flex items-center justify-center"
+                >
+                  <i className={`fa-solid fa-chevron-${isCollapsed ? "right" : "down"} text-[9px]`} />
+                </button>
+              ) : (
+                <div className="w-5 shrink-0" />
+              )}
+
+              {/* Label + value inputs */}
+              <div className="flex-1 flex gap-2 min-w-0">
+                <input
+                  value={opt.label}
+                  onChange={(e) => {
+                    const updated = [...options];
+                    updated[i] = { ...updated[i], label: e.target.value };
+                    // Auto-fill value from label
+                    if (!opt.value || opt.value === toFieldSlug(options[i].label)) {
+                      updated[i].value = toFieldSlug(e.target.value);
+                    }
+                    onChange(updated);
+                  }}
+                  placeholder="Display label"
+                  className="flex-1 min-w-0 px-3 py-2 text-sm bg-surface-container-highest/50 border-0 rounded-lg text-on-surface outline-none placeholder:text-on-surface-variant/30"
+                />
+                <input
+                  value={opt.value}
+                  onChange={(e) => {
+                    const updated = [...options];
+                    updated[i] = { ...updated[i], value: e.target.value };
+                    onChange(updated);
+                  }}
+                  placeholder="value_key"
+                  className="w-36 shrink-0 px-3 py-2 text-sm bg-surface-container-highest/50 border-0 rounded-lg text-on-surface outline-none placeholder:text-on-surface-variant/30 font-mono text-on-surface-variant"
+                />
+              </div>
+
+              {/* Child count badge */}
+              {hasChildren && (
+                <span className="text-[9px] font-medium text-on-surface-variant/40 bg-surface-container-highest/30 px-1.5 py-0.5 rounded-full shrink-0">
+                  {childCount(opt)}
+                </span>
+              )}
+
+              {/* Action buttons */}
+              <div className="flex gap-1 shrink-0">
+                {depth < maxDepth && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const updated = [...options];
+                      updated[i] = {
+                        ...updated[i],
+                        children: [...(updated[i].children ?? []), { label: "", value: "" }],
+                      };
+                      onChange(updated);
+                      // Auto-expand when adding a child
+                      setCollapsed((prev) => { const next = new Set(prev); next.delete(i); return next; });
+                    }}
+                    className="w-7 h-7 rounded-lg flex items-center justify-center text-primary/60 hover:text-primary hover:bg-primary/10 transition-all"
+                    title={`Add ${levelLabels?.[depth + 1] ?? "sub-option"}`}
+                  >
+                    <i className="fa-solid fa-plus text-[10px]" />
+                  </button>
+                )}
+                <button
+                  type="button"
+                  onClick={() => onChange(options.filter((_, idx) => idx !== i))}
+                  className="w-7 h-7 rounded-lg flex items-center justify-center text-error/40 hover:text-error hover:bg-error/10 transition-all"
+                  title="Remove"
+                >
+                  <i className="fa-solid fa-trash-can text-[10px]" />
+                </button>
+              </div>
+            </div>
+
+            {/* Children (collapsible) */}
+            {hasChildren && !isCollapsed && (
+              <ChainedOptionTreeEditor
+                options={opt.children!}
+                depth={depth + 1}
+                maxDepth={maxDepth}
+                levelLabels={levelLabels}
+                onChange={(children) => {
                   const updated = [...options];
-                  updated[i] = {
-                    ...updated[i],
-                    children: [...(updated[i].children ?? []), { label: "", value: "" }],
-                  };
+                  updated[i] = { ...updated[i], children };
                   onChange(updated);
                 }}
-                className="text-[10px] text-primary/70 hover:text-primary shrink-0"
-                title="Add child option"
-              >
-                <i className="fa-solid fa-plus" />
-              </button>
+              />
             )}
-            <button
-              type="button"
-              onClick={() => onChange(options.filter((_, idx) => idx !== i))}
-              className="text-error/60 hover:text-error text-xs shrink-0"
-              title="Remove option"
-            >
-              <i className="fa-solid fa-xmark" />
-            </button>
           </div>
-          {opt.children && opt.children.length > 0 && depth < maxDepth && (
-            <ChainedOptionTreeEditor
-              options={opt.children}
-              depth={depth + 1}
-              maxDepth={maxDepth}
-              onChange={(children) => {
-                const updated = [...options];
-                updated[i] = { ...updated[i], children };
-                onChange(updated);
-              }}
-            />
-          )}
-        </div>
-      ))}
+        );
+      })}
       {options.length === 0 && (
-        <p className="text-[10px] text-on-surface-variant/40 italic">No options yet</p>
+        <div className="flex items-center justify-center py-8 border-2 border-dashed border-outline-variant/15 rounded-xl">
+          <p className="text-xs text-on-surface-variant/40">
+            No {levelLabel.toLowerCase()} options yet. Click <span className="font-semibold text-primary/60">+ Add</span> above to get started.
+          </p>
+        </div>
       )}
     </div>
   );
@@ -4087,12 +4186,57 @@ function ChainedSelectSettingsPanel({
   onUpdate: (cfg: ChainedSelectConfig) => void;
   onCloseDialog: () => void;
 }) {
+  const levelDragIdx = useRef<number | null>(null);
+  const [levelDropIdx, setLevelDropIdx] = useState<number | null>(null);
+
+  // Level drag-and-drop
+  function onLevelDragStart(i: number) { levelDragIdx.current = i; }
+  function onLevelDragOver(e: React.DragEvent, i: number) {
+    e.preventDefault();
+    e.stopPropagation();
+    e.dataTransfer.dropEffect = "move";
+    setLevelDropIdx(i);
+  }
+  function onLevelDrop(i: number) {
+    const from = levelDragIdx.current;
+    if (from !== null && from !== i) {
+      const levels = [...config.levels];
+      const [moved] = levels.splice(from, 1);
+      levels.splice(i > from ? i - 1 : i, 0, moved);
+      onUpdate({ ...config, levels });
+    }
+    levelDragIdx.current = null;
+    setLevelDropIdx(null);
+  }
+  function onLevelDragEnd() { levelDragIdx.current = null; setLevelDropIdx(null); }
+
+  // Breadcrumb preview of the chain
+  const chainPreview = config.levels.map((l) => l.label || "...").join(" > ");
+
+  // Count total options recursively
+  function countOptions(opts: ChainedSelectOption[]): number {
+    return opts.reduce((sum, o) => sum + 1 + countOptions(o.children ?? []), 0);
+  }
+  const totalOptions = countOptions(config.options);
+
   return (
-    <div className="space-y-6">
-      {/* Level labels */}
-      <section className="space-y-3">
+    <div className="space-y-8">
+      {/* Preview breadcrumb */}
+      <div className="flex items-center gap-2 px-4 py-3 bg-primary/5 rounded-xl border border-primary/10">
+        <i className="fa-solid fa-bars-staggered text-primary/60 text-sm" />
+        <span className="text-sm text-on-surface font-medium">{chainPreview}</span>
+        <span className="ml-auto text-[11px] text-on-surface-variant/50">{totalOptions} total options</span>
+      </div>
+
+      {/* ── Levels ── */}
+      <section className="space-y-4">
         <div className="flex items-center justify-between">
-          <h3 className="text-sm font-bold text-on-surface">Levels</h3>
+          <div>
+            <h3 className="text-sm font-bold text-on-surface">Levels</h3>
+            <p className="text-[11px] text-on-surface-variant/50 mt-0.5">
+              Define the hierarchy. Drag to reorder. Min 2, max 5.
+            </p>
+          </div>
           <button
             type="button"
             onClick={() => {
@@ -4103,53 +4247,93 @@ function ChainedSelectSettingsPanel({
               });
             }}
             disabled={config.levels.length >= 5}
-            className="text-xs text-primary hover:text-primary/80 disabled:opacity-40 font-medium"
+            className="px-3 py-1.5 text-xs font-bold text-primary bg-primary/10 rounded-lg hover:bg-primary/15 disabled:opacity-40 transition-all"
           >
             <i className="fa-solid fa-plus mr-1" /> Add Level
           </button>
         </div>
-        <p className="text-[11px] text-on-surface-variant/60">
-          Define the hierarchy levels for your chained dropdown (e.g. Category &gt; Subcategory &gt; Item). Min 2, max 5.
-        </p>
-        <div className="space-y-2">
+
+        <div className="space-y-3">
           {config.levels.map((level, li) => (
-            <div key={li} className="flex gap-3 items-center bg-surface-container rounded-xl p-3">
-              <span className="text-[10px] font-bold text-on-surface-variant/50 w-5 shrink-0">L{li + 1}</span>
-              <div className="flex-1 space-y-2">
-                <input
-                  value={level.label}
-                  onChange={(e) => {
-                    const levels = [...config.levels];
-                    levels[li] = { ...levels[li], label: e.target.value };
-                    onUpdate({ ...config, levels });
-                  }}
-                  placeholder="Level label"
-                  className="w-full px-3 py-2 text-sm bg-surface-container-highest/50 border-0 rounded-lg text-on-surface outline-none placeholder:text-on-surface-variant/30"
-                />
-                <input
-                  value={level.placeholder ?? ""}
-                  onChange={(e) => {
-                    const levels = [...config.levels];
-                    levels[li] = { ...levels[li], placeholder: e.target.value || undefined };
-                    onUpdate({ ...config, levels });
-                  }}
-                  placeholder="Placeholder text (optional)"
-                  className="w-full px-3 py-2 text-sm bg-surface-container-highest/50 border-0 rounded-lg text-on-surface outline-none placeholder:text-on-surface-variant/30"
-                />
+            <div
+              key={li}
+              draggable
+              onDragStart={() => onLevelDragStart(li)}
+              onDragOver={(e) => onLevelDragOver(e, li)}
+              onDragLeave={() => setLevelDropIdx(null)}
+              onDrop={() => onLevelDrop(li)}
+              onDragEnd={onLevelDragEnd}
+              className={`bg-surface-container rounded-xl p-4 transition-all ${
+                levelDropIdx === li ? "ring-2 ring-primary/40" : ""
+              }`}
+            >
+              <div className="flex gap-3 items-start">
+                {/* Drag handle + level number */}
+                <div className="flex flex-col items-center gap-1 pt-2 shrink-0">
+                  <div className="text-on-surface-variant/30 hover:text-on-surface-variant cursor-grab active:cursor-grabbing">
+                    <i className="fa-solid fa-grip-vertical text-[10px]" />
+                  </div>
+                  <span className="w-6 h-6 rounded-full bg-primary/10 flex items-center justify-center text-[10px] font-bold text-primary">{li + 1}</span>
+                </div>
+
+                {/* Inputs stacked with labels */}
+                <div className="flex-1 space-y-3">
+                  <div>
+                    <span className="text-[10px] font-medium text-on-surface-variant/60 mb-1 block">Label</span>
+                    <input
+                      value={level.label}
+                      onChange={(e) => {
+                        const levels = [...config.levels];
+                        levels[li] = { ...levels[li], label: e.target.value };
+                        onUpdate({ ...config, levels });
+                      }}
+                      placeholder='e.g. "Category", "Service", "Item"'
+                      className="w-full px-3 py-2.5 text-sm bg-surface-container-highest/50 border-0 rounded-lg text-on-surface outline-none placeholder:text-on-surface-variant/30"
+                    />
+                  </div>
+                  <div>
+                    <span className="text-[10px] font-medium text-on-surface-variant/60 mb-1 block">Placeholder (optional)</span>
+                    <input
+                      value={level.placeholder ?? ""}
+                      onChange={(e) => {
+                        const levels = [...config.levels];
+                        levels[li] = { ...levels[li], placeholder: e.target.value || undefined };
+                        onUpdate({ ...config, levels });
+                      }}
+                      placeholder='e.g. "Select a category..."'
+                      className="w-full px-3 py-2.5 text-sm bg-surface-container-highest/50 border-0 rounded-lg text-on-surface outline-none placeholder:text-on-surface-variant/30"
+                    />
+                  </div>
+                </div>
+
+                {/* Remove button */}
+                {config.levels.length > 2 && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const levels = config.levels.filter((_, i) => i !== li);
+                      onUpdate({ ...config, levels });
+                    }}
+                    className="w-8 h-8 mt-1 rounded-lg flex items-center justify-center text-error/40 hover:text-error hover:bg-error/10 transition-all shrink-0"
+                    title="Remove level"
+                  >
+                    <i className="fa-solid fa-trash-can text-xs" />
+                  </button>
+                )}
               </div>
-              {config.levels.length > 2 && (
-                <button
-                  type="button"
-                  onClick={() => {
-                    const levels = config.levels.filter((_, i) => i !== li);
-                    onUpdate({ ...config, levels });
-                  }}
-                  className="text-error/60 hover:text-error text-sm shrink-0"
-                >
-                  <i className="fa-solid fa-trash-can" />
-                </button>
-              )}
             </div>
+          ))}
+        </div>
+
+        {/* Visual arrow chain */}
+        <div className="flex items-center gap-2 px-2 flex-wrap">
+          {config.levels.map((l, i) => (
+            <React.Fragment key={i}>
+              {i > 0 && <i className="fa-solid fa-chevron-right text-[8px] text-on-surface-variant/30" />}
+              <span className="px-2.5 py-1 rounded-full bg-surface-container text-xs font-medium text-on-surface-variant">
+                {l.label || `Level ${i + 1}`}
+              </span>
+            </React.Fragment>
           ))}
         </div>
       </section>
@@ -4157,10 +4341,15 @@ function ChainedSelectSettingsPanel({
       {/* Divider */}
       <div className="border-t border-outline-variant/10" />
 
-      {/* Option tree editor */}
-      <section className="space-y-3">
+      {/* ── Options Tree ── */}
+      <section className="space-y-4">
         <div className="flex items-center justify-between">
-          <h3 className="text-sm font-bold text-on-surface">Options Tree</h3>
+          <div>
+            <h3 className="text-sm font-bold text-on-surface">Options</h3>
+            <p className="text-[11px] text-on-surface-variant/50 mt-0.5">
+              Build the hierarchy. Drag to reorder. Value keys auto-fill from labels.
+            </p>
+          </div>
           <button
             type="button"
             onClick={() => {
@@ -4169,28 +4358,39 @@ function ChainedSelectSettingsPanel({
                 options: [...config.options, { label: "", value: "" }],
               });
             }}
-            className="text-xs text-primary hover:text-primary/80 font-medium"
+            className="px-3 py-1.5 text-xs font-bold text-primary bg-primary/10 rounded-lg hover:bg-primary/15 transition-all"
           >
-            <i className="fa-solid fa-plus mr-1" /> Add Root Option
+            <i className="fa-solid fa-plus mr-1" /> Add {config.levels[0]?.label || "Option"}
           </button>
         </div>
-        <p className="text-[11px] text-on-surface-variant/60">
-          Build the hierarchy of options. Each root option can have child options up to the number of levels defined above.
-        </p>
+
+        {/* Column headers */}
+        <div className="flex items-center gap-2 px-3 text-[10px] font-bold text-on-surface-variant/40 uppercase tracking-widest">
+          <div className="w-5 shrink-0" /> {/* drag handle space */}
+          <div className="w-5 shrink-0" /> {/* collapse toggle space */}
+          <div className="flex-1">Display Label</div>
+          <div className="w-36 shrink-0">Value Key</div>
+          <div className="w-[70px] shrink-0" /> {/* action buttons space */}
+        </div>
+
         <ChainedOptionTreeEditor
           options={config.options}
           depth={0}
           maxDepth={config.levels.length - 1}
+          levelLabels={config.levels.map((l) => l.label)}
           onChange={(options) => onUpdate({ ...config, options })}
         />
       </section>
 
       {/* Done button */}
-      <div className="flex justify-end pt-2">
+      <div className="flex items-center justify-between pt-4 border-t border-outline-variant/10">
+        <span className="text-[11px] text-on-surface-variant/40">
+          {config.levels.length} levels -- {config.options.length} root options -- {totalOptions} total
+        </span>
         <button
           type="button"
           onClick={onCloseDialog}
-          className="px-6 py-2.5 bg-primary text-on-primary rounded-xl text-sm font-bold hover:bg-primary/90 transition-all"
+          className="px-8 py-2.5 bg-primary text-on-primary rounded-xl text-sm font-bold hover:bg-primary/90 transition-all"
         >
           Done
         </button>
