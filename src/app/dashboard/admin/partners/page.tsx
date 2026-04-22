@@ -3,6 +3,7 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { sanitizeFilterValue } from "@/lib/utils/sanitize-filter";
 import Link from "next/link";
 import Image from "next/image";
+import TierChanger from "./TierChanger";
 
 interface PageProps {
   searchParams: Promise<{ q?: string; tier?: string; page?: string }>;
@@ -114,7 +115,7 @@ export default async function AdminPartnersPage({ searchParams }: PageProps) {
           </div>
         </form>
         <div className="flex gap-2">
-          {["all", "free", "paid", "unlimited", "enterprise"].map((t) => (
+          {["all", "free", "starter", "pro", "agency"].map((t) => (
             <Link
               key={t}
               href={buildUrl({ tier: t === "all" ? undefined : t, page: undefined })}
@@ -140,45 +141,45 @@ export default async function AdminPartnersPage({ searchParams }: PageProps) {
             </div>
           )}
           {(partners ?? []).map((p) => {
-            const badge = TIER_BADGES[p.plan_tier] ?? TIER_BADGES.free;
             const monthSubs = subCounts[p.id] ?? 0;
             return (
-              <Link
+              <div
                 key={p.id}
-                href={`/dashboard/partners/${p.id}`}
                 className="flex items-center gap-4 px-6 py-4 hover:bg-on-surface/[0.02] transition-colors"
               >
-                {p.logo_url ? (
-                  <div className="relative w-10 h-10 rounded-lg overflow-hidden shrink-0">
-                    <Image src={p.logo_url} alt="" fill className="object-contain" sizes="40px" />
+                <Link href={`/dashboard/partners/${p.id}`} className="flex items-center gap-4 flex-1 min-w-0">
+                  {p.logo_url ? (
+                    <div className="relative w-10 h-10 rounded-lg overflow-hidden shrink-0">
+                      <Image src={p.logo_url} alt="" fill className="object-contain" sizes="40px" />
+                    </div>
+                  ) : (
+                    <div
+                      className="w-10 h-10 rounded-lg flex items-center justify-center text-on-primary text-sm font-bold shrink-0"
+                      style={{ backgroundColor: p.primary_color || "#696cf8" }}
+                    >
+                      {p.name.slice(0, 1).toUpperCase()}
+                    </div>
+                  )}
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2">
+                      <p className="text-sm font-bold text-on-surface truncate">{p.name}</p>
+                      {p.parent_partner_id && (
+                        <span className="text-[10px] text-on-surface-variant/40 bg-surface-container-high px-1.5 py-0.5 rounded">sub</span>
+                      )}
+                    </div>
+                    <p className="text-xs text-on-surface-variant/60 truncate">
+                      {p.custom_domain || `${p.slug}`}
+                    </p>
                   </div>
-                ) : (
-                  <div
-                    className="w-10 h-10 rounded-lg flex items-center justify-center text-on-primary text-sm font-bold shrink-0"
-                    style={{ backgroundColor: p.primary_color || "#696cf8" }}
-                  >
-                    {p.name.slice(0, 1).toUpperCase()}
+                  <div className="text-right shrink-0 hidden sm:block">
+                    <p className="text-xs text-on-surface-variant/60">{monthSubs} this mo.</p>
                   </div>
-                )}
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-2">
-                    <p className="text-sm font-bold text-on-surface truncate">{p.name}</p>
-                    {p.parent_partner_id && (
-                      <span className="text-[10px] text-on-surface-variant/40 bg-surface-container-high px-1.5 py-0.5 rounded">sub</span>
-                    )}
-                  </div>
-                  <p className="text-xs text-on-surface-variant/60 truncate">
-                    {p.custom_domain || `${p.slug}`}
-                  </p>
-                </div>
-                <div className="text-right shrink-0 hidden sm:block">
-                  <p className="text-xs text-on-surface-variant/60">{monthSubs} this mo.</p>
-                </div>
-                <span className={`text-[10px] font-bold uppercase tracking-widest px-2 py-1 rounded-full border shrink-0 ${badge.bg} ${badge.color} ${badge.border}`}>
-                  {badge.label}
-                </span>
-                <i className="fa-solid fa-chevron-right text-[10px] text-on-surface-variant/30 shrink-0" />
-              </Link>
+                </Link>
+                <TierChanger partnerId={p.id} currentTier={p.plan_tier} />
+                <Link href={`/dashboard/partners/${p.id}`} className="shrink-0">
+                  <i className="fa-solid fa-chevron-right text-[10px] text-on-surface-variant/30" />
+                </Link>
+              </div>
             );
           })}
         </div>
