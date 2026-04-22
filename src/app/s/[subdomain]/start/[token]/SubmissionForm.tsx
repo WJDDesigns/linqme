@@ -4816,10 +4816,13 @@ function CelestialField({
         </div>
 
       ) : field.type === "checkbox" ? (
+        <>
+        <input type="hidden" name={field.id} value={value ? "yes" : "no"} />
         <label htmlFor={field.id} className="flex items-center gap-3 cursor-pointer py-3 px-4 rounded-xl border-2 transition-all duration-200" style={value ? { borderColor: primaryColor, backgroundColor: primaryColor + "08" } : { borderColor: "var(--color-outline-variant)" }}>
-          <input id={field.id} name={field.id} type="checkbox" value="yes" checked={!!value} onChange={(e) => onChange(e.target.checked ? "yes" : "")} className="h-5 w-5 rounded" style={{ accentColor: primaryColor }} />
+          <input id={field.id} type="checkbox" checked={!!value} onChange={(e) => onChange(e.target.checked ? "yes" : "no")} className="h-5 w-5 rounded" style={{ accentColor: primaryColor }} />
           <span className="text-sm text-on-surface">{field.placeholder || "Yes"}</span>
         </label>
+        </>
 
       ) : field.type === "date" ? (
         <input id={field.id} name={field.id} required={field.required} type="date" value={str} onChange={(e) => onChange(e.target.value)} className={INPUT_CLS} style={{ ...focusRing, borderColor: errBorder }} />
