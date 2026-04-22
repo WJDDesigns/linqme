@@ -4721,8 +4721,8 @@ function CelestialField({
       } else {
         displayValue = computedValue.toFixed(decimals);
       }
-      if (cfg.prefix) displayValue = cfg.prefix + displayValue;
-      if (cfg.suffix) displayValue = displayValue + cfg.suffix;
+      if (cfg.prefix) displayValue = cfg.prefix + " " + displayValue;
+      if (cfg.suffix) displayValue = displayValue + " " + cfg.suffix;
     }
     return (
       <div className="group">
@@ -4731,11 +4731,10 @@ function CelestialField({
         </label>
         {field.hint && <p className="text-xs text-on-surface-variant/60 mb-2 ml-1">{field.hint}</p>}
         <input type="hidden" name={field.id} value={hiddenValue} />
-        <div className="rounded-xl border border-outline-variant/20 bg-surface-container/30 px-4 py-3 flex items-center justify-between">
+        <div className="rounded-xl border border-outline-variant/20 bg-surface-container/30 px-4 py-3">
           <span className="text-2xl font-bold tracking-tight" style={{ color: primaryColor }}>
             {displayValue}
           </span>
-          <i className="fa-solid fa-calculator text-on-surface-variant/30" />
         </div>
         {error && <p className="text-sm text-error mt-1.5 sl-fade-up flex items-center gap-1.5"><i className="fa-solid fa-circle-exclamation text-xs flex-shrink-0" />{error}</p>}
       </div>

@@ -1016,13 +1016,65 @@ export default function FormEditor({ initialSchema, onOpenTemplates, formId, has
     if (selectedFieldId === fieldId) clearSelection();
   }
   function updateField(stepId: string, fieldId: string, patch: Partial<FieldDef>) {
-    updateSteps((steps) =>
-      steps.map((s) =>
+    const isRename = patch.id && patch.id !== fieldId;
+    const newId = patch.id;
+    updateSteps((steps) => {
+      let updated = steps.map((s) =>
         s.id === stepId
           ? { ...s, fields: s.fields.map((f) => (f.id === fieldId ? { ...f, ...patch } : f)) }
           : s,
-      ),
-    );
+      );
+      // When a field ID changes, propagate the rename everywhere it is referenced
+      if (isRename && newId) {
+        updated = updated.map((s) => {
+          // Update step-level showCondition
+          let stepUpdated = { ...s };
+          if (stepUpdated.showCondition?.fieldId === fieldId) {
+            stepUpdated.showCondition = { ...stepUpdated.showCondition, fieldId: newId };
+          }
+          if (stepUpdated.showCondition?.extraConditions && stepUpdated.showCondition.extraConditions.length > 0) {
+            const updatedExtra = stepUpdated.showCondition.extraConditions.map((c) =>
+              c.fieldId === fieldId ? { ...c, fieldId: newId } : c,
+            );
+            if (updatedExtra.some((c, i) => c !== stepUpdated.showCondition!.extraConditions![i])) {
+              stepUpdated.showCondition = { ...stepUpdated.showCondition, extraConditions: updatedExtra };
+            }
+          }
+          return {
+            ...stepUpdated,
+            fields: stepUpdated.fields.map((f) => {
+              let changed = { ...f };
+              // Update field-level showCondition references
+              if (changed.showCondition?.fieldId === fieldId) {
+                changed.showCondition = { ...changed.showCondition, fieldId: newId };
+              }
+              // Update calculated field formula references
+              if (changed.calculatedFieldConfig?.formula) {
+                const renamedFormula = changed.calculatedFieldConfig.formula.replaceAll(`{${fieldId}}`, `{${newId}}`);
+                if (renamedFormula !== changed.calculatedFieldConfig.formula) {
+                  changed.calculatedFieldConfig = { ...changed.calculatedFieldConfig, formula: renamedFormula };
+                }
+              }
+              // Update extraConditions in showCondition
+              if (changed.showCondition?.extraConditions && changed.showCondition.extraConditions.length > 0) {
+                const updatedExtra = changed.showCondition.extraConditions.map((c) =>
+                  c.fieldId === fieldId ? { ...c, fieldId: newId } : c,
+                );
+                if (updatedExtra.some((c, i) => c !== changed.showCondition!.extraConditions![i])) {
+                  changed.showCondition = { ...changed.showCondition, extraConditions: updatedExtra };
+                }
+              }
+              return changed;
+            }),
+          };
+        });
+      }
+      return updated;
+    });
+    // Update selectedFieldId if this field was renamed
+    if (isRename && newId && selectedFieldId === fieldId) {
+      setSelectedFieldId(newId);
+    }
   }
 
   /* ── Resize handlers ────────────────────────────────────── */
