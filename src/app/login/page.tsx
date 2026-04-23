@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useSearchParams } from "next/navigation";
 import OAuthButtons from "@/components/OAuthButtons";
 import VantaBackground from "@/components/VantaBackground";
 import AuthHeader from "@/components/AuthHeader";
@@ -13,7 +13,6 @@ const INPUT_CLS =
   "block w-full px-4 py-3 text-sm bg-surface-container-lowest/80 border border-outline-variant/10 rounded-xl text-on-surface placeholder:text-on-surface-variant/40 focus:ring-2 focus:ring-primary/30 focus:border-primary/30 outline-none transition-all duration-300";
 
 export default function LoginPage() {
-  const router = useRouter();
   const searchParams = useSearchParams();
   const nextUrl = searchParams.get("next") || "/dashboard";
   const [mode, setMode] = useState<Mode>("password");
@@ -41,13 +40,14 @@ export default function LoginPage() {
     }
 
     if (data.needsMfa) {
-      // User has MFA enrolled but hasn't verified yet — redirect to challenge
-      router.push(`/auth/mfa/challenge?next=${encodeURIComponent(nextUrl)}`);
+      // User has MFA enrolled but hasn't verified yet -- redirect to challenge
+      window.location.href = `/auth/mfa/challenge?next=${encodeURIComponent(nextUrl)}`;
       return;
     }
 
-    router.push(nextUrl);
-    router.refresh();
+    // Use hard navigation so the browser shows its own loading indicator
+    // and doesn't hang on "Signing in..." while the dashboard renders
+    window.location.href = nextUrl;
   }
 
   async function handleMagic(e: React.FormEvent) {
