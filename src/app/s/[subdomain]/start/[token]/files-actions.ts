@@ -5,6 +5,7 @@ import { uploadToR2, deleteFromR2 } from "@/lib/storage";
 import type { UploadedFile } from "@/lib/forms";
 
 const MAX_BYTES = 50 * 1024 * 1024; // 50 MB per file
+const MAX_VIDEO_BYTES = 100 * 1024 * 1024; // 100 MB for videos
 
 /** Allowed file types for submission uploads */
 const ALLOWED_TYPES = new Set([
@@ -75,7 +76,10 @@ export async function uploadFileAction(
     throw new Error("No file provided");
   }
   const f = file as File;
-  if (f.size > MAX_BYTES) throw new Error("File is too large (50 MB max)");
+  const isVideo = f.type.startsWith("video/");
+  const limit = isVideo ? MAX_VIDEO_BYTES : MAX_BYTES;
+  const limitLabel = isVideo ? "100 MB" : "50 MB";
+  if (f.size > limit) throw new Error(`File is too large (${limitLabel} max for ${isVideo ? "videos" : "files"}).`);
   if (!isAllowedFile(f)) throw new Error("File type not allowed. Please upload a document, image, video, or archive.");
 
   const admin = createAdminClient();

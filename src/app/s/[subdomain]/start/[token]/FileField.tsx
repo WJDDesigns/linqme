@@ -29,6 +29,19 @@ export default function FileField({ field, initialFiles, upload, remove, primary
     const selected = Array.from(e.target.files ?? []);
     if (!selected.length) return;
     setError(null);
+
+    // Client-side size validation for instant feedback
+    for (const f of selected) {
+      const isVideo = f.type.startsWith("video/");
+      const limit = isVideo ? 100 * 1024 * 1024 : 50 * 1024 * 1024;
+      const limitLabel = isVideo ? "100 MB" : "50 MB";
+      if (f.size > limit) {
+        setError(`"${f.name}" is too large (${limitLabel} max for ${isVideo ? "videos" : "files"}).`);
+        if (inputRef.current) inputRef.current.value = "";
+        return;
+      }
+    }
+
     startTransition(async () => {
       for (const f of selected) {
         try {
@@ -115,7 +128,7 @@ export default function FileField({ field, initialFiles, upload, remove, primary
             <p className="text-sm font-semibold text-on-surface font-headline">
               {pending ? "Uploading..." : "Click or drag to upload"}
             </p>
-            <p className="text-xs text-on-surface-variant/60">Max 50 MB per file</p>
+            <p className="text-xs text-on-surface-variant/60">Max 50 MB per file · 100 MB for videos</p>
           </label>
         </div>
       )}
