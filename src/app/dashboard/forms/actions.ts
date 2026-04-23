@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { requireSession, getCurrentAccount } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/admin";
 import type { FormSchema } from "@/lib/forms";
 
 export interface SaveFormResult {
@@ -73,8 +74,11 @@ export async function saveFormSchemaAction(
     return { ok: false, error: "No form found for your account." };
   }
 
-  // Update the template schema
-  const { error } = await supabase
+  // Update the template schema using admin client since RLS on form_templates
+  // only allows superadmins to write. Authorization is already verified above
+  // via the partner_forms lookup scoped to account.id.
+  const admin = createAdminClient();
+  const { error } = await admin
     .from("form_templates")
     .update({ schema })
     .eq("id", pf.template_id);

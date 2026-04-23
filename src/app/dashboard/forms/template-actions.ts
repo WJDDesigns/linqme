@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { requireSession, getCurrentAccount } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/admin";
 import type { FormSchema } from "@/lib/forms";
 
 /* ── Types ─────────────────────────────────────────────────── */
@@ -88,9 +89,13 @@ export async function applyTemplateAction(templateId: string, formId?: string): 
     pf = data;
   }
 
+  // Use admin client for form_templates writes (RLS only allows superadmin).
+  // Authorization is verified above via partner_forms scoped to account.id.
+  const admin = createAdminClient();
+
   if (!pf) {
-    // No active form yet — create a new template + partner_form
-    const { data: newTpl, error: newErr } = await supabase
+    // No active form yet -- create a new template + partner_form
+    const { data: newTpl, error: newErr } = await admin
       .from("form_templates")
       .insert({
         slug: `custom-${account.id.slice(0, 8)}-${Date.now()}`,
@@ -104,14 +109,14 @@ export async function applyTemplateAction(templateId: string, formId?: string): 
 
     if (newErr || !newTpl) return { ok: false, error: newErr?.message ?? "Failed to create form." };
 
-    const { error: pfErr } = await supabase
+    const { error: pfErr } = await admin
       .from("partner_forms")
       .insert({ partner_id: account.id, template_id: newTpl.id, is_active: true, name: `${account.name} Form`, slug: `default`, is_default: true });
 
     if (pfErr) return { ok: false, error: pfErr.message };
   } else {
     // Update existing template schema
-    const { error: upErr } = await supabase
+    const { error: upErr } = await admin
       .from("form_templates")
       .update({ schema: tpl.schema })
       .eq("id", pf.template_id);
@@ -146,8 +151,10 @@ export async function startBlankFormAction(): Promise<TemplateResult> {
     .limit(1)
     .maybeSingle();
 
+  const admin = createAdminClient();
+
   if (!pf) {
-    const { data: newTpl, error: newErr } = await supabase
+    const { data: newTpl, error: newErr } = await admin
       .from("form_templates")
       .insert({
         slug: `blank-${account.id.slice(0, 8)}-${Date.now()}`,
@@ -161,11 +168,11 @@ export async function startBlankFormAction(): Promise<TemplateResult> {
 
     if (newErr || !newTpl) return { ok: false, error: newErr?.message ?? "Failed." };
 
-    await supabase
+    await admin
       .from("partner_forms")
       .insert({ partner_id: account.id, template_id: newTpl.id, is_active: true, name: `${account.name} Form`, slug: `default`, is_default: true });
   } else {
-    await supabase
+    await admin
       .from("form_templates")
       .update({ schema: blankSchema })
       .eq("id", pf.template_id);
@@ -206,7 +213,8 @@ export async function saveAsTemplateAction(
 
   const slug = `user-${account.id.slice(0, 8)}-${Date.now()}`;
 
-  const { error } = await supabase
+  const adminSave = createAdminClient();
+  const { error } = await adminSave
     .from("form_templates")
     .insert({
       slug,
