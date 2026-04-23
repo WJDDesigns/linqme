@@ -81,9 +81,115 @@ export async function toggleCouponAction(couponId: string, isActive: boolean) {
   await requireSuperadmin();
   const admin = createAdminClient();
 
+  // Get the Stripe coupon ID so we can sync the active state
+  const { data: coupon } = await admin
+    .from("coupons")
+    .select("stripe_coupon_id")
+    .eq("id", couponId)
+    .maybeSingle();
+
+  // Stripe doesn't support re-activating deleted coupons, so we delete/recreate
+  // For deactivating: delete the Stripe coupon so it can't be used
+  // For re-activating: the checkout fallback will auto-create if missing
+  if (coupon?.stripe_coupon_id && !isActive) {
+    try {
+      await stripe.coupons.del(coupon.stripe_coupon_id);
+    } catch {
+      // May already be deleted
+    }
+    await admin
+      .from("coupons")
+      .update({ is_active: isActive, stripe_coupon_id: null, updated_at: new Date().toISOString() })
+      .eq("id", couponId);
+  } else {
+    await admin
+      .from("coupons")
+      .update({ is_active: isActive, updated_at: new Date().toISOString() })
+      .eq("id", couponId);
+  }
+
+  revalidatePath("/dashboard/admin/billing/coupons");
+  return { success: true };
+}
+
+/**
+ * Update a coupon's discount value. Stripe coupons are immutable, so we
+ * delete the old one and create a new one with the updated values.
+ */
+export async function updateCouponAction(
+  couponId: string,
+  input: { type?: "percentage" | "fixed"; value?: number; description?: string; expiresAt?: string | null; maxRedemptions?: number | null },
+) {
+  await requireSuperadmin();
+  const admin = createAdminClient();
+
+  const { data: coupon } = await admin
+    .from("coupons")
+    .select("*")
+    .eq("id", couponId)
+    .single();
+
+  if (!coupon) throw new Error("Coupon not found.");
+
+  const newType = input.type ?? coupon.type;
+  const newValue = input.value ?? coupon.value;
+
+  if (newValue <= 0) throw new Error("Discount value must be positive.");
+  if (newType === "percentage" && newValue > 100) {
+    throw new Error("Percentage discount cannot exceed 100%.");
+  }
+
+  // If type or value changed, we need to replace the Stripe coupon
+  const discountChanged = newType !== coupon.type || newValue !== coupon.value;
+
+  let newStripeCouponId = coupon.stripe_coupon_id;
+
+  if (discountChanged) {
+    // Delete old Stripe coupon
+    if (coupon.stripe_coupon_id) {
+      try {
+        await stripe.coupons.del(coupon.stripe_coupon_id);
+      } catch {
+        // May already be deleted
+      }
+    }
+
+    // Create new Stripe coupon with updated values
+    const expiresAt = input.expiresAt !== undefined ? input.expiresAt : coupon.expires_at;
+    const maxRedemptions = input.maxRedemptions !== undefined ? input.maxRedemptions : coupon.max_redemptions;
+
+    try {
+      const newStripeCoupon = await stripe.coupons.create({
+        ...(newType === "percentage"
+          ? { percent_off: newValue }
+          : { amount_off: newValue, currency: "usd" }),
+        duration: "once",
+        name: coupon.code,
+        ...(maxRedemptions ? { max_redemptions: maxRedemptions } : {}),
+        ...(expiresAt
+          ? { redeem_by: Math.floor(new Date(expiresAt).getTime() / 1000) }
+          : {}),
+        metadata: { linqme_code: coupon.code },
+      });
+      newStripeCouponId = newStripeCoupon.id;
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : "Unknown Stripe error";
+      throw new Error(`Failed to update coupon in Stripe: ${msg}`);
+    }
+  }
+
+  // Update in DB
   await admin
     .from("coupons")
-    .update({ is_active: isActive, updated_at: new Date().toISOString() })
+    .update({
+      type: newType,
+      value: newValue,
+      description: input.description !== undefined ? (input.description || null) : coupon.description,
+      expires_at: input.expiresAt !== undefined ? (input.expiresAt || null) : coupon.expires_at,
+      max_redemptions: input.maxRedemptions !== undefined ? input.maxRedemptions : coupon.max_redemptions,
+      stripe_coupon_id: newStripeCouponId,
+      updated_at: new Date().toISOString(),
+    })
     .eq("id", couponId);
 
   revalidatePath("/dashboard/admin/billing/coupons");
