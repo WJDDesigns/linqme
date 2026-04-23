@@ -346,10 +346,46 @@ h1, h2, h3, h4, .headline {
   }
 
   .gradient-text-hero {
-    background: linear-gradient(135deg, rgb(var(--color-primary)) 0%, rgb(var(--color-inverse-primary)) 50%, rgb(var(--color-tertiary)) 100%);
+    background: linear-gradient(
+      135deg,
+      rgb(var(--color-primary)) 0%,
+      rgb(var(--color-tertiary)) 25%,
+      rgb(var(--color-inverse-primary)) 50%,
+      rgb(var(--color-primary)) 75%,
+      rgb(var(--color-tertiary)) 100%
+    );
+    background-size: 300% 300%;
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
+    animation: hero-gradient-shift 8s ease-in-out infinite;
+    filter: drop-shadow(0 0 12px rgba(var(--color-primary), 0.4));
+  }
+
+  @keyframes hero-gradient-shift {
+    0%, 100% { background-position: 0% 50%; }
+    25% { background-position: 100% 0%; }
+    50% { background-position: 100% 100%; }
+    75% { background-position: 0% 100%; }
+  }
+
+  /* Animated glow behind white hero heading */
+  .hero-text-glow {
+    animation: hero-text-glow-pulse 6s ease-in-out infinite;
+  }
+
+  @keyframes hero-text-glow-pulse {
+    0%, 100% {
+      text-shadow:
+        0 0 20px rgba(0,0,0,0.4),
+        0 0 60px rgba(0,0,0,0.2);
+    }
+    50% {
+      text-shadow:
+        0 0 30px rgba(0,0,0,0.6),
+        0 0 80px rgba(0,0,0,0.3),
+        0 0 120px rgba(0,0,0,0.1);
+    }
   }
 
   /* Glow hover effect for cards */
