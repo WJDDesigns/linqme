@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { requireSession, getCurrentAccount } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { logInfo, logError } from "@/lib/system-log";
 import type { FormSchema } from "@/lib/forms";
 
 export interface SaveFormResult {
@@ -83,8 +84,12 @@ export async function saveFormSchemaAction(
     .update({ schema })
     .eq("id", pf.template_id);
 
-  if (error) return { ok: false, error: error.message };
+  if (error) {
+    logError(`Form save failed: ${error.message}`, { category: "forms", partnerId: account.id, metadata: { formId: pf.id, templateId: pf.template_id } });
+    return { ok: false, error: error.message };
+  }
 
+  logInfo("Form schema saved", { category: "forms", partnerId: account.id, metadata: { formId: pf.id, fieldCount: schema.steps.reduce((n, s) => n + s.fields.length, 0) } });
   revalidatePath("/dashboard/forms");
   if (formId) revalidatePath(`/dashboard/forms/${formId}`);
   return { ok: true };

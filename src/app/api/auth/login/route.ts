@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { rateLimiter } from "@/lib/rate-limit";
+import { logInfo, logWarn, logError } from "@/lib/system-log";
 
 export async function POST(request: NextRequest) {
   const ip =
@@ -25,8 +26,11 @@ export async function POST(request: NextRequest) {
   const { error } = await supabase.auth.signInWithPassword({ email, password });
 
   if (error) {
+    logWarn(`Login failed for ${email}: ${error.message}`, { category: "auth", metadata: { email, ip } });
     return NextResponse.json({ error: error.message }, { status: 401 });
   }
+
+  logInfo(`Login succeeded for ${email}`, { category: "auth", metadata: { email, ip } });
 
   // Check MFA status
   const { data: aalData } = await supabase.auth.mfa.getAuthenticatorAssuranceLevel();

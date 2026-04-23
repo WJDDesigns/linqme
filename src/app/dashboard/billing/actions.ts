@@ -6,6 +6,7 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { stripe, getOrCreateCustomer } from "@/lib/stripe";
 import { getPlanBySlug } from "@/lib/plans";
 import { validateCoupon, redeemCoupon } from "@/lib/coupons";
+import { logInfo, logError } from "@/lib/system-log";
 
 /**
  * Validate a coupon code for a billing plan (client-side validation before checkout).
@@ -174,23 +175,18 @@ export async function createCheckoutAction(
   }
 
   try {
-    console.log("[billing] Creating checkout session for partner:", account.id, "plan:", planSlug, "price:", plan.stripePriceId);
+    logInfo(`Checkout started for plan ${planSlug}`, { category: "billing", partnerId: account.id, metadata: { planSlug, priceId: plan.stripePriceId, coupon: stripeCouponId } });
     const checkoutSession = await stripe.checkout.sessions.create(checkoutParams);
 
     if (!checkoutSession.url) {
+      logError("Stripe returned no checkout URL", { category: "stripe", partnerId: account.id });
       return { ok: false, error: "Stripe did not return a checkout URL. Please try again." };
     }
 
     return { ok: true, url: checkoutSession.url };
   } catch (err) {
     const message = err instanceof Error ? err.message : "Unknown Stripe error";
-    console.error("[billing] Stripe checkout session creation failed:", message, {
-      partnerId: account.id,
-      planSlug,
-      stripePriceId: plan.stripePriceId,
-      customerId,
-      stripeCouponId,
-    });
+    logError(`Checkout failed: ${message}`, { category: "stripe", partnerId: account.id, metadata: { planSlug, priceId: plan.stripePriceId, customerId, coupon: stripeCouponId } });
     return { ok: false, error: `Checkout failed: ${message}` };
   }
 }

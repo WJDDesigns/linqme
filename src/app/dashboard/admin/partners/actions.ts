@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { requireSuperadmin } from "@/lib/auth";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { logInfo, logError } from "@/lib/system-log";
 
 const VALID_TIERS = ["free", "starter", "pro", "agency"] as const;
 
@@ -53,8 +54,11 @@ export async function changePartnerTierAction(
     .eq("id", partnerId);
 
   if (updateError) {
+    logError(`Tier change failed: ${updateError.message}`, { category: "billing", partnerId, metadata: { from: partner.plan_tier, to: newTier } });
     return { ok: false, error: updateError.message };
   }
+
+  logInfo(`Tier changed: ${partner.plan_tier} -> ${newTier}`, { category: "billing", partnerId, metadata: { partnerName: partner.name, from: partner.plan_tier, to: newTier } });
 
   // Log the tier change as an event
   await admin.from("events").insert({
