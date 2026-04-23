@@ -1,6 +1,9 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: true,
+  serverActions: {
+    bodySizeLimit: "55mb",
+  },
   images: {
     remotePatterns: [
       { protocol: "https", hostname: "*.supabase.co" },
