@@ -71,6 +71,6 @@ export async function changePartnerTierAction(
     },
   });
 
-  revalidatePath("/dashboard/admin/partners");
+  revalidatePath("/dashboard/admin/customers");
   return { ok: true };
 }

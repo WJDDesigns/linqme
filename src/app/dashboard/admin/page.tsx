@@ -43,7 +43,7 @@ export default async function AdminDashboardPage() {
   ]);
 
   const stats = [
-    { label: "Customers", value: totalPartners ?? 0, icon: "fa-users", href: "/dashboard/admin/partners" },
+    { label: "Customers", value: totalPartners ?? 0, icon: "fa-users", href: "/dashboard/admin/customers" },
     { label: "Users", value: totalUsers ?? 0, icon: "fa-user-shield", href: "/dashboard/admin/team" },
     { label: "Submissions", value: totalSubmissions ?? 0, icon: "fa-inbox", href: "/dashboard/submissions" },
     { label: "This Month", value: monthSubmissions ?? 0, icon: "fa-calendar-day", href: null },
@@ -88,7 +88,7 @@ export default async function AdminDashboardPage() {
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         {[
           { label: "Manage Team", desc: "Invite admins and support staff", icon: "fa-user-shield", href: "/dashboard/admin/team" },
-          { label: "All Customers", desc: "Search and manage every customer", icon: "fa-sitemap", href: "/dashboard/admin/partners" },
+          { label: "All Customers", desc: "Search and manage every customer", icon: "fa-sitemap", href: "/dashboard/admin/customers" },
           { label: "Storage", desc: "File storage usage per customer", icon: "fa-hard-drive", href: "/dashboard/admin/storage" },
           { label: "Activity Log", desc: "Audit trail of platform events", icon: "fa-timeline", href: "/dashboard/admin/activity" },
           { label: "Integration Requests", desc: "Most-demanded integration requests", icon: "fa-lightbulb", href: "/dashboard/admin/integrations" },
