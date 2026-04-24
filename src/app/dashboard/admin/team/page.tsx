@@ -1,4 +1,4 @@
-import { requireSuperadmin } from "@/lib/auth";
+import { requireSuperadmin, getCurrentAccount, requireSession } from "@/lib/auth";
 import { createAdminClient } from "@/lib/supabase/admin";
 import Link from "next/link";
 import InviteForm from "./InviteForm";
@@ -7,14 +7,39 @@ import { inviteTeamMemberAction, updateRoleAction, removeTeamMemberAction } from
 
 export default async function TeamPage() {
   await requireSuperadmin();
+  const session = await requireSession();
+  const account = await getCurrentAccount(session.userId);
   const admin = createAdminClient();
 
-  // Get all internal team members (superadmin, admin, support roles — NOT partner_owner/client)
-  const { data: profiles } = await admin
+  // Get team members who are on MY partner (the platform owner's partner),
+  // not every partner_owner in the system. Agency owners who signed up via
+  // invites should NOT appear here -- they have their own partners.
+  const myPartnerId = account?.id;
+  const { data: teamMembers } = myPartnerId
+    ? await admin
+        .from("partner_members")
+        .select("user_id, role")
+        .eq("partner_id", myPartnerId)
+    : { data: [] };
+
+  const teamUserIds = (teamMembers ?? []).map((m) => m.user_id);
+
+  // Also include superadmin profiles (they may not be in partner_members)
+  const { data: superadmins } = await admin
     .from("profiles")
-    .select("id, email, full_name, avatar_url, role, created_at")
-    .in("role", ["superadmin", "partner_owner", "partner_member"])
-    .order("created_at", { ascending: true });
+    .select("id")
+    .eq("role", "superadmin");
+  for (const sa of superadmins ?? []) {
+    if (!teamUserIds.includes(sa.id)) teamUserIds.push(sa.id);
+  }
+
+  const { data: profiles } = teamUserIds.length > 0
+    ? await admin
+        .from("profiles")
+        .select("id, email, full_name, avatar_url, role, created_at")
+        .in("id", teamUserIds)
+        .order("created_at", { ascending: true })
+    : { data: [] };
 
   // Get pending invites
   const { data: invites } = await admin
