@@ -18,6 +18,13 @@ interface FolderNode extends CloudFolder {
 
 export default function CloudFolderPicker({ provider, onSelect, onCancel }: Props) {
   const meta = PROVIDER_META[provider];
+
+  // Close on Escape
+  useEffect(() => {
+    function handleKey(e: KeyboardEvent) { if (e.key === "Escape") onCancel(); }
+    document.addEventListener("keydown", handleKey);
+    return () => document.removeEventListener("keydown", handleKey);
+  }, [onCancel]);
   const [folders, setFolders] = useState<FolderNode[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);

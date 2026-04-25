@@ -4555,6 +4555,14 @@ function DialogLauncher({
 }) {
   const [open, setOpen] = useState(false);
 
+  // Close on Escape
+  useEffect(() => {
+    if (!open) return;
+    function handleKey(e: KeyboardEvent) { if (e.key === "Escape") setOpen(false); }
+    document.addEventListener("keydown", handleKey);
+    return () => document.removeEventListener("keydown", handleKey);
+  }, [open]);
+
   return (
     <>
       <button

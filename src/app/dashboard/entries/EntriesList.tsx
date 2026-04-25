@@ -70,6 +70,7 @@ export default function EntriesList({ submissions, forms, isSuperadmin, showSmar
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("");
   const [formFilter, setFormFilter] = useState(initialFormId);
+  const [dateRange, setDateRange] = useState<"7d" | "30d" | "90d" | "all">("all");
   const [sortBy, setSortBy] = useState<"date" | "name" | "status">("date");
   const [sortDir, setSortDir] = useState<"asc" | "desc">("desc");
   const [isPending, startTransition] = useTransition();
@@ -81,6 +82,12 @@ export default function EntriesList({ submissions, forms, isSuperadmin, showSmar
     let list = submissions;
     if (formFilter) list = list.filter((s) => s.partner_form_id === formFilter);
     if (statusFilter) list = list.filter((s) => s.status === statusFilter);
+    if (dateRange !== "all") {
+      const days = dateRange === "7d" ? 7 : dateRange === "30d" ? 30 : 90;
+      const cutoff = new Date();
+      cutoff.setDate(cutoff.getDate() - days);
+      list = list.filter((s) => new Date(s.submitted_at ?? s.created_at) >= cutoff);
+    }
     if (search) {
       const q = search.toLowerCase();
       list = list.filter(
@@ -103,7 +110,7 @@ export default function EntriesList({ submissions, forms, isSuperadmin, showSmar
     });
 
     return list;
-  }, [submissions, formFilter, statusFilter, search, sortBy, sortDir]);
+  }, [submissions, formFilter, statusFilter, dateRange, search, sortBy, sortDir]);
 
   const paginatedEntries = useMemo(() => {
     const start = (page - 1) * PAGE_SIZE;
@@ -243,6 +250,23 @@ export default function EntriesList({ submissions, forms, isSuperadmin, showSmar
             <option key={s} value={s}>{s.replace("_", " ")}</option>
           ))}
         </select>
+
+        {/* Date range */}
+        <div className="flex items-center rounded-lg border border-outline-variant/15 overflow-hidden">
+          {(["7d", "30d", "90d", "all"] as const).map((range) => (
+            <button
+              key={range}
+              onClick={() => setDateRange(range)}
+              className={`px-2.5 py-2 text-xs font-medium transition-colors ${
+                dateRange === range
+                  ? "bg-primary/10 text-primary font-bold"
+                  : "text-on-surface-variant/60 hover:bg-surface-container-high hover:text-on-surface-variant"
+              }`}
+            >
+              {range === "all" ? "All" : range.toUpperCase()}
+            </button>
+          ))}
+        </div>
 
         {/* Export CSV */}
         <button

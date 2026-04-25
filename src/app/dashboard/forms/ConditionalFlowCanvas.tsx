@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo, useCallback } from "react";
+import { useState, useMemo, useCallback, useEffect } from "react";
 import type { FormSchema, FieldDef, ShowCondition } from "@/lib/forms";
 
 /* ── Constants ───────────────────────────────────────────── */
@@ -829,6 +829,13 @@ function AddRulePanel({
   onAdd: (targetId: string, targetType: "field" | "step", primary: ConditionClause, extras: ConditionClause[], combinator: "and" | "or", action: "show" | "hide") => void;
   onClose: () => void;
 }) {
+  // Close on Escape
+  useEffect(() => {
+    function handleKey(e: KeyboardEvent) { if (e.key === "Escape") onClose(); }
+    document.addEventListener("keydown", handleKey);
+    return () => document.removeEventListener("keydown", handleKey);
+  }, [onClose]);
+
   const [primary, setPrimary] = useState<ConditionClause>({ fieldId: "", operator: "equals", value: "" });
   const [extras, setExtras] = useState<ConditionClause[]>([]);
   const [combinator, setCombinator] = useState<"and" | "or">("or");

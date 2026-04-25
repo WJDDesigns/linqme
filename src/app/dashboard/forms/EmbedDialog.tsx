@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 
 type EmbedType = "iframe" | "widget";
 type EmbedStyle = "branded" | "chromeless";
@@ -12,6 +12,13 @@ interface Props {
 }
 
 export default function EmbedDialog({ formUrl, formName, onClose }: Props) {
+  // Close on Escape
+  useEffect(() => {
+    function handleKey(e: KeyboardEvent) { if (e.key === "Escape") onClose(); }
+    document.addEventListener("keydown", handleKey);
+    return () => document.removeEventListener("keydown", handleKey);
+  }, [onClose]);
+
   const [embedType, setEmbedType] = useState<EmbedType>("iframe");
   const [embedStyle, setEmbedStyle] = useState<EmbedStyle>("branded");
   const [copied, setCopied] = useState(false);

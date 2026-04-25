@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 
 interface Submission {
   id: string;
@@ -18,18 +18,30 @@ interface Props {
   forms: { id: string; name: string }[];
 }
 
+const TIMEFRAMES = [
+  { key: "7d", label: "7D", days: 7 },
+  { key: "14d", label: "14D", days: 14 },
+  { key: "30d", label: "30D", days: 30 },
+  { key: "90d", label: "90D", days: 90 },
+] as const;
+
+type TimeframeKey = (typeof TIMEFRAMES)[number]["key"];
+
 export default function ActivityDashboard({ submissions, forms }: Props) {
+  const [timeframe, setTimeframe] = useState<TimeframeKey>("30d");
+  const tfDays = TIMEFRAMES.find((t) => t.key === timeframe)!.days;
+
   const formNameMap = useMemo(() => {
     const m: Record<string, string> = {};
     for (const f of forms) m[f.id] = f.name;
     return m;
   }, [forms]);
 
-  // Build 30-day trend data
+  // Build trend data based on selected timeframe
   const trendData = useMemo(() => {
     const now = new Date();
     const days: { label: string; date: string; count: number }[] = [];
-    for (let i = 29; i >= 0; i--) {
+    for (let i = tfDays - 1; i >= 0; i--) {
       const d = new Date(now);
       d.setDate(d.getDate() - i);
       const dateStr = d.toISOString().slice(0, 10);
@@ -45,7 +57,7 @@ export default function ActivityDashboard({ submissions, forms }: Props) {
       if (day) day.count++;
     }
     return days;
-  }, [submissions]);
+  }, [submissions, tfDays]);
 
   const maxCount = Math.max(1, ...trendData.map((d) => d.count));
 
@@ -108,11 +120,27 @@ export default function ActivityDashboard({ submissions, forms }: Props) {
         <div className="flex items-center justify-between mb-5">
           <div>
             <h3 className="text-sm font-bold text-on-surface font-headline">Submissions</h3>
-            <p className="text-[10px] text-on-surface-variant/60 uppercase tracking-widest font-label mt-0.5">Last 30 days</p>
+            <p className="text-[10px] text-on-surface-variant/60 uppercase tracking-widest font-label mt-0.5">Last {tfDays} days</p>
           </div>
-          <div className="flex items-center gap-3 text-xs">
-            <span className="text-on-surface-variant">This week: <strong className="text-on-surface">{weekComparison.thisWeek}</strong></span>
-            <span className={`flex items-center gap-1 font-bold ${weekComparison.change >= 0 ? "text-green-400" : "text-red-400"}`}>
+          <div className="flex items-center gap-3">
+            {/* Timeframe selector */}
+            <div className="flex items-center rounded-lg border border-outline-variant/15 overflow-hidden">
+              {TIMEFRAMES.map((tf) => (
+                <button
+                  key={tf.key}
+                  onClick={() => setTimeframe(tf.key)}
+                  className={`px-2 py-1 text-[10px] font-medium transition-colors ${
+                    timeframe === tf.key
+                      ? "bg-primary/10 text-primary font-bold"
+                      : "text-on-surface-variant/60 hover:bg-surface-container-high hover:text-on-surface-variant"
+                  }`}
+                >
+                  {tf.label}
+                </button>
+              ))}
+            </div>
+            <span className="text-xs text-on-surface-variant">This week: <strong className="text-on-surface">{weekComparison.thisWeek}</strong></span>
+            <span className={`flex items-center gap-1 text-xs font-bold ${weekComparison.change >= 0 ? "text-green-400" : "text-red-400"}`}>
               <i className={`fa-solid ${weekComparison.change >= 0 ? "fa-arrow-up" : "fa-arrow-down"} text-[9px]`} />
               {Math.abs(weekComparison.change)}%
             </span>
@@ -141,15 +169,18 @@ export default function ActivityDashboard({ submissions, forms }: Props) {
             );
           })}
         </div>
-        {/* X-axis labels — show every 5th */}
+        {/* X-axis labels — frequency adapts to timeframe */}
         <div className="flex gap-[3px] mt-1.5">
-          {trendData.map((day, i) => (
-            <div key={day.date} className="flex-1 text-center">
-              {i % 5 === 0 ? (
-                <span className="text-[8px] text-on-surface-variant/40 font-label">{day.label.split(" ")[1]}</span>
-              ) : null}
-            </div>
-          ))}
+          {trendData.map((day, i) => {
+            const labelEvery = tfDays <= 14 ? 2 : tfDays <= 30 ? 5 : 10;
+            return (
+              <div key={day.date} className="flex-1 text-center">
+                {i % labelEvery === 0 ? (
+                  <span className="text-[8px] text-on-surface-variant/40 font-label">{day.label.split(" ")[1]}</span>
+                ) : null}
+              </div>
+            );
+          })}
         </div>
       </div>
 

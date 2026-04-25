@@ -39,6 +39,14 @@ export default function TemplatePicker({
 
   /* Save-as-template modal state */
   const [showSave, setShowSave] = useState(false);
+
+  // Close save modal on Escape
+  useEffect(() => {
+    if (!showSave) return;
+    function handleKey(e: KeyboardEvent) { if (e.key === "Escape") setShowSave(false); }
+    document.addEventListener("keydown", handleKey);
+    return () => document.removeEventListener("keydown", handleKey);
+  }, [showSave]);
   const [saveName, setSaveName] = useState("");
   const [saveDesc, setSaveDesc] = useState("");
   const [saveCat, setSaveCat] = useState("general");

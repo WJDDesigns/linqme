@@ -26,6 +26,14 @@ export default function CloudDestinationButton({ onSelect }: Props) {
   const [connected, setConnected] = useState<ConnectedProvider[]>([]);
   const [loading, setLoading] = useState(false);
 
+  // Close on Escape
+  useEffect(() => {
+    if (!showPicker) return;
+    function handleKey(e: KeyboardEvent) { if (e.key === "Escape") setShowPicker(false); }
+    document.addEventListener("keydown", handleKey);
+    return () => document.removeEventListener("keydown", handleKey);
+  }, [showPicker]);
+
   useEffect(() => {
     if (!showPicker) return;
     setLoading(true);

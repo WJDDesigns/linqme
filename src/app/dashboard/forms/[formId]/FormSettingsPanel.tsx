@@ -5,6 +5,8 @@ import { useRouter } from "next/navigation";
 import { renameFormAction, setDefaultFormAction, deleteFormAction, updateThemeModeAction, updateLayoutStyleAction, updateStartPageSettingsAction, updateSuccessPageAction } from "../form-actions";
 import type { LayoutStyle } from "../form-actions";
 import { updateFormPartnersAction } from "./assignment-actions";
+import ConfirmModal from "@/components/ConfirmModal";
+import { useUnsavedChanges } from "@/lib/useUnsavedChanges";
 
 interface Partner {
   id: string;
@@ -67,11 +69,25 @@ export default function FormSettingsPanel({
   const [skipStart, setSkipStart] = useState(initialSkipStartPage);
   const [startMsg, setStartMsg] = useState<string | null>(null);
 
+  // Delete modal state
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+
   // Success page state
   const [successHeading, setSuccessHeading] = useState(initialSuccessHeading ?? "");
   const [successMessage, setSuccessMessage] = useState(initialSuccessMessage ?? "");
   const [successRedirectUrl, setSuccessRedirectUrl] = useState(initialSuccessRedirectUrl ?? "");
   const [successMsg, setSuccessMsg] = useState<string | null>(null);
+
+  // Warn on unsaved changes
+  const isDirty =
+    name !== formName ||
+    startBtnText !== (initialStartButtonText ?? "") ||
+    startDesc !== (initialStartDescription ?? "") ||
+    skipStart !== initialSkipStartPage ||
+    successHeading !== (initialSuccessHeading ?? "") ||
+    successMessage !== (initialSuccessMessage ?? "") ||
+    successRedirectUrl !== (initialSuccessRedirectUrl ?? "");
+  useUnsavedChanges(isDirty);
 
   function handleSaveSuccessPage() {
     setSuccessMsg(null);
@@ -139,10 +155,10 @@ export default function FormSettingsPanel({
   }
 
   function handleDelete() {
-    if (!confirm(`Delete "${formName}"? This cannot be undone.`)) return;
     setMsg(null);
     startTransition(async () => {
       const result = await deleteFormAction(formId);
+      setShowDeleteModal(false);
       if (result.ok) {
         router.push("/dashboard/forms");
       } else {
@@ -460,13 +476,23 @@ export default function FormSettingsPanel({
             {!isDefault && (
               <div className="pt-3 border-t border-outline-variant/10">
                 <button
-                  onClick={handleDelete}
+                  onClick={() => setShowDeleteModal(true)}
                   disabled={pending}
                   className="text-xs font-bold text-error/70 hover:text-error transition-colors disabled:opacity-50"
                 >
                   <i className="fa-solid fa-trash text-[10px] mr-1.5" />
                   Delete this form
                 </button>
+                <ConfirmModal
+                  open={showDeleteModal}
+                  title="Delete Form"
+                  message={`Are you sure you want to delete "${formName}"? All entries and webhooks associated with this form will be permanently removed. This action cannot be undone.`}
+                  confirmLabel="Delete Form"
+                  variant="danger"
+                  loading={pending}
+                  onConfirm={handleDelete}
+                  onCancel={() => setShowDeleteModal(false)}
+                />
               </div>
             )}
           </div>
