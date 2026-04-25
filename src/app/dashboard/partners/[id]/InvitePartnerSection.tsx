@@ -48,7 +48,10 @@ export default function InvitePartnerSection({
   const [formEditing, setFormEditing] = useState(allowFormEditing);
   const [togglingForm, setTogglingForm] = useState(false);
 
-  const pendingInvites = invites.filter((i) => !i.accepted_at && new Date(i.expires_at) > new Date());
+  const [resending, setResending] = useState<string | null>(null);
+  const now = new Date();
+  const pendingInvites = invites.filter((i) => !i.accepted_at && new Date(i.expires_at) > now);
+  const expiredInvites = invites.filter((i) => !i.accepted_at && new Date(i.expires_at) <= now);
 
   async function handleSendInvite(e: React.FormEvent) {
     e.preventDefault();
@@ -83,6 +86,22 @@ export default function InvitePartnerSection({
     if (!result.ok) {
       setMessage({ type: "error", text: result.error ?? "Failed to remove." });
     }
+  }
+
+  async function handleResend(inviteEmail: string, inviteId: string) {
+    setResending(inviteId);
+    setMessage(null);
+    // Revoke old invite first, then send a fresh one
+    await revokeInviteAction(inviteId);
+    const fd = new FormData();
+    fd.set("email", inviteEmail);
+    const result = await sendInviteAction(fd);
+    if (result.ok) {
+      setMessage({ type: "ok", text: `New invite sent to ${inviteEmail}` });
+    } else {
+      setMessage({ type: "error", text: result.error ?? "Failed to resend invite." });
+    }
+    setResending(null);
   }
 
   async function handleToggleFormEditing() {
@@ -183,6 +202,50 @@ export default function InvitePartnerSection({
                   title="Revoke invite"
                 >
                   <i className="fa-solid fa-xmark" />
+                </button>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Expired invites */}
+      {expiredInvites.length > 0 && (
+        <div>
+          <h3 className="text-[10px] font-bold text-on-surface-variant/40 uppercase tracking-widest mb-2">
+            Expired Invites
+          </h3>
+          <div className="space-y-2">
+            {expiredInvites.map((inv) => (
+              <div
+                key={inv.id}
+                className="flex items-center justify-between px-4 py-3 rounded-xl bg-surface-container-low/40 border border-outline-variant/[0.06]"
+              >
+                <div className="flex items-center gap-3">
+                  <div className="w-8 h-8 rounded-full bg-error/10 flex items-center justify-center">
+                    <i className="fa-solid fa-clock-rotate-left text-[10px] text-error/60" />
+                  </div>
+                  <div>
+                    <p className="text-sm font-medium text-on-surface/60">{inv.email}</p>
+                    <p className="text-[10px] text-on-surface-variant/40">
+                      Expired {new Date(inv.expires_at).toLocaleDateString()}
+                    </p>
+                  </div>
+                </div>
+                <button
+                  onClick={() => handleResend(inv.email, inv.id)}
+                  disabled={resending === inv.id}
+                  className="text-xs font-bold text-primary hover:text-primary/80 transition-colors disabled:opacity-50"
+                  title="Resend invite"
+                >
+                  {resending === inv.id ? (
+                    <i className="fa-solid fa-spinner animate-spin" />
+                  ) : (
+                    <>
+                      <i className="fa-solid fa-rotate-right text-[10px] mr-1.5" />
+                      Resend
+                    </>
+                  )}
                 </button>
               </div>
             ))}

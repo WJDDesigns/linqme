@@ -56,6 +56,7 @@ export default function ConditionalFlowCanvas({
   const [collapsedGroups, setCollapsedGroups] = useState<Set<string>>(new Set());
   const [editingRule, setEditingRule] = useState<string | null>(null);
   const [showAddPanel, setShowAddPanel] = useState(false);
+  const [showHelp, setShowHelp] = useState(false);
 
   /* ── Derived data ─────────────────────────────────────── */
 
@@ -227,6 +228,13 @@ export default function ConditionalFlowCanvas({
             </p>
           </div>
           <div className="flex items-center gap-3">
+            <button
+              onClick={() => setShowHelp((v) => !v)}
+              className="w-7 h-7 rounded-lg flex items-center justify-center text-on-surface-variant/40 hover:text-primary hover:bg-primary/5 transition-all"
+              title="How it works"
+            >
+              <i className="fa-solid fa-circle-question text-xs" />
+            </button>
             <span className="text-[10px] font-bold text-on-surface-variant/50 uppercase tracking-wider">
               {rules.length} rule{rules.length !== 1 ? "s" : ""}
             </span>
@@ -240,6 +248,41 @@ export default function ConditionalFlowCanvas({
           </div>
         </div>
       </div>
+
+      {/* Help panel (collapsible) */}
+      {showHelp && (
+        <div className="shrink-0 px-4 sm:px-6 py-4 border-b border-outline-variant/10 bg-primary/[0.03]">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 max-w-2xl mx-auto">
+            <div className="flex items-start gap-3 p-3 rounded-xl bg-surface-container-low/60">
+              <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
+                <i className="fa-solid fa-bolt text-primary text-xs" />
+              </div>
+              <div>
+                <p className="text-[11px] font-bold text-on-surface">1. Pick a trigger</p>
+                <p className="text-[10px] text-on-surface-variant/60 leading-relaxed">Choose which field&apos;s answer controls visibility of other fields or steps.</p>
+              </div>
+            </div>
+            <div className="flex items-start gap-3 p-3 rounded-xl bg-surface-container-low/60">
+              <div className="w-8 h-8 rounded-lg bg-tertiary/10 flex items-center justify-center shrink-0">
+                <i className="fa-solid fa-sliders text-tertiary text-xs" />
+              </div>
+              <div>
+                <p className="text-[11px] font-bold text-on-surface">2. Set conditions</p>
+                <p className="text-[10px] text-on-surface-variant/60 leading-relaxed">Define when the rule fires — use AND/OR to combine multiple checks.</p>
+              </div>
+            </div>
+            <div className="flex items-start gap-3 p-3 rounded-xl bg-surface-container-low/60">
+              <div className="w-8 h-8 rounded-lg bg-amber-500/10 flex items-center justify-center shrink-0">
+                <i className="fa-solid fa-eye text-amber-400 text-xs" />
+              </div>
+              <div>
+                <p className="text-[11px] font-bold text-on-surface">3. Show or hide</p>
+                <p className="text-[10px] text-on-surface-variant/60 leading-relaxed">When conditions match, the target field or step appears or disappears.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Main content */}
       <div className="flex-1 min-h-0 overflow-auto">

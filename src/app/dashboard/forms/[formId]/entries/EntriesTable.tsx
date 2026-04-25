@@ -1,7 +1,8 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useCallback, useEffect } from "react";
 import Link from "next/link";
+import { useRouter, useSearchParams, usePathname } from "next/navigation";
 import Pagination from "@/components/Pagination";
 
 const PAGE_SIZE = 25;
@@ -72,9 +73,51 @@ function flattenValue(val: unknown): string {
 }
 
 export default function EntriesTable({ entries, fieldMap, formName, primaryColor }: Props) {
-  const [search, setSearch] = useState("");
-  const [statusFilter, setStatusFilter] = useState("all");
-  const [page, setPage] = useState(1);
+  const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
+
+  // Initialize from URL params
+  const [search, setSearch] = useState(searchParams.get("q") ?? "");
+  const [statusFilter, setStatusFilter] = useState(searchParams.get("status") ?? "all");
+  const [page, setPage] = useState(parseInt(searchParams.get("page") ?? "1", 10) || 1);
+
+  // Sync state changes to URL
+  const updateUrl = useCallback(
+    (params: { q?: string; status?: string; page?: number }) => {
+      const sp = new URLSearchParams(searchParams.toString());
+      if (params.q !== undefined) {
+        if (params.q) sp.set("q", params.q);
+        else sp.delete("q");
+      }
+      if (params.status !== undefined) {
+        if (params.status && params.status !== "all") sp.set("status", params.status);
+        else sp.delete("status");
+      }
+      if (params.page !== undefined) {
+        if (params.page > 1) sp.set("page", String(params.page));
+        else sp.delete("page");
+      }
+      const qs = sp.toString();
+      router.replace(`${pathname}${qs ? `?${qs}` : ""}`, { scroll: false });
+    },
+    [router, pathname, searchParams],
+  );
+
+  const handleSearchChange = (val: string) => {
+    setSearch(val);
+    setPage(1);
+    updateUrl({ q: val, page: 1 });
+  };
+  const handleStatusChange = (val: string) => {
+    setStatusFilter(val);
+    setPage(1);
+    updateUrl({ status: val, page: 1 });
+  };
+  const handlePageChange = (p: number) => {
+    setPage(p);
+    updateUrl({ page: p });
+  };
 
   const filtered = useMemo(() => {
     return entries.filter((e) => {
@@ -155,14 +198,14 @@ export default function EntriesTable({ entries, fieldMap, formName, primaryColor
             type="text"
             placeholder="Search by name or email..."
             value={search}
-            onChange={(e) => setSearch(e.target.value)}
+            onChange={(e) => handleSearchChange(e.target.value)}
             className="w-full pl-9 pr-4 py-2.5 rounded-xl border-2 border-outline-variant/20 bg-surface-container-lowest text-sm text-on-surface placeholder:text-on-surface-variant/40 focus:ring-1 outline-none transition-all"
             style={{ "--tw-ring-color": primaryColor + "66" } as React.CSSProperties}
           />
         </div>
         <select
           value={statusFilter}
-          onChange={(e) => setStatusFilter(e.target.value)}
+          onChange={(e) => handleStatusChange(e.target.value)}
           className="px-4 py-2.5 rounded-xl border-2 border-outline-variant/20 bg-surface-container-lowest text-sm text-on-surface"
         >
           {statuses.map((s) => (
@@ -237,7 +280,7 @@ export default function EntriesTable({ entries, fieldMap, formName, primaryColor
             currentPage={page}
             totalItems={filtered.length}
             pageSize={PAGE_SIZE}
-            onPageChange={(p) => setPage(p)}
+            onPageChange={handlePageChange}
             itemLabel="entries"
           />
         </div>
