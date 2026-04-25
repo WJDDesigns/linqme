@@ -494,3 +494,36 @@ export async function updateStartPageSettingsAction(
   revalidatePath("/dashboard/forms");
   return { ok: true };
 }
+
+/**
+ * Update the success/thank-you page settings for a form.
+ */
+export async function updateSuccessPageAction(
+  formId: string,
+  settings: {
+    successHeading?: string;
+    successMessage?: string;
+    successRedirectUrl?: string;
+  },
+): Promise<ActionResult> {
+  const session = await requireSession();
+  const account = await getCurrentAccount(session.userId);
+  if (!account) return { ok: false, error: "No account found." };
+
+  const admin = createAdminClient();
+  const update: Record<string, unknown> = {};
+  if (settings.successHeading !== undefined) update.success_heading = settings.successHeading || null;
+  if (settings.successMessage !== undefined) update.success_message = settings.successMessage || null;
+  if (settings.successRedirectUrl !== undefined) update.success_redirect_url = settings.successRedirectUrl || null;
+
+  const { error } = await admin
+    .from("partner_forms")
+    .update(update)
+    .eq("id", formId)
+    .eq("partner_id", account.id);
+
+  if (error) return { ok: false, error: error.message };
+
+  revalidatePath(`/dashboard/forms/${formId}`);
+  return { ok: true };
+}

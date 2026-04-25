@@ -2,7 +2,7 @@
 
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { renameFormAction, setDefaultFormAction, deleteFormAction, updateThemeModeAction, updateLayoutStyleAction, updateStartPageSettingsAction } from "../form-actions";
+import { renameFormAction, setDefaultFormAction, deleteFormAction, updateThemeModeAction, updateLayoutStyleAction, updateStartPageSettingsAction, updateSuccessPageAction } from "../form-actions";
 import type { LayoutStyle } from "../form-actions";
 import { updateFormPartnersAction } from "./assignment-actions";
 
@@ -24,6 +24,9 @@ interface Props {
   startButtonText: string | null;
   startDescription: string | null;
   skipStartPage: boolean;
+  successHeading?: string | null;
+  successMessage?: string | null;
+  successRedirectUrl?: string | null;
 }
 
 export default function FormSettingsPanel({
@@ -39,6 +42,9 @@ export default function FormSettingsPanel({
   startButtonText: initialStartButtonText,
   startDescription: initialStartDescription,
   skipStartPage: initialSkipStartPage,
+  successHeading: initialSuccessHeading,
+  successMessage: initialSuccessMessage,
+  successRedirectUrl: initialSuccessRedirectUrl,
 }: Props) {
   const router = useRouter();
   const [pending, startTransition] = useTransition();
@@ -60,6 +66,25 @@ export default function FormSettingsPanel({
   const [startDesc, setStartDesc] = useState(initialStartDescription ?? "");
   const [skipStart, setSkipStart] = useState(initialSkipStartPage);
   const [startMsg, setStartMsg] = useState<string | null>(null);
+
+  // Success page state
+  const [successHeading, setSuccessHeading] = useState(initialSuccessHeading ?? "");
+  const [successMessage, setSuccessMessage] = useState(initialSuccessMessage ?? "");
+  const [successRedirectUrl, setSuccessRedirectUrl] = useState(initialSuccessRedirectUrl ?? "");
+  const [successMsg, setSuccessMsg] = useState<string | null>(null);
+
+  function handleSaveSuccessPage() {
+    setSuccessMsg(null);
+    startTransition(async () => {
+      const result = await updateSuccessPageAction(formId, {
+        successHeading: successHeading.trim() || undefined,
+        successMessage: successMessage.trim() || undefined,
+        successRedirectUrl: successRedirectUrl.trim() || undefined,
+      });
+      setSuccessMsg(result.ok ? "Success page updated!" : (result.error ?? "Failed."));
+      if (result.ok) router.refresh();
+    });
+  }
 
   function handleLayoutChange(style: LayoutStyle) {
     setLayoutStyle(style);
@@ -342,6 +367,57 @@ export default function FormSettingsPanel({
                 </button>
               </div>
             )}
+
+            {/* Success page */}
+            <div>
+              <span className="text-xs font-semibold text-on-surface-variant uppercase tracking-widest">Success page</span>
+              <p className="text-xs text-on-surface-variant/60 mt-0.5 mb-3">
+                Customize what clients see after submitting the form.
+              </p>
+              <div className="space-y-3">
+                <div>
+                  <label className="block text-[10px] font-bold text-on-surface-variant/60 uppercase tracking-widest mb-1">Heading</label>
+                  <input
+                    type="text"
+                    value={successHeading}
+                    onChange={(e) => setSuccessHeading(e.target.value)}
+                    placeholder="All done!"
+                    className="w-full px-3 py-2 text-sm bg-surface-container-lowest border border-outline-variant/20 rounded-lg text-on-surface placeholder:text-on-surface-variant/30 focus:border-primary/50 outline-none transition-all"
+                  />
+                </div>
+                <div>
+                  <label className="block text-[10px] font-bold text-on-surface-variant/60 uppercase tracking-widest mb-1">Message</label>
+                  <textarea
+                    value={successMessage}
+                    onChange={(e) => setSuccessMessage(e.target.value)}
+                    placeholder="Thanks for submitting everything. We'll take it from here."
+                    rows={2}
+                    className="w-full px-3 py-2 text-sm bg-surface-container-lowest border border-outline-variant/20 rounded-lg text-on-surface placeholder:text-on-surface-variant/30 focus:border-primary/50 outline-none transition-all resize-none"
+                  />
+                </div>
+                <div>
+                  <label className="block text-[10px] font-bold text-on-surface-variant/60 uppercase tracking-widest mb-1">Redirect URL <span className="normal-case font-normal">(optional)</span></label>
+                  <input
+                    type="url"
+                    value={successRedirectUrl}
+                    onChange={(e) => setSuccessRedirectUrl(e.target.value)}
+                    placeholder="https://yoursite.com/thank-you"
+                    className="w-full px-3 py-2 text-sm bg-surface-container-lowest border border-outline-variant/20 rounded-lg text-on-surface placeholder:text-on-surface-variant/30 focus:border-primary/50 outline-none transition-all"
+                  />
+                  <p className="text-[10px] text-on-surface-variant/40 mt-1">If set, clients will be redirected here after 3 seconds.</p>
+                </div>
+                <button
+                  onClick={handleSaveSuccessPage}
+                  disabled={pending}
+                  className="px-4 py-2 bg-primary text-on-primary font-bold rounded-lg text-xs disabled:opacity-50 transition-all"
+                >
+                  {pending ? "Saving..." : "Save success page"}
+                </button>
+                {successMsg && (
+                  <p className={`text-xs font-medium ${successMsg.includes("!") ? "text-tertiary" : "text-error"}`}>{successMsg}</p>
+                )}
+              </div>
+            </div>
 
             {/* Partner assignments */}
             {partners.length > 0 && (

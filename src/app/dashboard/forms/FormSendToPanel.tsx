@@ -9,6 +9,7 @@ import {
   deleteWebhookAction,
   testWebhookAction,
   getWebhookDeliveries,
+  retryWebhookDeliveryAction,
 } from "./webhook-actions";
 import {
   createSheetsFeedAction,
@@ -48,6 +49,7 @@ interface Delivery {
   error_message: string | null;
   duration_ms: number | null;
   created_at: string;
+  submission_id: string | null;
 }
 
 interface SheetsFeed {
@@ -1004,6 +1006,7 @@ function IntegrationsTab({
   const [testResult, setTestResult] = useState<{ ok: boolean; msg: string } | null>(null);
   const [deliveries, setDeliveries] = useState<Delivery[]>([]);
   const [showDeliveries, setShowDeliveries] = useState<string | null>(null);
+  const [retrying, startRetry] = useTransition();
   const [whError, setWhError] = useState<string | null>(null);
 
   /* ── Sheets feed state ────────────────────────────────────────────── */
@@ -1186,6 +1189,16 @@ function IntegrationsTab({
     if (showDeliveries === webhookId) { setShowDeliveries(null); return; }
     setShowDeliveries(webhookId);
     setDeliveries(await getWebhookDeliveries(webhookId));
+  }
+
+  function handleRetryDelivery(deliveryId: string, webhookId: string) {
+    startRetry(async () => {
+      const result = await retryWebhookDeliveryAction(deliveryId);
+      if (result.ok) {
+        // Refresh deliveries after retry
+        setDeliveries(await getWebhookDeliveries(webhookId));
+      }
+    });
   }
 
   function toggleFieldMapping() {
@@ -1446,6 +1459,16 @@ function IntegrationsTab({
                                   {d.duration_ms != null && <span className="text-on-surface-variant/40">{d.duration_ms}ms</span>}
                                   {d.error_message && <span className="text-error/60 truncate flex-1">{d.error_message}</span>}
                                   <span className="text-on-surface-variant/30 shrink-0">{new Date(d.created_at).toLocaleString()}</span>
+                                  {d.status !== "success" && d.submission_id && (
+                                    <button
+                                      onClick={() => handleRetryDelivery(d.id, wh.id)}
+                                      disabled={retrying}
+                                      className="px-2 py-1 text-[10px] font-bold text-amber-400 border border-amber-400/20 rounded hover:bg-amber-400/10 transition-all disabled:opacity-50 shrink-0"
+                                    >
+                                      <i className={`fa-solid ${retrying ? "fa-spinner fa-spin" : "fa-rotate-right"} text-[9px] mr-1`} />
+                                      Retry
+                                    </button>
+                                  )}
                                 </div>
                               ))}
                             </div>

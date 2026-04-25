@@ -181,7 +181,7 @@ export async function testWebhookAction(
 export async function getWebhookDeliveries(
   webhookId: string,
   limit = 10,
-): Promise<{ id: string; status: string; status_code: number | null; error_message: string | null; duration_ms: number | null; created_at: string }[]> {
+): Promise<{ id: string; status: string; status_code: number | null; error_message: string | null; duration_ms: number | null; created_at: string; submission_id: string | null }[]> {
   const session = await requireSession();
   const account = await getCurrentAccount(session.userId);
   if (!account) return [];
@@ -199,10 +199,52 @@ export async function getWebhookDeliveries(
 
   const { data } = await admin
     .from("webhook_deliveries")
-    .select("id, status, status_code, error_message, duration_ms, created_at")
+    .select("id, status, status_code, error_message, duration_ms, created_at, submission_id")
     .eq("webhook_id", webhookId)
     .order("created_at", { ascending: false })
     .limit(limit);
 
-  return (data ?? []) as { id: string; status: string; status_code: number | null; error_message: string | null; duration_ms: number | null; created_at: string }[];
+  return (data ?? []) as { id: string; status: string; status_code: number | null; error_message: string | null; duration_ms: number | null; created_at: string; submission_id: string | null }[];
+}
+
+/**
+ * Retry a failed webhook delivery by re-firing the webhook for the same submission.
+ */
+export async function retryWebhookDeliveryAction(
+  deliveryId: string,
+): Promise<{ ok: boolean; error?: string }> {
+  const session = await requireSession();
+  const account = await getCurrentAccount(session.userId);
+  if (!account) return { ok: false, error: "No account found." };
+
+  const admin = createAdminClient();
+
+  // Get the delivery record
+  const { data: delivery } = await admin
+    .from("webhook_deliveries")
+    .select("id, webhook_id, submission_id")
+    .eq("id", deliveryId)
+    .maybeSingle();
+
+  if (!delivery) return { ok: false, error: "Delivery not found." };
+
+  // Verify webhook belongs to this account
+  const { data: wh } = await admin
+    .from("form_webhooks")
+    .select("id")
+    .eq("id", delivery.webhook_id)
+    .eq("partner_id", account.id)
+    .maybeSingle();
+  if (!wh) return { ok: false, error: "Webhook not found." };
+
+  if (!delivery.submission_id) return { ok: false, error: "No submission linked to this delivery." };
+
+  // Re-fire the webhook via the standard pipeline
+  const { fireWebhooks } = await import("@/lib/webhooks");
+  try {
+    await fireWebhooks(delivery.submission_id);
+    return { ok: true };
+  } catch (err) {
+    return { ok: false, error: err instanceof Error ? err.message : "Retry failed." };
+  }
 }

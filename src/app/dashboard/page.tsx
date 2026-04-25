@@ -4,6 +4,7 @@ import { requireSession, getVisiblePartners, getCurrentAccount } from "@/lib/aut
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import OnboardingChecklist from "@/components/OnboardingChecklist";
+import ActivityDashboard from "./ActivityDashboard";
 import InsightsDashboard from "./insights/InsightsDashboardLazy";
 import type { InsightDashboard } from "./insights/actions";
 
@@ -196,6 +197,16 @@ export default async function DashboardOverview() {
           <QuickAction href="/dashboard/partners/new" icon="fa-plus" label="New Partner" />
         )}
       </div>
+
+      {/* Activity dashboard — submission trend + recent activity */}
+      {account && submissions.length > 0 && (
+        <section className="animate-fade-up delay-3">
+          <ActivityDashboard
+            submissions={submissions as { id: string; status: string; client_name: string | null; client_email: string | null; created_at: string; submitted_at: string | null; form_slug: string | null; partner_form_id: string | null }[]}
+            forms={formList}
+          />
+        </section>
+      )}
 
       {/* Insights widgets */}
       {account && (

@@ -167,34 +167,42 @@ export default function EntriesList({ submissions, forms, isSuperadmin, showSmar
 
   const activeFormName = forms.find((f) => f.id === formFilter)?.name;
 
+  const [exporting, setExporting] = useState(false);
+
   function exportCSV() {
-    const headers = ["Name", "Email", "Form", "Status", "Date"];
-    const rows = filtered.map((r) => [
-      r.client_name ?? "",
-      r.client_email ?? "",
-      r.form_name ?? "",
-      r.status,
-      r.submitted_at ?? r.created_at,
-    ]);
+    setExporting(true);
+    // Use setTimeout to let React update the button state before generating
+    setTimeout(() => {
+      const headers = ["Name", "Email", "Form", "Status", "Date"];
+      const rows = filtered.map((r) => [
+        r.client_name ?? "",
+        r.client_email ?? "",
+        r.form_name ?? "",
+        r.status,
+        r.submitted_at ?? r.created_at,
+      ]);
 
-    const escape = (s: string) => {
-      // Prevent CSV injection
-      if (/^[=+\-@]/.test(s)) s = "'" + s;
-      if (s.includes(",") || s.includes('"') || s.includes("\n")) {
-        return `"${s.replace(/"/g, '""')}"`;
-      }
-      return s;
-    };
+      const escape = (s: string) => {
+        // Prevent CSV injection
+        if (/^[=+\-@]/.test(s)) s = "'" + s;
+        if (s.includes(",") || s.includes('"') || s.includes("\n")) {
+          return `"${s.replace(/"/g, '""')}"`;
+        }
+        return s;
+      };
 
-    const csv = [headers.map(escape).join(","), ...rows.map((r) => r.map(escape).join(","))].join("\n");
-    const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    const suffix = activeFormName ? activeFormName.replace(/[^a-zA-Z0-9]/g, "_") : "all";
-    a.download = `entries_${suffix}_${new Date().toISOString().slice(0, 10)}.csv`;
-    a.click();
-    URL.revokeObjectURL(url);
+      const csv = [headers.map(escape).join(","), ...rows.map((r) => r.map(escape).join(","))].join("\n");
+      const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      const suffix = activeFormName ? activeFormName.replace(/[^a-zA-Z0-9]/g, "_") : "all";
+      a.download = `entries_${suffix}_${new Date().toISOString().slice(0, 10)}.csv`;
+      a.click();
+      URL.revokeObjectURL(url);
+      // Show brief "exported" state
+      setTimeout(() => setExporting(false), 1500);
+    }, 50);
   }
 
   return (
@@ -239,11 +247,15 @@ export default function EntriesList({ submissions, forms, isSuperadmin, showSmar
         {/* Export CSV */}
         <button
           onClick={exportCSV}
-          disabled={filtered.length === 0}
-          className="px-3 py-2 text-xs font-bold text-primary border border-primary/20 rounded-lg hover:bg-primary/5 transition-all disabled:opacity-40 disabled:cursor-not-allowed flex items-center gap-1.5"
+          disabled={filtered.length === 0 || exporting}
+          className={`px-3 py-2 text-xs font-bold border rounded-lg transition-all disabled:cursor-not-allowed flex items-center gap-1.5 ${
+            exporting
+              ? "text-tertiary border-tertiary/30 bg-tertiary/5"
+              : "text-primary border-primary/20 hover:bg-primary/5 disabled:opacity-40"
+          }`}
         >
-          <i className="fa-solid fa-file-csv text-[10px]" />
-          Export CSV
+          <i className={`fa-solid ${exporting ? "fa-circle-check" : "fa-file-csv"} text-[10px]`} />
+          {exporting ? `Exported ${filtered.length} rows` : `Export CSV (${filtered.length})`}
         </button>
       </div>
 

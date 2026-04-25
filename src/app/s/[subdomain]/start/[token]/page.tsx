@@ -22,7 +22,7 @@ export default async function SubmissionPage({ params, searchParams }: Props) {
     .select(
       `id, status, data, access_token,
        partners ( id, slug, name, custom_domain, logo_url, primary_color, support_email, plan_tier, hide_branding, custom_footer_text, logo_size ),
-       partner_forms ( id, overrides, layout_style,
+       partner_forms ( id, overrides, layout_style, success_heading, success_message, success_redirect_url,
          form_templates ( id, schema )
        )`,
     )
@@ -45,6 +45,9 @@ export default async function SubmissionPage({ params, searchParams }: Props) {
 
   const primary = partner.primary_color || "#c0c1ff";
   const layoutStyle = ((pf as Record<string, unknown>)?.layout_style as string) || "default";
+  const successHeading = ((pf as Record<string, unknown>)?.success_heading as string) || null;
+  const successMessage = ((pf as Record<string, unknown>)?.success_message as string) || null;
+  const successRedirectUrl = ((pf as Record<string, unknown>)?.success_redirect_url as string) || null;
   const isPaid = (partner as Record<string, unknown>).plan_tier !== "free";
   const hideBranding = isPaid && (partner as Record<string, unknown>).hide_branding;
   const footerText = isPaid && (partner as Record<string, unknown>).custom_footer_text
@@ -180,6 +183,9 @@ export default async function SubmissionPage({ params, searchParams }: Props) {
         captchaProvider={captchaProvider}
         googleMapsApiKey={googleMapsApiKey}
         geocodingProvider={geocodingProvider}
+        successHeading={successHeading}
+        successMessage={successMessage}
+        successRedirectUrl={successRedirectUrl}
         embedMode={isEmbed ? (isChromeless ? "chromeless" : "branded") : undefined}
       />
 

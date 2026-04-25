@@ -1,4 +1,5 @@
 import { createAdminClient } from "@/lib/supabase/admin";
+import { createNotification } from "@/lib/notifications";
 import { createHash } from "crypto";
 
 /**
@@ -95,6 +96,13 @@ export async function trackSession(
     return match.id;
   }
 
+  // Check if the user has ANY prior sessions — only alert for truly new devices
+  // (not on their very first login)
+  const { count: priorCount } = await admin
+    .from("user_sessions")
+    .select("id", { count: "exact", head: true })
+    .eq("user_id", userId);
+
   // Create new session entry
   const { data: newSession } = await admin
     .from("user_sessions")
@@ -107,6 +115,17 @@ export async function trackSession(
     })
     .select("id")
     .single();
+
+  // Send new-device login alert if user already had prior sessions
+  if ((priorCount ?? 0) > 0) {
+    createNotification(
+      userId,
+      "new_device_login",
+      `New sign-in from ${deviceName}`,
+      `We noticed a new sign-in to your account from ${deviceName} (IP: ${addr}). If this wasn't you, review your active sessions in Settings > Security.`,
+      "/dashboard/settings?tab=security",
+    ).catch(() => {});
+  }
 
   return newSession?.id ?? null;
 }

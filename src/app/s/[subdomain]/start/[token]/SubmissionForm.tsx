@@ -30,6 +30,9 @@ interface Props {
   captchaProvider?: "recaptcha" | "turnstile" | null;
   googleMapsApiKey?: string | null;
   geocodingProvider?: "google" | "openstreetmap" | null;
+  successHeading?: string | null;
+  successMessage?: string | null;
+  successRedirectUrl?: string | null;
   embedMode?: "branded" | "chromeless";
 }
 
@@ -93,6 +96,9 @@ export default function SubmissionForm({
   captchaProvider,
   googleMapsApiKey,
   geocodingProvider,
+  successHeading,
+  successMessage,
+  successRedirectUrl,
   embedMode,
 }: Props) {
   const [stepIdx, setStepIdx] = useState(0);
@@ -276,16 +282,36 @@ export default function SubmissionForm({
     animateTransition(() => setStepIdx(idx));
   }
 
-  /* Done screen */
+  /* Done screen — auto-redirect if successRedirectUrl is set */
+  useEffect(() => {
+    if (!showDone || !successRedirectUrl) return;
+    const timer = setTimeout(() => {
+      window.location.href = successRedirectUrl;
+    }, 3000);
+    return () => clearTimeout(timer);
+  }, [showDone, successRedirectUrl]);
+
   if (showDone) {
     return (
       <div className="min-h-[60vh] flex items-center justify-center p-6">
-        <div className="text-center space-y-6 sl-fade-up">
+        <div className="text-center space-y-6 sl-fade-up max-w-lg">
           <div className="mx-auto w-20 h-20 rounded-full flex items-center justify-center sl-check" style={{ backgroundColor: primaryColor + "18" }}>
             <i className="fa-solid fa-check text-3xl" style={{ color: primaryColor }} />
           </div>
-          <h1 className="text-3xl font-extrabold font-headline text-on-surface tracking-tight">All done!</h1>
-          <p className="text-on-surface-variant text-lg">Thanks for submitting everything. We&apos;ll take it from here.</p>
+          <h1 className="text-3xl font-extrabold font-headline text-on-surface tracking-tight">
+            {successHeading || "All done!"}
+          </h1>
+          <p className="text-on-surface-variant text-lg whitespace-pre-line">
+            {successMessage || "Thanks for submitting everything. We'll take it from here."}
+          </p>
+          {successRedirectUrl && (
+            <p className="text-on-surface-variant/60 text-sm">
+              Redirecting in a few seconds…{" "}
+              <a href={successRedirectUrl} className="underline hover:text-on-surface transition-colors" style={{ color: primaryColor }}>
+                Go now
+              </a>
+            </p>
+          )}
         </div>
       </div>
     );

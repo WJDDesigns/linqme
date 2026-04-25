@@ -37,6 +37,7 @@ export default async function FormEditorPage({ params }: PageProps) {
       `id, name, slug, template_id, is_default, is_active,
        notification_emails, notification_bcc,
        confirm_page_heading, confirm_page_body, redirect_url, layout_style,
+       success_heading, success_message, success_redirect_url,
        partner_email_subject, partner_email_body,
        client_email_subject, client_email_body,
        start_button_text, start_description, skip_start_page,
@@ -189,6 +190,9 @@ export default async function FormEditorPage({ params }: PageProps) {
             startButtonText={(pf.start_button_text as string) ?? null}
             startDescription={(pf.start_description as string) ?? null}
             skipStartPage={pf.skip_start_page ?? false}
+            successHeading={(pf.success_heading as string) ?? null}
+            successMessage={(pf.success_message as string) ?? null}
+            successRedirectUrl={(pf.success_redirect_url as string) ?? null}
           />
         }
       />

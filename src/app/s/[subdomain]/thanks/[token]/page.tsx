@@ -1,4 +1,4 @@
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
 import { createAdminClient } from "@/lib/supabase/admin";
@@ -21,7 +21,7 @@ export default async function ThanksPage({ params }: Props) {
     .select(
       `id, status, submitted_at, client_name, partner_form_id,
        partners ( slug, name, custom_domain, logo_url, primary_color, support_email, plan_tier, hide_branding, custom_footer_text, logo_size, theme_mode ),
-       partner_forms!partner_form_id ( name, slug, is_default, confirm_page_heading, confirm_page_body )`,
+       partner_forms!partner_form_id ( name, slug, is_default, confirm_page_heading, confirm_page_body, success_heading, success_message, success_redirect_url )`,
     )
     .eq("access_token", token)
     .maybeSingle();
@@ -42,9 +42,18 @@ export default async function ThanksPage({ params }: Props) {
   const isFullWidth = logoSize === "full-width";
 
   // Build the form name and custom confirmation text
+  // success_* columns (from Settings) take precedence over confirm_page_* (from Send To)
   const formName = form?.name ?? "submission";
-  const customHeading = form?.confirm_page_heading ? String(form.confirm_page_heading) : null;
-  const customBody = form?.confirm_page_body ? String(form.confirm_page_body) : null;
+  const successHeading = (form as Record<string, unknown>)?.success_heading ? String((form as Record<string, unknown>).success_heading) : null;
+  const successMessage = (form as Record<string, unknown>)?.success_message ? String((form as Record<string, unknown>).success_message) : null;
+  const successRedirectUrl = (form as Record<string, unknown>)?.success_redirect_url ? String((form as Record<string, unknown>).success_redirect_url) : null;
+  const customHeading = successHeading ?? (form?.confirm_page_heading ? String(form.confirm_page_heading) : null);
+  const customBody = successMessage ?? (form?.confirm_page_body ? String(form.confirm_page_body) : null);
+
+  // If a redirect URL is configured, redirect immediately
+  if (successRedirectUrl) {
+    redirect(successRedirectUrl);
+  }
 
   // Logo link: go to the hub page (storefront root) or the default form
   const rootHost = (process.env.NEXT_PUBLIC_ROOT_DOMAIN ?? "linqme.io").replace(/:\d+$/, "");
