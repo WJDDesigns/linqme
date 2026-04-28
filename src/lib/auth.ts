@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation";
 import { cookies } from "next/headers";
 import { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/admin";
 
 export const IMPERSONATE_COOKIE = "sl_impersonate";
 export const CONTEXT_COOKIE = "sl_context";
@@ -211,19 +212,24 @@ export async function getAllAccountContexts(userId: string): Promise<AccountSwit
  * (or its root ancestor) is returned instead of the default first membership.
  */
 export async function getCurrentAccount(userId: string): Promise<AccountContext | null> {
-  const supabase = await createClient();
+  // Use admin client to bypass RLS — auth is already enforced by
+  // requireSession() upstream, and queries are scoped by userId.
+  // The user-scoped client relies on JWT propagation through Next.js
+  // middleware → server component boundary which can silently fail,
+  // causing partner_members or parent partner lookups to return empty.
+  const admin = createAdminClient();
 
   // Check for superadmin impersonation
   const impersonateId = await getImpersonatingPartnerId();
   if (impersonateId) {
     // Verify caller is actually a superadmin before honoring the cookie
-    const { data: profile } = await supabase
+    const { data: profile } = await admin
       .from("profiles")
       .select("role")
       .eq("id", userId)
       .single();
     if (profile?.role === "superadmin") {
-      const { data: partner } = await supabase
+      const { data: partner } = await admin
         .from("partners")
         .select("id, slug, name, plan_type, plan_tier, submissions_monthly_limit")
         .eq("id", impersonateId)
@@ -245,7 +251,7 @@ export async function getCurrentAccount(userId: string): Promise<AccountContext 
   // honour it by placing that partner first in the list we walk.
   const selectedContextId = await getSelectedContextId();
 
-  const { data: memberships } = await supabase
+  const { data: memberships } = await admin
     .from("partner_members")
     .select("partner_id, created_at, partners ( id, slug, name, parent_partner_id, plan_type, plan_tier, submissions_monthly_limit )")
     .eq("user_id", userId)
@@ -270,7 +276,7 @@ export async function getCurrentAccount(userId: string): Promise<AccountContext 
     // If this is a sub-partner, walk up (usually just 1 level).
     let current = partner;
     if (current.parent_partner_id) {
-      const { data: parent } = await supabase
+      const { data: parent } = await admin
         .from("partners")
         .select("id, slug, name, parent_partner_id, plan_type, plan_tier, submissions_monthly_limit")
         .eq("id", current.parent_partner_id)
