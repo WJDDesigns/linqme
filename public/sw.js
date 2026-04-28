@@ -1,16 +1,13 @@
-// linqme Service Worker -- cache-first for assets, network-first for pages
-const CACHE_NAME = "linqme-v1";
-const PRECACHE_URLS = ["/dashboard", "/login"];
+// linqme Service Worker -- cache-first for static assets ONLY
+// Dashboard pages are dynamic and must never be cached.
+const CACHE_NAME = "linqme-v2";
 
-// Install: precache key routes
+// Install: skip precaching dynamic routes — only cache on demand
 self.addEventListener("install", (event) => {
-  event.waitUntil(
-    caches.open(CACHE_NAME).then((cache) => cache.addAll(PRECACHE_URLS))
-  );
   self.skipWaiting();
 });
 
-// Activate: clean up old caches
+// Activate: clean up ALL old caches
 self.addEventListener("activate", (event) => {
   event.waitUntil(
     caches.keys().then((keys) =>
@@ -20,7 +17,7 @@ self.addEventListener("activate", (event) => {
   self.clients.claim();
 });
 
-// Fetch: network-first for navigations, cache-first for static assets
+// Fetch: cache static assets only — never cache HTML/RSC responses
 self.addEventListener("fetch", (event) => {
   const { request } = event;
   const url = new URL(request.url);
@@ -31,7 +28,7 @@ self.addEventListener("fetch", (event) => {
   if (url.pathname.startsWith("/api/")) return;
   if (url.pathname.startsWith("/auth/")) return;
 
-  // Static assets (fonts, images, CSS, JS): cache-first
+  // Static assets (fonts, images, CSS, JS bundles): cache-first
   if (
     url.pathname.match(/\.(js|css|woff2?|ttf|otf|png|jpg|jpeg|svg|ico|webp)$/) ||
     url.pathname.startsWith("/_next/static/")
@@ -51,19 +48,6 @@ self.addEventListener("fetch", (event) => {
     return;
   }
 
-  // HTML pages: network-first with cache fallback
-  if (request.headers.get("accept")?.includes("text/html")) {
-    event.respondWith(
-      fetch(request)
-        .then((response) => {
-          if (response.ok) {
-            const clone = response.clone();
-            caches.open(CACHE_NAME).then((cache) => cache.put(request, clone));
-          }
-          return response;
-        })
-        .catch(() => caches.match(request).then((cached) => cached || caches.match("/dashboard")))
-    );
-    return;
-  }
+  // All other requests (HTML pages, RSC payloads, etc.): network only — no caching.
+  // This prevents stale dashboard content and 404 caching issues.
 });
