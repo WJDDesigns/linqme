@@ -27,6 +27,25 @@ export async function middleware(request: NextRequest) {
   if (tenant.slug)         hdrs.set("x-tenant-slug", tenant.slug);
   if (tenant.customDomain) hdrs.set("x-tenant-custom-domain", tenant.customDomain);
 
+  // --- Root domain: redirect app routes to app subdomain -------------------
+  // Users sometimes bookmark or share www.linqme.io/dashboard/... links.
+  // These need to go to app.linqme.io instead.
+  if (
+    tenant.kind === "root" &&
+    (pathname.startsWith("/dashboard") ||
+     pathname.startsWith("/login") ||
+     pathname.startsWith("/signup") ||
+     pathname.startsWith("/auth") ||
+     pathname.startsWith("/invite") ||
+     pathname.startsWith("/checkout") ||
+     pathname.startsWith("/forgot-password") ||
+     pathname.startsWith("/admin"))
+  ) {
+    const appHost = `app.${rootDomain}`;
+    const proto = request.headers.get("x-forwarded-proto") ?? "https";
+    return NextResponse.redirect(`${proto}://${appHost}${pathname}${url.search}`);
+  }
+
   // --- Partner subdomain / custom domain routing --------------------------
   if (tenant.kind === "partner") {
     const identifier = tenant.slug || tenant.customDomain!;
