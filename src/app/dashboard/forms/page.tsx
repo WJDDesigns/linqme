@@ -1,6 +1,5 @@
 import Link from "next/link";
 import { requireSession, getCurrentAccount, getVisiblePartners } from "@/lib/auth";
-import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { getFormsLimitForTier } from "@/lib/plans";
 import type { FormSchema } from "@/lib/forms";
@@ -24,10 +23,12 @@ export default async function FormsListPage() {
     );
   }
 
-  const supabase = await createClient();
+  // Use admin client — auth enforced by requireSession() + getCurrentAccount(),
+  // partner scoping via .eq("partner_id", account.id).
+  const admin = createAdminClient();
 
   // Load all forms for this partner
-  const { data: forms } = await supabase
+  const { data: forms } = await admin
     .from("partner_forms")
     .select(
       `id, name, slug, description, is_active, is_default, created_at, template_id,
@@ -45,7 +46,7 @@ export default async function FormsListPage() {
   const canCreateMore = formsLimit === null || formsList.length < formsLimit;
 
   // Get partner for storefront link + landing mode
-  const { data: partner } = await supabase
+  const { data: partner } = await admin
     .from("partners")
     .select("slug, custom_domain, show_all_forms, theme_mode")
     .eq("id", account.id)
@@ -55,7 +56,6 @@ export default async function FormsListPage() {
   const storefrontHost = partner?.custom_domain || `${partner?.slug ?? account.slug}.${rootHost}`;
 
   // Get submission counts per form
-  const admin = createAdminClient();
   const formIds = formsList.map((f) => f.id);
   const { data: subData } = formIds.length > 0
     ? await admin

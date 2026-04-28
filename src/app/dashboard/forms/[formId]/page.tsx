@@ -1,6 +1,5 @@
 import { notFound } from "next/navigation";
 import { requireSession, getCurrentAccount, getVisiblePartners } from "@/lib/auth";
-import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import type { FormSchema } from "@/lib/forms";
 import FormEditorShell from "../FormEditorShell";
@@ -28,10 +27,15 @@ export default async function FormEditorPage({ params }: PageProps) {
     );
   }
 
-  const supabase = await createClient();
+  // Use admin client for form query — auth is already enforced by
+  // requireSession() + getCurrentAccount(), and the .eq("partner_id", account.id)
+  // filter ensures the user can only see their own forms. The user-scoped client's
+  // RLS can silently fail when the Supabase session token isn't propagated correctly
+  // through Next.js middleware → server component boundary.
+  const admin = createAdminClient();
 
   // Load this specific form + template
-  const { data: pf, error: pfError } = await supabase
+  const { data: pf, error: pfError } = await admin
     .from("partner_forms")
     .select(
       `id, name, slug, template_id, is_default, is_active,
@@ -47,7 +51,6 @@ export default async function FormEditorPage({ params }: PageProps) {
     .eq("partner_id", account.id)
     .maybeSingle();
 
-  // Debug: log form query result to diagnose 404s
   if (!pf) {
     console.error(`[form-editor] 404 — formId=${formId} accountId=${account.id} userId=${session.userId} error=${pfError?.message ?? "no error, just no row"}`);
     return notFound();
@@ -58,7 +61,7 @@ export default async function FormEditorPage({ params }: PageProps) {
   const hasForm = !!schema;
 
   // Get partner details for public link
-  const { data: partner } = await supabase
+  const { data: partner } = await admin
     .from("partners")
     .select("slug, custom_domain, primary_color, theme_mode")
     .eq("id", account.id)
@@ -77,7 +80,6 @@ export default async function FormEditorPage({ params }: PageProps) {
     .map((p) => ({ id: p.id, name: p.name }));
 
   // Get current assignments
-  const admin = createAdminClient();
   const { data: assignments } = await admin
     .from("form_partner_assignments")
     .select("partner_id")

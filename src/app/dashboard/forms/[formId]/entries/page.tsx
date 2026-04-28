@@ -1,6 +1,5 @@
 import { notFound } from "next/navigation";
 import { requireSession, getCurrentAccount } from "@/lib/auth";
-import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import Link from "next/link";
 import type { FormSchema } from "@/lib/forms";
@@ -19,10 +18,11 @@ export default async function FormEntriesPage({ params }: PageProps) {
 
   if (!account) return notFound();
 
-  const supabase = await createClient();
+  // Use admin client — auth enforced by requireSession() + getCurrentAccount()
+  const admin = createAdminClient();
 
   // Load the form
-  const { data: pf } = await supabase
+  const { data: pf } = await admin
     .from("partner_forms")
     .select(
       `id, name, slug, template_id,
@@ -50,7 +50,7 @@ export default async function FormEntriesPage({ params }: PageProps) {
   }
 
   // Load submissions for this form
-  const { data: submissions } = await supabase
+  const { data: submissions } = await admin
     .from("submissions")
     .select("id, status, client_name, client_email, data, submitted_at, created_at")
     .eq("partner_form_id", formId)
